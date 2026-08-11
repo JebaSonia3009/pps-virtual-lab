@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programming and Problem Solving — Virtual Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:14px 24px;
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+  .brand{font-family:Newsreader,serif; font-size:22px; font-weight:600; letter-spacing:-.01em}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:14px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:220px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:28px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:28px 34px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:31px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:26px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:28px 0 8px}
+  h2:first-child{margin-top:0}
+  section{display:none}
+  section.on{display:block}
+  ul,ol{padding-left:22px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+
+  .unit{margin:26px 0}
+  .unit-head{display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--teal);
+    padding-bottom:6px; margin-bottom:4px; flex-wrap:wrap}
+  .unit-head .u{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+    letter-spacing:.08em; color:var(--gold)}
+  .unit-head h3{margin:0; font-family:Newsreader,serif; font-weight:600; font-size:21px}
+  .unit-head .hrs{margin-left:auto; font-size:13px; color:var(--ink-soft)}
+  .exp{border-bottom:1px solid var(--line); padding:13px 2px; display:flex; gap:16px; align-items:flex-start}
+  .exp .num{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--teal);
+    font-size:14px; padding-top:3px; min-width:26px}
+  .exp h4{margin:0 0 3px; font-size:17px; font-weight:700}
+  .exp p{margin:0; font-size:15px; color:var(--ink-soft)}
+  .status{font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700;
+    color:var(--gold); background:#fdf4e0; border-radius:3px; padding:3px 8px;
+    white-space:nowrap; margin-left:auto; align-self:center}
+  .status.live{color:#1f7a4d; background:#e4f4ec}
+  .status.next{color:#1d4f8c; background:#e5eefa}
+
+  @media (max-width:860px){
+    .shell{grid-template-columns:1fr}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:20px 16px 60px}
+    .exp{flex-wrap:wrap}
+    .status{margin-left:42px}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">SRM Institute of Science and Technology, Kattankulathur &rsaquo; Computer Science and Engineering</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Programming and Problem Solving</h1>
+    <div class="sub">A virtual laboratory in C · Five units · Fourteen experiments</div>
+
+    <!-- INTRODUCTION -->
+    <section id="intro" class="on">
+      <h2>Introduction</h2>
+      <p>Beginning programmers can usually write a C program that compiles, yet still be unable to say
+      why it produced the output it did. The gap is that a compiler hides everything interesting: how a
+      value is stored in memory, why <code>5/2</code> is <code>2</code> and not <code>2.5</code>, how
+      the call stack grows and shrinks during recursion, where the null terminator sits at the end of a
+      string, and what actually happens on the heap when <code>malloc</code> is called.</p>
+
+      <p>This virtual lab makes those hidden steps visible. Each experiment pairs a short body of theory
+      with an interactive simulation that executes a C construct one step at a time, showing the state
+      of memory and the reason for every decision as it happens. Students then work through a practice
+      section where they predict the behaviour themselves and receive a hint, rather than the answer,
+      when they are wrong.</p>
+
+      <p>The lab complements the physical programming laboratory rather than replacing it. Students
+      still write and compile their own code; the virtual lab explains what the machine did with it. It
+      runs entirely in a web browser, needs no installation and no login, and works on a phone as well
+      as on a desktop computer.</p>
+    </section>
+
+    <!-- OBJECTIVE -->
+    <section id="objective">
+      <h2>Objectives</h2>
+      <p>The key objectives of this virtual lab are:</p>
+      <ol>
+        <li>To give students a concrete mental model of memory in C — how values of each data type are
+        stored, how arrays occupy contiguous locations, how the stack holds function calls, and how the
+        heap is managed by hand.</li>
+        <li>To make the order of evaluation visible, so that operator precedence, associativity, type
+        promotion and short-circuit logic become predictable rather than memorised.</li>
+        <li>To let students observe control flow directly: the path taken through a decision, the
+        iterations of a loop, and the expansion and contraction of the call stack during recursion.</li>
+        <li>To support reasoning about cost, by counting iterations, recursive calls and memory used, so
+        that students can compare an iterative and a recursive solution on evidence.</li>
+        <li>To develop the habit of predicting a program's output before running it, which is the
+        foundation of debugging.</li>
+        <li>To provide self-assessment through graded pretests and posttests attached to every
+        experiment.</li>
+      </ol>
+    </section>
+
+    <!-- EXPERIMENTS -->
+    <section id="experiments">
+      <h2>List of Experiments</h2>
+      <p class="note">Experiments are released as they are completed. Each contains Aim, Theory,
+      Procedure, Pretest, Demo, Practice, Posttest, References, Contributors and Feedback.</p>
+
+      <!-- UNIT 1 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 1</span><h3>Decision Making</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.1</div>
+          <div>
+            <h4>Memory, Data Types and Assignment</h4>
+            <p>Size, range and storage of int, float and char. Format specifiers, overflow, and tracing
+            program state through assignment statements including variable swapping.</p>
+          </div>
+          <span class="status next">Building first</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.2</div>
+          <div>
+            <h4>Expression Evaluation and Operator Precedence</h4>
+            <p>Step-by-step collapse of an arithmetic expression. Precedence, associativity, integer
+            division and type promotion.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.3</div>
+          <div>
+            <h4>Decision Making: if…else and switch</h4>
+            <p>Flowchart tracing for if, if…else and else-if ladders. Boolean expressions and range
+            checks. Case selection, fall-through when break is missing, and a comparison of switch with
+            the else-if ladder.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+      </div>
+
+      <!-- UNIT 2 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 2</span><h3>Modularity</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">2.1</div>
+          <div>
+            <h4>Functions, the Call Stack and Pointers</h4>
+            <p>Stack frames created and destroyed as functions are called and return. Pass by value
+            compared with pass by reference, with pointer variables shown as arrows into memory.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">2.2</div>
+          <div>
+            <h4>Recursion and the Call Stack</h4>
+            <p>The stack expanding to the base case and contracting as values return. Recursion tree and
+            stack shown side by side for factorial, digit counting, GCD and palindrome checking.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+      </div>
+
+      <!-- UNIT 3 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 3</span><h3>Array and String</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.1</div>
+          <div>
+            <h4>Array Memory Layout and Indexing</h4>
+            <p>Contiguous storage, address arithmetic, why indices start at zero, and what happens when
+            an index goes out of bounds.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.2</div>
+          <div>
+            <h4>Strings and String Functions</h4>
+            <p>The null terminator and its consequences. Character-by-character execution of strlen,
+            strcpy, strcat, strcmp, strchr and strstr, with the buffer shown throughout.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.3</div>
+          <div>
+            <h4>Loop Tracing: while, do…while and for</h4>
+            <p>Iteration tables showing the condition test, body and update in order. Why do…while
+            always executes once. Linear search animated for successful and unsuccessful cases.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+      </div>
+
+      <!-- UNIT 4 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 4</span><h3>Structured Iterations</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.1</div>
+          <div>
+            <h4>Nested Loops and Pattern Generation</h4>
+            <p>The i–j iteration table alongside the output being printed cell by cell. Iteration counts
+            for patterns such as the hollow square.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.2</div>
+          <div>
+            <h4>Two-Dimensional Arrays and Matrix Traversal</h4>
+            <p>Row-major storage in memory. Row sums, column sums, diagonals, and testing a matrix for
+            sparseness.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.3</div>
+          <div>
+            <h4>Searching and Sorting: Recursion against Iteration</h4>
+            <p>Bubble sort traced pass by pass with comparison and swap counts. Binary search
+            implemented both ways, reporting recursive calls made against loop iterations, together with
+            the stack cost of each.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+      </div>
+
+      <!-- UNIT 5 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 5</span><h3>Memory Driven Problems</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.1</div>
+          <div>
+            <h4>Structures and Arrays of Structures</h4>
+            <p>Field layout in a memory block. Structures passed by value compared with by reference,
+            showing when a copy is made and when the original is modified.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.2</div>
+          <div>
+            <h4>Dynamic Memory Allocation</h4>
+            <p>A live view of the heap through malloc, calloc, realloc and free. Uninitialised memory
+            compared with zeroed memory, the cost of resizing, and what a memory leak or a dangling
+            pointer looks like.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.3</div>
+          <div>
+            <h4>File Handling</h4>
+            <p>The file position indicator moving through a text file as fscanf and fgets read from it,
+            and why testing feof after a read behaves differently from testing it before.</p>
+          </div>
+          <span class="status">Planned</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARGET AUDIENCE -->
+    <section id="audience">
+      <h2>Target Audience</h2>
+      <ul>
+        <li>First-year undergraduate students of engineering taking an introductory programming course
+        in C, across all branches.</li>
+        <li>Diploma and polytechnic students studying computer programming fundamentals.</li>
+        <li>Students in higher semesters revising C before a data structures course or a placement
+        examination.</li>
+        <li>Teachers who wish to demonstrate memory layout, expression evaluation, recursion and
+        dynamic allocation during a classroom lecture.</li>
+      </ul>
+      <p>No prior programming experience is assumed. A student needs only a web browser and an internet
+      connection.</p>
+    </section>
+
+    <!-- COURSE ALIGNMENT -->
+    <section id="alignment">
+      <h2>Course Alignment</h2>
+      <p>This lab covers the full syllabus of the Programming and Problem Solving course offered in the
+      first year at SRM Institute of Science and Technology, Kattankulathur.</p>
+
+      <table>
+        <tr><th>Course code</th><td>[to be filled]</td></tr>
+        <tr><th>Course title</th><td>Programming and Problem Solving</td></tr>
+        <tr><th>Programme</th><td>B.Tech, First Year</td></tr>
+        <tr><th>Structure</th><td>Five units of 12 hours each</td></tr>
+      </table>
+
+      <h2>Mapping to units and course outcomes</h2>
+      <table>
+        <tr><th>Unit</th><th>Title</th><th>Experiments</th><th>Course outcome</th></tr>
+        <tr><td>1</td><td>Decision Making</td><td>1.1, 1.2, 1.3</td><td>[CO1]</td></tr>
+        <tr><td>2</td><td>Modularity</td><td>2.1, 2.2</td><td>[CO2]</td></tr>
+        <tr><td>3</td><td>Array and String</td><td>3.1, 3.2, 3.3</td><td>[CO3]</td></tr>
+        <tr><td>4</td><td>Structured Iterations</td><td>4.1, 4.2, 4.3</td><td>[CO4]</td></tr>
+        <tr><td>5</td><td>Memory Driven Problems</td><td>5.1, 5.2, 5.3</td><td>[CO5]</td></tr>
+      </table>
+      <p class="note">Course code and course outcome statements to be completed from the approved
+      syllabus document.</p>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section id="feedback">
+      <h2>Feedback</h2>
+      <p>Feedback from students and teachers is used to improve the experiments and to measure whether
+      the lab is achieving its learning outcomes.</p>
+      <div class="panel">
+        <p style="margin:0">The feedback form will be linked here once the first experiments are
+        released.</p>
+      </div>
+
+      <h2>Contributors</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr>
+          <td>Dr. Jeba Sonia J</td>
+          <td>Concept, content and academic review</td>
+          <td>Department of Computer Science and Engineering,<br>
+              SRM Institute of Science and Technology, Kattankulathur</td>
+        </tr>
+      </table>
+      <p class="note">Correct the name, title and department above if anything is inaccurate. Student
+      developers are added here as experiments are completed.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+  const SECTIONS = {
+    intro:"Introduction", objective:"Objective", experiments:"List of Experiments",
+    audience:"Target Audience", alignment:"Course Alignment", feedback:"Feedback"
+  };
+  const nav = document.getElementById("nav");
+  Object.keys(SECTIONS).forEach((id, i) => {
+    const b = document.createElement("button");
+    b.textContent = SECTIONS[id];
+    b.dataset.target = id;
+    b.setAttribute("aria-current", i === 0);
+    b.onclick = () => show(id);
+    nav.appendChild(b);
+  });
+  function show(id){
+    Object.keys(SECTIONS).forEach(s =>
+      document.getElementById(s).classList.toggle("on", s === id));
+    [...nav.children].forEach(b =>
+      b.setAttribute("aria-current", b.dataset.target === id));
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+</script>
+</body>
+</html>
