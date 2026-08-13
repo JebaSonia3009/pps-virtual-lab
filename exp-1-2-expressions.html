@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 1.2 — Expression Evaluation and Operator Precedence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:14px 24px;
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+  .brand{font-family:Newsreader,serif; font-size:22px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:14px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:220px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:28px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:28px 34px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:24px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:28px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 15px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:14px 0}
+  select,input[type=text]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text]{font-family:"IBM Plex Mono",monospace}
+
+  /* --- expression display --- */
+  .exprbox{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .exprbox h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .expr{font-family:"IBM Plex Mono",monospace; font-size:26px; padding:26px 16px; text-align:center;
+    line-height:1.9; word-spacing:2px}
+  .expr .tok{padding:2px 3px; border-radius:3px}
+  .expr .op{color:var(--ink-soft)}
+  .expr .hot{background:#fdf4e0; box-shadow:0 0 0 2px var(--gold); border-radius:4px; color:var(--ink)}
+  .expr .new{background:var(--teal-soft); box-shadow:0 0 0 2px var(--teal); border-radius:4px; font-weight:600}
+  .expr .paren{color:var(--gold)}
+  .steps{font-family:"IBM Plex Mono",monospace; font-size:15px; padding:10px 14px; max-height:200px; overflow:auto}
+  .steps div{padding:3px 0; border-bottom:1px dotted var(--line); display:flex; gap:10px}
+  .steps .k{color:#9fb0b6; min-width:22px; text-align:right}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:16px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:62px}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
+
+  .quiz .q{margin:18px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:20px 16px 60px}
+    .grid2{grid-template-columns:1fr}
+    .expr{font-size:20px; padding:18px 10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb"><a href="index.html">Programming and Problem Solving</a> &rsaquo; Unit 1 &rsaquo; Experiment 1.2</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Expression Evaluation and Operator Precedence</h1>
+    <div class="sub">Unit 1 · Decision Making · Estimated time: 45 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand the order in which C evaluates the operators in an arithmetic expression, and how
+      the types of the operands decide the type and value of the result.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>State the relative precedence of the arithmetic operators and the effect of parentheses.</li>
+        <li>Apply associativity to decide the order of two operators of equal precedence.</li>
+        <li>Predict the result of integer division and of the modulus operator, including with negative
+        operands.</li>
+        <li>Explain implicit type promotion and identify where an expression changes from integer to
+        floating-point arithmetic.</li>
+        <li>Reduce a compound expression to its final value one operator at a time, in the correct
+        order.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>Experiment 1.1 — data types, memory and assignment.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>An expression such as <code>a + b * c</code> contains more than one operator, so the compiler
+      must decide which to apply first. That decision is not made left to right. It is governed by two
+      fixed rules — precedence and associativity — and can be overridden only by parentheses.</p>
+
+      <h2>Precedence</h2>
+      <p>Every operator has a precedence level. An operator of higher precedence binds its operands
+      more tightly and is therefore applied first.</p>
+      <table>
+        <tr><th>Level</th><th>Operators</th><th>Associativity</th></tr>
+        <tr><td>Highest</td><td><code>( )</code></td><td>Left to right</td></tr>
+        <tr><td></td><td>Unary <code>-</code> (negation)</td><td>Right to left</td></tr>
+        <tr><td></td><td><code>*</code> &nbsp; <code>/</code> &nbsp; <code>%</code></td><td>Left to right</td></tr>
+        <tr><td>Lowest</td><td><code>+</code> &nbsp; <code>-</code></td><td>Left to right</td></tr>
+      </table>
+      <p>So in <code>a + b * c</code>, the multiplication is performed first and its result becomes the
+      right operand of the addition. Parentheses raise a subexpression to the top of the order:
+      <code>(a + b) * c</code> forces the addition first.</p>
+
+      <h2>Associativity</h2>
+      <p>Precedence does not settle everything. In <code>100 / 5 * 2</code>, both operators sit at the
+      same level. Associativity decides: the arithmetic operators associate left to right, so the
+      division happens first, giving <code>20 * 2</code> and a result of 40. Reading it as
+      <code>100 / (5 * 2)</code> would give 10, which is a common and costly mistake.</p>
+
+      <h2>Integer division</h2>
+      <p>The <code>/</code> operator does not have one meaning. When both operands are integers, C
+      performs integer division and discards the fractional part: <code>7 / 2</code> is <code>3</code>,
+      not 3.5. The result is truncated towards zero, so <code>-7 / 2</code> is <code>-3</code>. If
+      either operand is a floating-point value, the same symbol performs real division instead.</p>
+      <p>This is why <code>float avg = total / n;</code> so often produces a wrong average. If
+      <code>total</code> and <code>n</code> are both <code>int</code>, the division is done in integer
+      arithmetic and the fraction is lost <em>before</em> the result is stored in the float.</p>
+
+      <h2>The modulus operator</h2>
+      <p><code>%</code> yields the remainder after integer division and requires both operands to be
+      integers; applying it to a <code>float</code> is a compile-time error. In C the result takes the
+      sign of the left operand, so <code>-7 % 2</code> is <code>-1</code> while <code>7 % -2</code> is
+      <code>1</code>. The identity <code>(a / b) * b + a % b == a</code> holds in every case.</p>
+
+      <h2>Implicit type promotion</h2>
+      <p>When an operator receives one integer and one floating-point operand, the integer is converted
+      to floating-point first and the operation is carried out in floating-point. The conversion applies
+      to a single operation, not to the whole expression, so an expression can begin in integer
+      arithmetic and switch part of the way through.</p>
+      <p>Compare these two:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">5 / 2 * 2.0   →  2 * 2.0    →  4.0     /* division done first, in integers */
+2.0 * 5 / 2   →  10.0 / 2   →  5.0     /* promotion happens before the division */</pre>
+      </div>
+      <p>The same three numbers and the same three operators give different answers, purely because of
+      where the promotion occurred.</p>
+
+      <h2>How the reduction proceeds</h2>
+      <p>Evaluating an expression is a sequence of reductions. At each step the compiler finds the
+      operator that must be applied next, replaces it and its two operands with a single value, and
+      repeats until one value remains. The Demo shows exactly this, one reduction at a time.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo and select the first example. Before pressing Step, decide which operator you
+      think will be applied next and why. Press Step and check whether the highlighted operator is the
+      one you chose.</p>
+      <h3>Step 3</h3>
+      <p>Work through every example in the dropdown. Pay particular attention to the pair
+      <code>5 / 2 * 2.0</code> and <code>2.0 * 5 / 2</code>, and note where the arithmetic changes from
+      integer to floating-point.</p>
+      <h3>Step 4</h3>
+      <p>Type your own expression into the box and run it. Try to construct an expression whose value
+      you can predict but which surprises a classmate.</p>
+      <h3>Step 5</h3>
+      <p>Open Practice. For each generated expression, write the answer on paper first, then enter it.
+      Complete at least eight expressions correctly, including some with a modulus operator.</p>
+      <h3>Step 6</h3>
+      <p>Attempt the Posttest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores are shown immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <div class="controls">
+        <label class="note">Example <select id="ex"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-step">Step</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+      </div>
+      <div class="controls">
+        <label class="note">Or type your own
+          <input type="text" id="d-own" size="26" placeholder="e.g. 7 + 3 * 2 % 4">
+        </label>
+        <button class="btn ghost" id="d-load">Load</button>
+        <span class="note" id="d-err" style="color:var(--no)"></span>
+      </div>
+
+      <div class="grid2">
+        <div class="exprbox">
+          <h4>Expression</h4>
+          <div class="expr" id="d-expr"></div>
+        </div>
+        <div class="exprbox">
+          <h4>Reduction history</h4>
+          <div class="steps" id="d-steps"></div>
+        </div>
+      </div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to apply the first operator.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+      <p>Work out the value of the expression on paper, then enter it. Integer results must be written
+      as whole numbers; floating-point results may be written to one or two decimal places.</p>
+
+      <div class="controls">
+        <label class="note">Difficulty
+          <select id="p-level">
+            <option value="1">Beginner — two operators</option>
+            <option value="2" selected>Intermediate — three operators, modulus</option>
+            <option value="3">Advanced — parentheses and type promotion</option>
+          </select>
+        </label>
+        <button class="btn" id="p-new">New expression</button>
+        <strong id="p-score">Correct 0 · Attempts 0</strong>
+      </div>
+
+      <div class="exprbox">
+        <h4>Evaluate this</h4>
+        <div class="expr" id="p-expr"></div>
+      </div>
+
+      <div class="controls">
+        <input type="text" id="p-ans" size="14" placeholder="your answer">
+        <button class="btn" id="p-check">Check</button>
+        <button class="btn ghost" id="p-show" disabled>Show the reduction</button>
+      </div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="p-obs">Enter your predicted value and press Check.</div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 2, Section 2.12 (Precedence and Order of Evaluation), Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapter 4 (Operators and Expressions),
+        McGraw Hill Education.</li>
+        <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapter 3, McGraw Hill.</li>
+        <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.5 (Expressions) and clause
+        6.3.1.8 (Usual arithmetic conversions).</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Contributors</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and academic review</td>
+            <td>Department of Computer Science and Engineering,<br>SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", practice:"Practice", posttest:"Posttest", references:"References",
+  contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   EXPRESSION ENGINE
+   Tokenise, then repeatedly reduce the next applicable operator.
+   Values carry a C type: "int" or "float".
+   ============================================================ */
+const PREC={"*":2,"/":2,"%":2,"+":1,"-":1};
+
+function tokenize(src){
+  const t=[]; let i=0;
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    // unary minus: at the start, or straight after another operator or an open bracket
+    const prev=t[t.length-1];
+    const unary = c==="-" && /[0-9.]/.test(src[i+1]||"") &&
+                  (!prev || prev.k==="op" || (prev.k==="paren" && prev.v==="("));
+    if(!unary && "+-*/%()".includes(c)){t.push({k:c==="("||c===")"?"paren":"op", v:c}); i++; continue;}
+    if(/[0-9.]/.test(c) || unary){
+      let j=unary?i+1:i; while(j<src.length && /[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      if((lit.match(/\./g)||[]).length>1) throw new Error("Malformed number: "+lit);
+      t.push({k:"num", type: lit.includes(".")?"float":"int", v:parseFloat(lit), lit});
+      i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Expression is empty");
+  return t;
+}
+
+function fmt(tok){
+  if(tok.type==="int") return String(tok.v);
+  const s=tok.v.toFixed(6).replace(/0+$/,"").replace(/\.$/,".0");
+  return s;
+}
+
+/* find index of the operator to apply next */
+function nextOp(t){
+  // innermost parentheses first
+  let open=-1;
+  for(let i=0;i<t.length;i++){
+    if(t[i].k==="paren"&&t[i].v==="(") open=i;
+    if(t[i].k==="paren"&&t[i].v===")"){
+      const inner=t.slice(open+1,i);
+      if(inner.length===1) return {kind:"unwrap", open, close:i};
+      const rel=pickIn(inner);
+      return {kind:"apply", idx:open+1+rel, scope:[open+1,i]};
+    }
+  }
+  if(t.length===1) return null;
+  const rel=pickIn(t);
+  return rel===null?null:{kind:"apply", idx:rel, scope:[0,t.length]};
+}
+function pickIn(seg){
+  let best=null, bestP=0;
+  for(let i=0;i<seg.length;i++){
+    if(seg[i].k==="op"&&i>0&&seg[i-1].k==="num"){        // binary operator
+      const p=PREC[seg[i].v];
+      if(p>bestP){bestP=p; best=i;}                       // left-to-right: strictly greater
+    }
+  }
+  return best;
+}
+
+function applyAt(t,idx){
+  const L=t[idx-1], O=t[idx].v, R=t[idx+1];
+  if(!L||!R||L.k!=="num"||R.k!=="num") throw new Error("Malformed expression");
+  const bothInt = L.type==="int" && R.type==="int";
+  let type = bothInt?"int":"float", val, note;
+
+  if(O==="%"){
+    if(!bothInt) throw new Error("% cannot be used with a floating-point operand");
+    val = L.v % R.v;
+    note=`<code>%</code> gives the remainder after integer division. The sign follows the left operand, so ${L.v} % ${R.v} is ${val}.`;
+  }else if(O==="/"){
+    if(R.v===0) throw new Error("Division by zero");
+    if(bothInt){ val=Math.trunc(L.v/R.v);
+      note=`Both operands are <code>int</code>, so this is <strong>integer division</strong>: ${L.v} / ${R.v} is ${L.v/R.v}, truncated towards zero to give ${val}.`;
+    }else{ val=L.v/R.v;
+      note=`One operand is floating-point, so the other is promoted and real division is performed, giving ${fmt({v:val,type:"float"})}.`;
+    }
+  }else{
+    val = O==="+" ? L.v+R.v : O==="-" ? L.v-R.v : L.v*R.v;
+    note = bothInt
+      ? `Both operands are <code>int</code>, so the result stays an <code>int</code>.`
+      : `One operand is floating-point, so ${L.type==="int"?fmt(L):fmt(R)} is promoted to <code>float</code> and the arithmetic is done in floating-point.`;
+  }
+  const out={k:"num", type, v:val};
+  const nt=t.slice(0,idx-1).concat([out], t.slice(idx+2));
+  return {tokens:nt, result:out, reason:note, opText:`${fmt(L)} ${O} ${fmt(R)}`, at:idx-1};
+}
+
+function whyThisOne(t,idx,scope){
+  const op=t[idx].v, p=PREC[op];
+  const [s,e]=scope;
+  let sameLevelLeft=false, higherElsewhere=false;
+  for(let i=s;i<e;i++){
+    if(i===idx||t[i].k!=="op"||i===0||t[i-1].k!=="num") continue;
+    if(PREC[t[i].v]===p && i<idx) sameLevelLeft=true;
+    if(PREC[t[i].v]>p) higherElsewhere=true;
+  }
+  if(higherElsewhere) return "";
+  const others=[];
+  for(let i=s;i<e;i++){
+    if(i===idx||t[i].k!=="op"||i===0||t[i-1].k!=="num") continue;
+    others.push(t[i].v);
+  }
+  if(!others.length) return `<code>${op}</code> is the only operator left.`;
+  const lower=others.filter(o=>PREC[o]<p);
+  if(lower.length) return `<code>${op}</code> has higher precedence than <code>${lower[0]}</code>, so it is applied first.`;
+  if(sameLevelLeft) return "";
+  return `<code>${op}</code> and <code>${others[0]}</code> have equal precedence, so left-to-right associativity applies and the leftmost is taken.`;
+}
+
+function render(tokens,hot,fresh){
+  return tokens.map((t,i)=>{
+    let cls="tok"+(t.k==="op"?" op":"")+(t.k==="paren"?" paren":"");
+    if(hot&&i>=hot[0]&&i<=hot[1]) cls+=" hot";
+    if(fresh===i) cls+=" new";
+    return `<span class="${cls}">${t.k==="num"?fmt(t):t.v}</span>`;
+  }).join(" ");
+}
+
+/* Build the full reduction trace for an expression */
+function trace(src){
+  let t=tokenize(src);
+  const frames=[{tokens:t.slice(), hot:null, fresh:null, note:"The expression as written."}];
+  let guard=0;
+  while(guard++<60){
+    const n=nextOp(t);
+    if(!n) break;
+    if(n.kind==="unwrap"){
+      const inner=t[n.open+1];
+      t=t.slice(0,n.open).concat([inner], t.slice(n.close+1));
+      frames.push({tokens:t.slice(), hot:null, fresh:n.open,
+        note:"The parentheses have served their purpose and are removed."});
+      continue;
+    }
+    const Lt=t[n.idx-1], Rt=t[n.idx+1];
+    if(!Lt||!Rt||Lt.k!=="num"||Rt.k!=="num")
+      throw new Error("Malformed expression — an operator is missing an operand");
+    const why=whyThisOne(t,n.idx,n.scope);
+    const inParens = n.scope[0]!==0 || n.scope[1]!==t.length;
+    frames.push({tokens:t.slice(), hot:[n.idx-1,n.idx+1], fresh:null,
+      note:(inParens?"Parentheses are evaluated first. ":"")+
+           (why||`Applying <code>${t[n.idx].v}</code>.`)+
+           ` Next: <strong>${fmt(t[n.idx-1])} ${t[n.idx].v} ${fmt(t[n.idx+1])}</strong>`, pending:true});
+    const r=applyAt(t,n.idx);
+    t=r.tokens;
+    frames.push({tokens:t.slice(), hot:null, fresh:r.at,
+      note:`<strong>${r.opText} = ${fmt(r.result)}</strong> &nbsp;— ${r.reason}`, done:r});
+  }
+  const fin=t[0];
+  if(t.length!==1 || fin.k!=="num") throw new Error("Malformed expression");
+  frames.push({tokens:t.slice(), hot:null, fresh:0, final:fin,
+    note:`One value remains. The expression evaluates to <strong>${fmt(fin)}</strong>, of type <code>${fin.type}</code>.`});
+  return frames;
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const EXAMPLES=[
+  {e:"2 + 3 * 4",        t:"Precedence: multiplication before addition"},
+  {e:"100 / 5 * 2",      t:"Associativity: equal precedence, left to right"},
+  {e:"(2 + 3) * 4",      t:"Parentheses override precedence"},
+  {e:"7 / 2",            t:"Integer division truncates"},
+  {e:"7 / 2.0",          t:"One float operand changes everything"},
+  {e:"5 / 2 * 2.0",      t:"Promotion happens too late"},
+  {e:"2.0 * 5 / 2",      t:"Promotion happens in time"},
+  {e:"17 % 5 + 3",       t:"Modulus sits with multiplication and division"},
+  {e:"10 + 20 % 7 * 2",  t:"Three levels at once"},
+  {e:"(8 + 4) / (5 - 2)",t:"Two parenthesised groups"}
+];
+const exSel=document.getElementById("ex");
+EXAMPLES.forEach((x,i)=>{
+  const o=document.createElement("option"); o.value=i; o.textContent=`${x.e}   —  ${x.t}`; exSel.appendChild(o);
+});
+const dExpr=document.getElementById("d-expr"), dSteps=document.getElementById("d-steps"),
+      dObs=document.getElementById("d-obs"), dErr=document.getElementById("d-err");
+let dFrames=[], dIdx=0, dTimer=null;
+
+function demoLoad(src){
+  dErr.textContent="";
+  try{ dFrames=trace(src); }
+  catch(err){ dErr.textContent=err.message; return; }
+  dIdx=0; clearInterval(dTimer); dTimer=null;
+  document.getElementById("d-run").textContent="Run";
+  dSteps.innerHTML="";
+  paint();
+}
+function paint(){
+  const f=dFrames[dIdx];
+  dExpr.innerHTML=render(f.tokens,f.hot,f.fresh);
+  dObs.innerHTML=f.note;
+}
+function demoStep(){
+  if(dIdx>=dFrames.length-1){clearInterval(dTimer); dTimer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  dIdx++; paint();
+  const f=dFrames[dIdx];
+  if(f.done||f.final){
+    const d=document.createElement("div");
+    const n=dSteps.children.length+1;
+    d.innerHTML=`<span class="k">${n}</span><span>${f.final?"= "+fmt(f.final)+"  (final)":f.done.opText+" = "+fmt(f.done.result)}</span>`;
+    dSteps.appendChild(d); dSteps.scrollTop=dSteps.scrollHeight;
+  }
+}
+exSel.onchange=()=>demoLoad(EXAMPLES[+exSel.value].e);
+document.getElementById("d-step").onclick=demoStep;
+document.getElementById("d-reset").onclick=()=>demoLoad(dSrc());
+document.getElementById("d-load").onclick=()=>{
+  const v=document.getElementById("d-own").value.trim();
+  if(v) demoLoad(v);
+};
+document.getElementById("d-own").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault(); document.getElementById("d-load").click();}
+});
+function dSrc(){
+  const own=document.getElementById("d-own").value.trim();
+  return own || EXAMPLES[+exSel.value].e;
+}
+document.getElementById("d-run").onclick=function(){
+  if(dTimer){clearInterval(dTimer); dTimer=null; this.textContent="Run"; return;}
+  if(dIdx>=dFrames.length-1) demoLoad(dSrc());
+  this.textContent="Pause";
+  dTimer=setInterval(demoStep,1100);
+};
+demoLoad(EXAMPLES[0].e);
+
+/* ============================================================
+   PRACTICE
+   ============================================================ */
+const pExpr=document.getElementById("p-expr"), pObs=document.getElementById("p-obs"),
+      pScoreEl=document.getElementById("p-score");
+let pSrc="", pVal=null, pRight=0, pTries=0;
+const R=n=>Math.floor(Math.random()*n);
+const pick=a=>a[R(a.length)];
+
+function genExpr(level){
+  const n=()=>R(18)+2;
+  if(level==="1"){
+    return `${n()} ${pick(["+","-"])} ${n()} ${pick(["*","/"])} ${n()}`;
+  }
+  if(level==="2"){
+    const forms=[
+      ()=>`${n()} + ${n()} % ${n()} * ${n()}`,
+      ()=>`${n()*4} / ${R(4)+2} * ${R(5)+2}`,
+      ()=>`${n()} - ${n()} / ${R(4)+2} + ${n()}`,
+      ()=>`${n()} % ${R(6)+2} + ${n()} * ${R(4)+2}`
+    ];
+    return pick(forms)();
+  }
+  const forms=[
+    ()=>`(${n()} + ${n()}) * ${R(5)+2} - ${n()}`,
+    ()=>`${n()} / ${R(4)+2} * ${pick(["2.0","4.0","0.5"])}`,
+    ()=>`${pick(["2.0","3.0","1.5"])} * ${n()} / ${R(4)+2}`,
+    ()=>`(${n()} - ${n()}) / ${R(4)+2} + ${n()} % ${R(5)+2}`,
+    ()=>`${n()} + ${n()} * (${n()} - ${R(6)+2}) / ${R(4)+2}`
+  ];
+  return pick(forms)();
+}
+function newPractice(){
+  const lvl=document.getElementById("p-level").value;
+  for(let k=0;k<40;k++){
+    const src=genExpr(lvl);
+    try{
+      const fr=trace(src);
+      const fin=fr[fr.length-1].final;
+      if(!isFinite(fin.v)) continue;
+      pSrc=src; pVal=fin;
+      pExpr.innerHTML=render(tokenize(src),null,null);
+      pObs.textContent="Enter your predicted value and press Check.";
+      document.getElementById("p-ans").value="";
+      document.getElementById("p-show").disabled=true;
+      return;
+    }catch(e){ /* try again */ }
+  }
+}
+document.getElementById("p-new").onclick=newPractice;
+document.getElementById("p-level").onchange=newPractice;
+document.getElementById("p-check").onclick=()=>{
+  const raw=document.getElementById("p-ans").value.trim();
+  if(raw===""){pObs.textContent="Enter a value before checking."; return;}
+  const given=parseFloat(raw);
+  if(isNaN(given)){pObs.textContent="That is not a number."; return;}
+  pTries++;
+  const ok = pVal.type==="int" ? given===pVal.v : Math.abs(given-pVal.v)<0.01;
+  if(ok){
+    pRight++;
+    pObs.innerHTML=`<span style="color:var(--ok); font-weight:600">Correct.</span> The value is
+      <strong>${fmt(pVal)}</strong>, of type <code>${pVal.type}</code>.`;
+  }else{
+    const fr=trace(pSrc);
+    const firstOp=fr.find(f=>f.pending);
+    pObs.innerHTML=`<span style="color:var(--no); font-weight:600">Not correct.</span> ${firstOp?firstOp.note.replace(/Next: <strong>.*<\/strong>/,""):""}
+      Work through it one operator at a time, and check whether any division has integer operands.`;
+  }
+  document.getElementById("p-show").disabled=false;
+  pScoreEl.textContent=`Correct ${pRight} · Attempts ${pTries}`;
+};
+document.getElementById("p-ans").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault(); document.getElementById("p-check").click();}
+});
+document.getElementById("p-show").onclick=()=>{
+  const fr=trace(pSrc).filter(f=>f.done||f.final);
+  pObs.innerHTML=fr.map((f,i)=>
+    `<div style="font-family:'IBM Plex Mono',monospace; font-size:14px; padding:2px 0">
+      ${i+1}. ${f.final?"= "+fmt(f.final)+"  (final value)":f.done.opText+" = "+fmt(f.done.result)}</div>`).join("");
+};
+newPractice();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"What is the value of 2 + 3 * 4 in C?", o:["20","14","24","9"], a:1},
+    {q:"Which operator has the highest precedence among + - * /?", o:["+","-","* and / equally","They are all equal"], a:2},
+    {q:"In C, what is 7 / 2 when both operands are int?", o:["3.5","4","3","0"], a:2},
+    {q:"What does the % operator return?", o:["A percentage","The remainder after integer division","The quotient","The larger operand"], a:1}
+  ],
+  post:[
+    {q:"What is 100 / 5 * 2?", o:["10","40","1000","50"], a:1},
+    {q:"float avg = 7 / 2; stores what value in avg?", o:["3.5","3.0","4.0","A compile error"], a:1},
+    {q:"What is the value of 5 / 2 * 2.0?", o:["5.0","4.0","2.5","2.0"], a:1},
+    {q:"What is the value of 2.0 * 5 / 2?", o:["5.0","4.0","2.5","10.0"], a:0},
+    {q:"In C, what is -7 % 2?", o:["1","-1","0","2"], a:1},
+    {q:"Applying % to a float operand causes:", o:["Rounding to the nearest int","A compile-time error","The float part to be ignored","Division instead"], a:1},
+    {q:"In 10 + 20 % 7 * 2, which operation is performed first?",
+     o:["10 + 20","20 % 7","7 * 2","It is undefined"], a:1}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${it.q.replace(/</g,"&lt;")}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${o.replace(/</g,"&lt;")}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>
