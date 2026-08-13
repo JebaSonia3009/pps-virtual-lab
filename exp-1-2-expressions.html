@@ -51,25 +51,49 @@
     border-radius:var(--radius); background:#fff}
   input[type=text]{font-family:"IBM Plex Mono",monospace}
 
-  /* --- expression display --- */
-  .exprbox{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
-  .exprbox h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
     font-size:12px; letter-spacing:.07em; text-transform:uppercase}
-  .expr{font-family:"IBM Plex Mono",monospace; font-size:26px; padding:26px 16px; text-align:center;
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:start}
+
+  /* code panel */
+  .code{font-family:"IBM Plex Mono",monospace; font-size:14px; line-height:1.75;
+    padding:10px 0; margin:0; background:#fff}
+  .code .ln{display:flex; gap:12px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  /* memory panel */
+  .mem{padding:11px; display:flex; flex-direction:column; gap:8px; min-height:150px}
+  .var{border:1px solid var(--line); border-radius:var(--radius); padding:6px 9px; background:#fff}
+  .var.flash{border-color:var(--gold); background:#fffaf0}
+  .var .top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .var .nm{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+  .var .ty{font-size:11px; color:var(--teal); font-weight:700; letter-spacing:.04em; text-transform:uppercase}
+  .var .ad{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-soft)}
+  .var .val{font-family:"IBM Plex Mono",monospace; font-size:17px; font-weight:600}
+
+  /* expression reduction */
+  .expr{font-family:"IBM Plex Mono",monospace; font-size:25px; padding:24px 14px; text-align:center;
     line-height:1.9; word-spacing:2px}
   .expr .tok{padding:2px 3px; border-radius:3px}
   .expr .op{color:var(--ink-soft)}
+  .expr .id{color:var(--teal); font-weight:600}
   .expr .hot{background:#fdf4e0; box-shadow:0 0 0 2px var(--gold); border-radius:4px; color:var(--ink)}
   .expr .new{background:var(--teal-soft); box-shadow:0 0 0 2px var(--teal); border-radius:4px; font-weight:600}
   .expr .paren{color:var(--gold)}
-  .steps{font-family:"IBM Plex Mono",monospace; font-size:15px; padding:10px 14px; max-height:200px; overflow:auto}
-  .steps div{padding:3px 0; border-bottom:1px dotted var(--line); display:flex; gap:10px}
-  .steps .k{color:#9fb0b6; min-width:22px; text-align:right}
+  .expr .lhs{color:var(--ink-soft); font-size:20px}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:42px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
   .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:16px}
   .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
     font-size:12px; letter-spacing:.07em; text-transform:uppercase}
   .obsbody{padding:12px 14px; font-size:16px; min-height:62px}
-  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
+  .steps{font-family:"IBM Plex Mono",monospace; font-size:14px; padding:8px 12px; max-height:150px; overflow:auto}
+  .steps div{padding:2px 0; border-bottom:1px dotted var(--line); display:flex; gap:10px}
+  .steps .k{color:#9fb0b6; min-width:20px; text-align:right}
 
   .quiz .q{margin:18px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
   .quiz .q p{font-weight:600; margin:0 0 6px}
@@ -84,7 +108,7 @@
     nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
     main{padding:20px 16px 60px}
     .grid2{grid-template-columns:1fr}
-    .expr{font-size:20px; padding:18px 10px}
+    .expr{font-size:19px; padding:16px 8px}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -118,8 +142,8 @@
         operands.</li>
         <li>Explain implicit type promotion and identify where an expression changes from integer to
         floating-point arithmetic.</li>
-        <li>Reduce a compound expression to its final value one operator at a time, in the correct
-        order.</li>
+        <li>Trace a statement such as <code>result = a + b * c;</code> from the values held in memory
+        through to the value finally stored.</li>
       </ol>
 
       <h3>Prerequisites</h3>
@@ -132,6 +156,13 @@
       <p>An expression such as <code>a + b * c</code> contains more than one operator, so the compiler
       must decide which to apply first. That decision is not made left to right. It is governed by two
       fixed rules — precedence and associativity — and can be overridden only by parentheses.</p>
+
+      <h2>What happens in an assignment statement</h2>
+      <p>The statement <code>result = a + b * c;</code> is carried out in a definite order. First the
+      current values of <code>a</code>, <code>b</code> and <code>c</code> are fetched from memory and
+      substituted into the expression. Then the operators are applied one at a time until a single
+      value remains. Only then is that value stored into <code>result</code>. The variables on the
+      right are never modified — their values are read, not moved.</p>
 
       <h2>Precedence</h2>
       <p>Every operator has a precedence level. An operator of higher precedence binds its operands
@@ -160,7 +191,8 @@
       either operand is a floating-point value, the same symbol performs real division instead.</p>
       <p>This is why <code>float avg = total / n;</code> so often produces a wrong average. If
       <code>total</code> and <code>n</code> are both <code>int</code>, the division is done in integer
-      arithmetic and the fraction is lost <em>before</em> the result is stored in the float.</p>
+      arithmetic and the fraction is lost <em>before</em> the result is stored in the float. Widening
+      the destination does not recover what has already been thrown away.</p>
 
       <h2>The modulus operator</h2>
       <p><code>%</code> yields the remainder after integer division and requires both operands to be
@@ -184,7 +216,8 @@
       <h2>How the reduction proceeds</h2>
       <p>Evaluating an expression is a sequence of reductions. At each step the compiler finds the
       operator that must be applied next, replaces it and its two operands with a single value, and
-      repeats until one value remains. The Demo shows exactly this, one reduction at a time.</p>
+      repeats until one value remains. The Demo shows exactly this, alongside the program and the
+      contents of memory.</p>
     </section>
 
     <!-- PROCEDURE -->
@@ -193,20 +226,22 @@
       <h3>Step 1</h3>
       <p>Read the Theory and attempt the Pretest. Note your score.</p>
       <h3>Step 2</h3>
-      <p>Open the Demo and select the first example. Before pressing Step, decide which operator you
-      think will be applied next and why. Press Step and check whether the highlighted operator is the
-      one you chose.</p>
+      <p>Open the Demo and select the first program. Press Step and watch the declarations execute:
+      each variable appears in the memory panel as its line is reached.</p>
       <h3>Step 3</h3>
-      <p>Work through every example in the dropdown. Pay particular attention to the pair
-      <code>5 / 2 * 2.0</code> and <code>2.0 * 5 / 2</code>, and note where the arithmetic changes from
-      integer to floating-point.</p>
+      <p>Continue stepping. When the assignment statement is reached, the expression appears below with
+      the variable names still in place, and is then substituted with the values from memory. Before
+      each further press, decide which operator you think will be applied next and why, then check
+      against the highlighted operator.</p>
       <h3>Step 4</h3>
-      <p>Type your own expression into the box and run it. Try to construct an expression whose value
-      you can predict but which surprises a classmate.</p>
+      <p>Work through every program in the dropdown. Pay particular attention to <em>The average that
+      comes out wrong</em>, and to the pair <code>5 / 2 * 2.0</code> and <code>2.0 * 5 / 2</code>.</p>
       <h3>Step 5</h3>
-      <p>Open Practice. For each generated expression, write the answer on paper first, then enter it.
-      Complete at least eight expressions correctly, including some with a modulus operator.</p>
+      <p>Type your own expression into the box and run it, to see the program built around it.</p>
       <h3>Step 6</h3>
+      <p>Open Practice. For each generated program, write the answer on paper first, then enter it.
+      Complete at least eight correctly, including some with a modulus operator.</p>
+      <h3>Step 7</h3>
       <p>Attempt the Posttest.</p>
     </section>
 
@@ -226,41 +261,51 @@
     <section id="demo">
       <h2>Demo</h2>
       <div class="controls">
-        <label class="note">Example <select id="ex"></select></label>
+        <label class="note">Program <select id="ex"></select></label>
         <button class="btn" id="d-run">Run</button>
         <button class="btn ghost" id="d-step">Step</button>
         <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="1100" step="100"></label>
       </div>
       <div class="controls">
-        <label class="note">Or type your own
-          <input type="text" id="d-own" size="26" placeholder="e.g. 7 + 3 * 2 % 4">
+        <label class="note">Or type your own expression
+          <input type="text" id="d-own" size="24" placeholder="e.g. 7 + 3 * 2 % 4">
         </label>
-        <button class="btn ghost" id="d-load">Load</button>
+        <button class="btn ghost" id="d-load">Build a program from it</button>
         <span class="note" id="d-err" style="color:var(--no)"></span>
       </div>
 
       <div class="grid2">
-        <div class="exprbox">
-          <h4>Expression</h4>
-          <div class="expr" id="d-expr"></div>
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
         </div>
-        <div class="exprbox">
-          <h4>Reduction history</h4>
-          <div class="steps" id="d-steps"></div>
+        <div class="card">
+          <h4>Memory</h4>
+          <div class="mem" id="d-mem"></div>
         </div>
       </div>
 
+      <div class="card" style="margin-top:18px">
+        <h4>Expression being evaluated</h4>
+        <div class="expr" id="d-expr"></div>
+        <div class="steps" id="d-steps" style="border-top:1px solid var(--line)"></div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
       <div class="obs">
         <h4>Observations</h4>
-        <div class="obsbody" id="d-obs">Press Step to apply the first operator.</div>
+        <div class="obsbody" id="d-obs">Press Step to begin execution.</div>
       </div>
     </section>
 
     <!-- PRACTICE -->
     <section id="practice">
       <h2>Practice</h2>
-      <p>Work out the value of the expression on paper, then enter it. Integer results must be written
-      as whole numbers; floating-point results may be written to one or two decimal places.</p>
+      <p>Read the program, work out the value that will be printed, and write it down before entering
+      it. Integer results must be whole numbers; floating-point results may be given to one or two
+      decimal places.</p>
 
       <div class="controls">
         <label class="note">Difficulty
@@ -270,24 +315,30 @@
             <option value="3">Advanced — parentheses and type promotion</option>
           </select>
         </label>
-        <button class="btn" id="p-new">New expression</button>
+        <button class="btn" id="p-new">New program</button>
         <strong id="p-score">Correct 0 · Attempts 0</strong>
       </div>
 
-      <div class="exprbox">
-        <h4>Evaluate this</h4>
-        <div class="expr" id="p-expr"></div>
-      </div>
-
-      <div class="controls">
-        <input type="text" id="p-ans" size="14" placeholder="your answer">
-        <button class="btn" id="p-check">Check</button>
-        <button class="btn ghost" id="p-show" disabled>Show the reduction</button>
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="p-code"></pre>
+        </div>
+        <div class="card">
+          <h4>What will it print?</h4>
+          <div style="padding:14px">
+            <input type="text" id="p-ans" placeholder="your answer" style="width:100%">
+            <div class="controls" style="margin-bottom:0">
+              <button class="btn" id="p-check">Check</button>
+              <button class="btn ghost" id="p-show" disabled>Show the reduction</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="obs">
         <h4>Observations</h4>
-        <div class="obsbody" id="p-obs">Enter your predicted value and press Check.</div>
+        <div class="obsbody" id="p-obs">Enter your predicted output and press Check.</div>
       </div>
     </section>
 
@@ -351,26 +402,34 @@ function show(id){
 
 /* ============================================================
    EXPRESSION ENGINE
-   Tokenise, then repeatedly reduce the next applicable operator.
-   Values carry a C type: "int" or "float".
    ============================================================ */
 const PREC={"*":2,"/":2,"%":2,"+":1,"-":1};
+const BASE=0x1000, SIZES={int:4,float:4,char:1};
 
-function tokenize(src){
+function tokenize(src, vars){
   const t=[]; let i=0;
   while(i<src.length){
     const c=src[i];
     if(c===" "){i++; continue;}
-    // unary minus: at the start, or straight after another operator or an open bracket
     const prev=t[t.length-1];
-    const unary = c==="-" && /[0-9.]/.test(src[i+1]||"") &&
+    const unary = c==="-" && /[0-9.a-z]/i.test(src[i+1]||"") &&
                   (!prev || prev.k==="op" || (prev.k==="paren" && prev.v==="("));
-    if(!unary && "+-*/%()".includes(c)){t.push({k:c==="("||c===")"?"paren":"op", v:c}); i++; continue;}
-    if(/[0-9.]/.test(c) || unary){
+    if(!unary && "+-*/%()".includes(c)){
+      t.push({k:c==="("||c===")"?"paren":"op", v:c}); i++; continue;
+    }
+    if(/[a-z_]/i.test(unary?src[i+1]:c)){
+      let j=unary?i+1:i; while(j<src.length && /[a-z0-9_]/i.test(src[j])) j++;
+      const nm=src.slice(unary?i+1:i,j);
+      if(!vars || !(nm in vars)) throw new Error("Unknown variable: "+nm);
+      const v=vars[nm];
+      t.push({k:"num", type:v.type, v:unary?-v.value:v.value, name:(unary?"-":"")+nm});
+      i=j; continue;
+    }
+    if(/[0-9.]/.test(unary?src[i+1]:c)){
       let j=unary?i+1:i; while(j<src.length && /[0-9.]/.test(src[j])) j++;
       const lit=src.slice(i,j);
       if((lit.match(/\./g)||[]).length>1) throw new Error("Malformed number: "+lit);
-      t.push({k:"num", type: lit.includes(".")?"float":"int", v:parseFloat(lit), lit});
+      t.push({k:"num", type: lit.includes(".")?"float":"int", v:parseFloat(lit), name:lit});
       i=j; continue;
     }
     throw new Error("Unexpected character: "+c);
@@ -378,16 +437,11 @@ function tokenize(src){
   if(!t.length) throw new Error("Expression is empty");
   return t;
 }
-
 function fmt(tok){
   if(tok.type==="int") return String(tok.v);
-  const s=tok.v.toFixed(6).replace(/0+$/,"").replace(/\.$/,".0");
-  return s;
+  return tok.v.toFixed(6).replace(/0+$/,"").replace(/\.$/,".0");
 }
-
-/* find index of the operator to apply next */
 function nextOp(t){
-  // innermost parentheses first
   let open=-1;
   for(let i=0;i<t.length;i++){
     if(t[i].k==="paren"&&t[i].v==="(") open=i;
@@ -395,6 +449,7 @@ function nextOp(t){
       const inner=t.slice(open+1,i);
       if(inner.length===1) return {kind:"unwrap", open, close:i};
       const rel=pickIn(inner);
+      if(rel===null) throw new Error("Malformed expression");
       return {kind:"apply", idx:open+1+rel, scope:[open+1,i]};
     }
   }
@@ -403,229 +458,362 @@ function nextOp(t){
   return rel===null?null:{kind:"apply", idx:rel, scope:[0,t.length]};
 }
 function pickIn(seg){
-  let best=null, bestP=0;
-  for(let i=0;i<seg.length;i++){
-    if(seg[i].k==="op"&&i>0&&seg[i-1].k==="num"){        // binary operator
-      const p=PREC[seg[i].v];
-      if(p>bestP){bestP=p; best=i;}                       // left-to-right: strictly greater
+  let best=null,bestP=0;
+  for(let i=0;i<seg.length;i++)
+    if(seg[i].k==="op"&&i>0&&seg[i-1].k==="num"){
+      const p=PREC[seg[i].v]; if(p>bestP){bestP=p; best=i;}
     }
-  }
   return best;
 }
-
 function applyAt(t,idx){
-  const L=t[idx-1], O=t[idx].v, R=t[idx+1];
-  if(!L||!R||L.k!=="num"||R.k!=="num") throw new Error("Malformed expression");
-  const bothInt = L.type==="int" && R.type==="int";
-  let type = bothInt?"int":"float", val, note;
-
+  const L=t[idx-1],O=t[idx].v,R=t[idx+1];
+  const bothInt = L.type==="int"&&R.type==="int";
+  let type=bothInt?"int":"float", val, note;
   if(O==="%"){
     if(!bothInt) throw new Error("% cannot be used with a floating-point operand");
-    val = L.v % R.v;
-    note=`<code>%</code> gives the remainder after integer division. The sign follows the left operand, so ${L.v} % ${R.v} is ${val}.`;
+    if(R.v===0) throw new Error("Modulus by zero");
+    val=L.v%R.v;
+    note=`<code>%</code> gives the remainder after integer division. The sign follows the left operand, so ${fmt(L)} % ${fmt(R)} is ${val}.`;
   }else if(O==="/"){
     if(R.v===0) throw new Error("Division by zero");
     if(bothInt){ val=Math.trunc(L.v/R.v);
       note=`Both operands are <code>int</code>, so this is <strong>integer division</strong>: ${L.v} / ${R.v} is ${L.v/R.v}, truncated towards zero to give ${val}.`;
     }else{ val=L.v/R.v;
-      note=`One operand is floating-point, so the other is promoted and real division is performed, giving ${fmt({v:val,type:"float"})}.`;
+      note=`One operand is floating-point, so the other is promoted and real division is performed.`;
     }
   }else{
-    val = O==="+" ? L.v+R.v : O==="-" ? L.v-R.v : L.v*R.v;
-    note = bothInt
-      ? `Both operands are <code>int</code>, so the result stays an <code>int</code>.`
-      : `One operand is floating-point, so ${L.type==="int"?fmt(L):fmt(R)} is promoted to <code>float</code> and the arithmetic is done in floating-point.`;
+    val = O==="+"?L.v+R.v : O==="-"?L.v-R.v : L.v*R.v;
+    note = bothInt ? `Both operands are <code>int</code>, so the result stays an <code>int</code>.`
+      : `One operand is floating-point, so the other is promoted to <code>float</code> and the arithmetic is done in floating-point.`;
   }
-  const out={k:"num", type, v:val};
-  const nt=t.slice(0,idx-1).concat([out], t.slice(idx+2));
-  return {tokens:nt, result:out, reason:note, opText:`${fmt(L)} ${O} ${fmt(R)}`, at:idx-1};
+  const out={k:"num",type,v:val,name:null};
+  return {tokens:t.slice(0,idx-1).concat([out],t.slice(idx+2)), result:out,
+          reason:note, opText:`${fmt(L)} ${O} ${fmt(R)}`, at:idx-1};
 }
-
 function whyThisOne(t,idx,scope){
-  const op=t[idx].v, p=PREC[op];
-  const [s,e]=scope;
-  let sameLevelLeft=false, higherElsewhere=false;
+  const op=t[idx].v,p=PREC[op],[s,e]=scope;
+  let sameLeft=false,higher=false;const others=[];
   for(let i=s;i<e;i++){
     if(i===idx||t[i].k!=="op"||i===0||t[i-1].k!=="num") continue;
-    if(PREC[t[i].v]===p && i<idx) sameLevelLeft=true;
-    if(PREC[t[i].v]>p) higherElsewhere=true;
-  }
-  if(higherElsewhere) return "";
-  const others=[];
-  for(let i=s;i<e;i++){
-    if(i===idx||t[i].k!=="op"||i===0||t[i-1].k!=="num") continue;
+    if(PREC[t[i].v]===p&&i<idx) sameLeft=true;
+    if(PREC[t[i].v]>p) higher=true;
     others.push(t[i].v);
   }
+  if(higher) return "";
   if(!others.length) return `<code>${op}</code> is the only operator left.`;
   const lower=others.filter(o=>PREC[o]<p);
   if(lower.length) return `<code>${op}</code> has higher precedence than <code>${lower[0]}</code>, so it is applied first.`;
-  if(sameLevelLeft) return "";
+  if(sameLeft) return "";
   return `<code>${op}</code> and <code>${others[0]}</code> have equal precedence, so left-to-right associativity applies and the leftmost is taken.`;
 }
-
-function render(tokens,hot,fresh){
+function render(tokens,hot,fresh,useNames){
   return tokens.map((t,i)=>{
-    let cls="tok"+(t.k==="op"?" op":"")+(t.k==="paren"?" paren":"");
+    let cls="tok";
+    if(t.k==="op") cls+=" op";
+    if(t.k==="paren") cls+=" paren";
+    if(useNames && t.name && /[a-z_]/i.test(t.name)) cls+=" id";
     if(hot&&i>=hot[0]&&i<=hot[1]) cls+=" hot";
     if(fresh===i) cls+=" new";
-    return `<span class="${cls}">${t.k==="num"?fmt(t):t.v}</span>`;
+    const txt = t.k==="num" ? (useNames&&t.name?t.name:fmt(t)) : t.v;
+    return `<span class="${cls}">${txt}</span>`;
   }).join(" ");
 }
-
-/* Build the full reduction trace for an expression */
-function trace(src){
-  let t=tokenize(src);
-  const frames=[{tokens:t.slice(), hot:null, fresh:null, note:"The expression as written."}];
+/* reduction frames for an expression, given resolved variables */
+function reduce(src,vars){
+  let t=tokenize(src,vars);
+  const frames=[];
+  const hasNames = t.some(x=>x.name && /[a-z_]/i.test(x.name));
+  if(hasNames){
+    frames.push({tokens:t.slice(),useNames:true,
+      note:"The expression as written, with the variable names still in place."});
+    frames.push({tokens:t.slice(),useNames:false,
+      note:"Each variable is read from memory and its current value substituted. The variables themselves are unchanged."});
+  }else{
+    frames.push({tokens:t.slice(),useNames:false,note:"The expression as written."});
+  }
   let guard=0;
   while(guard++<60){
     const n=nextOp(t);
     if(!n) break;
     if(n.kind==="unwrap"){
       const inner=t[n.open+1];
-      t=t.slice(0,n.open).concat([inner], t.slice(n.close+1));
-      frames.push({tokens:t.slice(), hot:null, fresh:n.open,
+      t=t.slice(0,n.open).concat([inner],t.slice(n.close+1));
+      frames.push({tokens:t.slice(),fresh:n.open,
         note:"The parentheses have served their purpose and are removed."});
       continue;
     }
-    const Lt=t[n.idx-1], Rt=t[n.idx+1];
-    if(!Lt||!Rt||Lt.k!=="num"||Rt.k!=="num")
+    const L=t[n.idx-1],R=t[n.idx+1];
+    if(!L||!R||L.k!=="num"||R.k!=="num")
       throw new Error("Malformed expression — an operator is missing an operand");
     const why=whyThisOne(t,n.idx,n.scope);
-    const inParens = n.scope[0]!==0 || n.scope[1]!==t.length;
-    frames.push({tokens:t.slice(), hot:[n.idx-1,n.idx+1], fresh:null,
+    const inParens = n.scope[0]!==0||n.scope[1]!==t.length;
+    frames.push({tokens:t.slice(),hot:[n.idx-1,n.idx+1],pending:true,
       note:(inParens?"Parentheses are evaluated first. ":"")+
            (why||`Applying <code>${t[n.idx].v}</code>.`)+
-           ` Next: <strong>${fmt(t[n.idx-1])} ${t[n.idx].v} ${fmt(t[n.idx+1])}</strong>`, pending:true});
-    const r=applyAt(t,n.idx);
-    t=r.tokens;
-    frames.push({tokens:t.slice(), hot:null, fresh:r.at,
-      note:`<strong>${r.opText} = ${fmt(r.result)}</strong> &nbsp;— ${r.reason}`, done:r});
+           ` Next: <strong>${fmt(L)} ${t[n.idx].v} ${fmt(R)}</strong>`});
+    const r=applyAt(t,n.idx); t=r.tokens;
+    frames.push({tokens:t.slice(),fresh:r.at,done:r,
+      note:`<strong>${r.opText} = ${fmt(r.result)}</strong> — ${r.reason}`});
   }
-  const fin=t[0];
-  if(t.length!==1 || fin.k!=="num") throw new Error("Malformed expression");
-  frames.push({tokens:t.slice(), hot:null, fresh:0, final:fin,
-    note:`One value remains. The expression evaluates to <strong>${fmt(fin)}</strong>, of type <code>${fin.type}</code>.`});
-  return frames;
+  if(t.length!==1||t[0].k!=="num") throw new Error("Malformed expression");
+  return {frames, value:t[0]};
 }
 
 /* ============================================================
-   DEMO CONTROLLER
+   PROGRAM BUILDER — wraps an expression in a real C program
+   ============================================================ */
+function buildProgram(spec){
+  const {vars=[], expr, resultName="result", printfLabel} = spec;
+  const groups={};
+  vars.forEach(v=>{(groups[v.t]=groups[v.t]||[]).push(v);});
+  const declLines=[];
+  Object.keys(groups).forEach(ty=>{
+    declLines.push({ty, text:`    ${ty} ${groups[ty].map(v=>
+      `${v.n} = ${ty==="float"&&Number.isInteger(v.v)?v.v.toFixed(1):v.v}`).join(", ")};`,
+      vars:groups[ty]});
+  });
+
+  // work out the result type by evaluating once
+  const resolved={}; vars.forEach(v=>resolved[v.n]={type:v.t,value:v.v});
+  const {value}=reduce(expr,resolved);
+  const rType=value.type, spec2=rType==="int"?"%d":"%f";
+
+  const code=["#include <stdio.h>","","int main() {"];
+  const lineOfDecl=[];
+  declLines.forEach(d=>{lineOfDecl.push(code.length); code.push(d.text);});
+  const resultLine=code.length; code.push(`    ${rType} ${resultName};`);
+  code.push("");
+  const exprLine=code.length; code.push(`    ${resultName} = ${expr};`);
+  const printLine=code.length;
+  code.push(`    printf("${printfLabel||resultName+" = "}${spec2}", ${resultName});`);
+  code.push("    return 0;");
+  code.push("}");
+
+  return {code, declLines, lineOfDecl, resultLine, exprLine, printLine,
+          resultName, rType, expr, vars, value, spec:spec2,
+          label:printfLabel||resultName+" = "};
+}
+
+/* full step list: declarations → expression reduction → store → print */
+function buildSteps(P){
+  const steps=[]; const mem=[]; let offset=0;
+  steps.push({line:2, mem:mem.slice(), note:"Execution begins at main. No variables exist yet."});
+  P.declLines.forEach((d,gi)=>{
+    d.vars.forEach(v=>{
+      mem.push({name:v.n,type:d.ty,value:v.v,addr:BASE+offset,size:SIZES[d.ty]});
+      offset+=SIZES[d.ty];
+      steps.push({line:P.lineOfDecl[gi], mem:mem.slice(), touch:v.n,
+        note:`<code>${v.n}</code> is created as a <code>${d.ty}</code> and holds ${
+          d.ty==="float"&&Number.isInteger(v.v)?v.v.toFixed(1):v.v}.`});
+    });
+  });
+  mem.push({name:P.resultName,type:P.rType,value:null,addr:BASE+offset,size:SIZES[P.rType]});
+  offset+=SIZES[P.rType];
+  steps.push({line:P.resultLine, mem:mem.slice(), touch:P.resultName,
+    note:`<code>${P.resultName}</code> is declared but not yet given a value.`});
+
+  const resolved={}; P.vars.forEach(v=>resolved[v.n]={type:v.t,value:v.v});
+  const {frames,value}=reduce(P.expr,resolved);
+  frames.forEach(f=>{
+    steps.push({line:P.exprLine, mem:mem.slice(), expr:f, note:f.note});
+  });
+  const m2=mem.map(v=>v.name===P.resultName?{...v,value:value.v}:v);
+  steps.push({line:P.exprLine, mem:m2, touch:P.resultName, expr:frames[frames.length-1],
+    note:`The expression has reduced to a single value, so <code>${value.type==="int"?fmt(value):fmt(value)}</code> is now stored into <code>${P.resultName}</code>.`});
+  const printed = P.rType==="int" ? String(value.v) : value.v.toFixed(6);
+  steps.push({line:P.printLine, mem:m2, out:P.label+printed, expr:frames[frames.length-1],
+    note:`<code>${P.spec}</code> reads the value as ${P.rType==="int"?"a whole number":"a real number, printed to six decimal places by default"}.`});
+  steps.push({line:P.printLine+1, mem:m2, out:P.label+printed, expr:frames[frames.length-1],
+    note:"main returns 0 and the program ends."});
+  return steps;
+}
+
+function renderCode(mount,lines,hit){
+  mount.innerHTML=lines.map((l,i)=>
+    `<div class="ln${i===hit?" hit":""}"><span class="n">${i+1}</span><span>${
+      l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span></div>`).join("");
+}
+function renderMem(mount,mem,touch){
+  if(!mem||!mem.length){mount.innerHTML='<div class="note">No variables yet.</div>'; return;}
+  mount.innerHTML=mem.map(v=>`
+    <div class="var${touch===v.name?" flash":""}">
+      <div class="top">
+        <span class="nm">${v.name}</span><span class="ty">${v.type}</span>
+        <span class="ad">0x${v.addr.toString(16).toUpperCase()}</span>
+      </div>
+      <div class="val">${v.value===null
+        ? "<span style='color:#a63232'>garbage</span>"
+        : (v.type==="float"?v.value.toFixed(6).replace(/0+$/,"").replace(/\.$/,".0"):v.value)}</div>
+    </div>`).join("");
+}
+
+/* ============================================================
+   DEMO
    ============================================================ */
 const EXAMPLES=[
-  {e:"2 + 3 * 4",        t:"Precedence: multiplication before addition"},
-  {e:"100 / 5 * 2",      t:"Associativity: equal precedence, left to right"},
-  {e:"(2 + 3) * 4",      t:"Parentheses override precedence"},
-  {e:"7 / 2",            t:"Integer division truncates"},
-  {e:"7 / 2.0",          t:"One float operand changes everything"},
-  {e:"5 / 2 * 2.0",      t:"Promotion happens too late"},
-  {e:"2.0 * 5 / 2",      t:"Promotion happens in time"},
-  {e:"17 % 5 + 3",       t:"Modulus sits with multiplication and division"},
-  {e:"10 + 20 % 7 * 2",  t:"Three levels at once"},
-  {e:"(8 + 4) / (5 - 2)",t:"Two parenthesised groups"}
+  {t:"Precedence: multiplication before addition",
+   vars:[{n:"a",t:"int",v:2},{n:"b",t:"int",v:3},{n:"c",t:"int",v:4}], expr:"a + b * c"},
+  {t:"Parentheses override precedence",
+   vars:[{n:"a",t:"int",v:2},{n:"b",t:"int",v:3},{n:"c",t:"int",v:4}], expr:"(a + b) * c"},
+  {t:"Associativity: equal precedence, left to right",
+   vars:[{n:"a",t:"int",v:100},{n:"b",t:"int",v:5},{n:"c",t:"int",v:2}], expr:"a / b * c"},
+  {t:"Integer division truncates",
+   vars:[{n:"a",t:"int",v:7},{n:"b",t:"int",v:2}], expr:"a / b"},
+  {t:"The average that comes out wrong",
+   vars:[{n:"total",t:"int",v:250},{n:"n",t:"int",v:4}], expr:"total / n",
+   resultName:"avg", forceFloat:true, printfLabel:"average = "},
+  {t:"The average done correctly",
+   vars:[{n:"total",t:"int",v:250},{n:"n",t:"int",v:4}], expr:"total / 4.0",
+   resultName:"avg", printfLabel:"average = "},
+  {t:"Promotion happens too late",
+   vars:[{n:"a",t:"int",v:5},{n:"b",t:"int",v:2}], expr:"a / b * 2.0"},
+  {t:"Promotion happens in time",
+   vars:[{n:"a",t:"int",v:5},{n:"b",t:"int",v:2}], expr:"2.0 * a / b"},
+  {t:"Modulus sits with multiplication and division",
+   vars:[{n:"a",t:"int",v:17},{n:"b",t:"int",v:5},{n:"c",t:"int",v:3}], expr:"a % b + c"},
+  {t:"Three levels at once",
+   vars:[{n:"a",t:"int",v:10},{n:"b",t:"int",v:20},{n:"c",t:"int",v:7}], expr:"a + b % c * 2"},
+  {t:"Two parenthesised groups",
+   vars:[{n:"p",t:"int",v:8},{n:"q",t:"int",v:4},{n:"r",t:"int",v:5},{n:"s",t:"int",v:2}],
+   expr:"(p + q) / (r - s)"}
 ];
 const exSel=document.getElementById("ex");
 EXAMPLES.forEach((x,i)=>{
-  const o=document.createElement("option"); o.value=i; o.textContent=`${x.e}   —  ${x.t}`; exSel.appendChild(o);
+  const o=document.createElement("option"); o.value=i;
+  o.textContent=`${x.expr}   —  ${x.t}`; exSel.appendChild(o);
 });
-const dExpr=document.getElementById("d-expr"), dSteps=document.getElementById("d-steps"),
-      dObs=document.getElementById("d-obs"), dErr=document.getElementById("d-err");
-let dFrames=[], dIdx=0, dTimer=null;
 
-function demoLoad(src){
+const dCode=document.getElementById("d-code"), dMem=document.getElementById("d-mem"),
+      dExpr=document.getElementById("d-expr"), dSteps=document.getElementById("d-steps"),
+      dObs=document.getElementById("d-obs"), dOut=document.getElementById("d-out"),
+      dErr=document.getElementById("d-err");
+let P=null, dSteps2=[], dIdx=0, dTimer=null;
+
+function demoLoad(spec){
   dErr.textContent="";
-  try{ dFrames=trace(src); }
-  catch(err){ dErr.textContent=err.message; return; }
-  dIdx=0; clearInterval(dTimer); dTimer=null;
+  try{
+    let s={...spec};
+    // "average that comes out wrong": declare avg as float even though expr is int
+    P=buildProgram(s);
+    if(spec.forceFloat && P.rType==="int"){
+      P.code[P.resultLine]=`    float ${P.resultName};`;
+      P.rTypeShown="float";
+    }
+    dSteps2=buildSteps(P);
+  }catch(err){ dErr.textContent=err.message; return; }
+  dIdx=-1; clearInterval(dTimer); dTimer=null;
   document.getElementById("d-run").textContent="Run";
-  dSteps.innerHTML="";
-  paint();
+  renderCode(dCode,P.code,-1);
+  renderMem(dMem,[],null);
+  dExpr.innerHTML=`<span class="lhs">${P.resultName} = </span>` +
+    render(tokenize(P.expr, Object.fromEntries(P.vars.map(v=>[v.n,{type:v.t,value:v.v}]))),null,null,true);
+  dSteps.innerHTML=""; dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin execution.";
 }
-function paint(){
-  const f=dFrames[dIdx];
-  dExpr.innerHTML=render(f.tokens,f.hot,f.fresh);
-  dObs.innerHTML=f.note;
-}
-function demoStep(){
-  if(dIdx>=dFrames.length-1){clearInterval(dTimer); dTimer=null;
-    document.getElementById("d-run").textContent="Run"; return;}
-  dIdx++; paint();
-  const f=dFrames[dIdx];
-  if(f.done||f.final){
+function paintStep(){
+  const s=dSteps2[dIdx];
+  renderCode(dCode,P.code,s.line);
+  renderMem(dMem,s.mem,s.touch);
+  if(s.expr){
+    dExpr.innerHTML=`<span class="lhs">${P.resultName} = </span>`+
+      render(s.expr.tokens,s.expr.hot,s.expr.fresh,s.expr.useNames);
+    if(s.expr.done||s.expr.final){}
+  }
+  if(s.expr&&s.expr.done){
     const d=document.createElement("div");
-    const n=dSteps.children.length+1;
-    d.innerHTML=`<span class="k">${n}</span><span>${f.final?"= "+fmt(f.final)+"  (final)":f.done.opText+" = "+fmt(f.done.result)}</span>`;
+    d.innerHTML=`<span class="k">${dSteps.children.length+1}</span><span>${s.expr.done.opText} = ${fmt(s.expr.done.result)}</span>`;
     dSteps.appendChild(d); dSteps.scrollTop=dSteps.scrollHeight;
   }
+  if(s.out) dOut.innerHTML='<span class="lbl">Output</span>'+s.out;
+  dObs.innerHTML=s.note;
 }
-exSel.onchange=()=>demoLoad(EXAMPLES[+exSel.value].e);
+function demoStep(){
+  if(dIdx>=dSteps2.length-1){clearInterval(dTimer); dTimer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  dIdx++; paintStep();
+}
+exSel.onchange=()=>demoLoad(EXAMPLES[+exSel.value]);
 document.getElementById("d-step").onclick=demoStep;
-document.getElementById("d-reset").onclick=()=>demoLoad(dSrc());
+document.getElementById("d-reset").onclick=()=>demoLoad(currentSpec());
 document.getElementById("d-load").onclick=()=>{
   const v=document.getElementById("d-own").value.trim();
-  if(v) demoLoad(v);
+  if(!v) return;
+  demoLoad({expr:v, vars:[], t:"your expression"});
 };
 document.getElementById("d-own").addEventListener("keydown",e=>{
   if(e.key==="Enter"){e.preventDefault(); document.getElementById("d-load").click();}
 });
-function dSrc(){
+function currentSpec(){
   const own=document.getElementById("d-own").value.trim();
-  return own || EXAMPLES[+exSel.value].e;
+  return own? {expr:own,vars:[],t:"your expression"} : EXAMPLES[+exSel.value];
 }
 document.getElementById("d-run").onclick=function(){
   if(dTimer){clearInterval(dTimer); dTimer=null; this.textContent="Run"; return;}
-  if(dIdx>=dFrames.length-1) demoLoad(dSrc());
+  if(dIdx>=dSteps2.length-1) demoLoad(currentSpec());
   this.textContent="Pause";
-  dTimer=setInterval(demoStep,1100);
+  dTimer=setInterval(demoStep,+document.getElementById("d-speed").value);
 };
-demoLoad(EXAMPLES[0].e);
+document.getElementById("d-speed").oninput=function(){
+  if(dTimer){clearInterval(dTimer); dTimer=setInterval(demoStep,+this.value);}
+};
+demoLoad(EXAMPLES[0]);
 
 /* ============================================================
    PRACTICE
    ============================================================ */
-const pExpr=document.getElementById("p-expr"), pObs=document.getElementById("p-obs"),
+const pCode=document.getElementById("p-code"), pObs=document.getElementById("p-obs"),
       pScoreEl=document.getElementById("p-score");
-let pSrc="", pVal=null, pRight=0, pTries=0;
-const R=n=>Math.floor(Math.random()*n);
-const pick=a=>a[R(a.length)];
+let pP=null, pVal=null, pRight=0, pTries=0;
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
 
-function genExpr(level){
-  const n=()=>R(18)+2;
+function genSpec(level){
+  const n=()=>R(18)+2, small=()=>R(4)+2;
+  const NAMES=["a","b","c","d"];
   if(level==="1"){
-    return `${n()} ${pick(["+","-"])} ${n()} ${pick(["*","/"])} ${n()}`;
+    const v=[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:n()},{n:"c",t:"int",v:small()}];
+    return {vars:v, expr:`a ${pick(["+","-"])} b ${pick(["*","/"])} c`};
   }
   if(level==="2"){
     const forms=[
-      ()=>`${n()} + ${n()} % ${n()} * ${n()}`,
-      ()=>`${n()*4} / ${R(4)+2} * ${R(5)+2}`,
-      ()=>`${n()} - ${n()} / ${R(4)+2} + ${n()}`,
-      ()=>`${n()} % ${R(6)+2} + ${n()} * ${R(4)+2}`
+      ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:n()},{n:"c",t:"int",v:small()}],
+            expr:"a + b % c * 2"}),
+      ()=>({vars:[{n:"a",t:"int",v:n()*4},{n:"b",t:"int",v:small()},{n:"c",t:"int",v:small()}],
+            expr:"a / b * c"}),
+      ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:n()},{n:"c",t:"int",v:small()}],
+            expr:"a - b / c + 3"}),
+      ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:small()},{n:"c",t:"int",v:small()}],
+            expr:"a % b + a * c"})
     ];
     return pick(forms)();
   }
   const forms=[
-    ()=>`(${n()} + ${n()}) * ${R(5)+2} - ${n()}`,
-    ()=>`${n()} / ${R(4)+2} * ${pick(["2.0","4.0","0.5"])}`,
-    ()=>`${pick(["2.0","3.0","1.5"])} * ${n()} / ${R(4)+2}`,
-    ()=>`(${n()} - ${n()}) / ${R(4)+2} + ${n()} % ${R(5)+2}`,
-    ()=>`${n()} + ${n()} * (${n()} - ${R(6)+2}) / ${R(4)+2}`
+    ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:n()},{n:"c",t:"int",v:small()}],
+          expr:"(a + b) * c - a"}),
+    ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:small()}],
+          expr:`a / b * ${pick(["2.0","4.0","0.5"])}`}),
+    ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:small()}],
+          expr:`${pick(["2.0","3.0","1.5"])} * a / b`}),
+    ()=>({vars:[{n:"a",t:"int",v:n()},{n:"b",t:"int",v:n()},{n:"c",t:"int",v:small()}],
+          expr:"(a - b) / c + a % c"}),
+    ()=>({vars:[{n:"total",t:"int",v:n()*10},{n:"n",t:"int",v:small()}],
+          expr:"total / n * 2", resultName:"avg"})
   ];
   return pick(forms)();
 }
 function newPractice(){
   const lvl=document.getElementById("p-level").value;
-  for(let k=0;k<40;k++){
-    const src=genExpr(lvl);
+  for(let k=0;k<50;k++){
     try{
-      const fr=trace(src);
-      const fin=fr[fr.length-1].final;
-      if(!isFinite(fin.v)) continue;
-      pSrc=src; pVal=fin;
-      pExpr.innerHTML=render(tokenize(src),null,null);
-      pObs.textContent="Enter your predicted value and press Check.";
+      const spec=genSpec(lvl);
+      const prog=buildProgram(spec);
+      if(!isFinite(prog.value.v)) continue;
+      pP=prog; pVal=prog.value;
+      renderCode(pCode,prog.code,-1);
       document.getElementById("p-ans").value="";
       document.getElementById("p-show").disabled=true;
+      pObs.textContent="Work out what the program prints, then enter it and press Check.";
       return;
-    }catch(e){ /* try again */ }
+    }catch(e){}
   }
 }
 document.getElementById("p-new").onclick=newPractice;
@@ -639,13 +827,15 @@ document.getElementById("p-check").onclick=()=>{
   const ok = pVal.type==="int" ? given===pVal.v : Math.abs(given-pVal.v)<0.01;
   if(ok){
     pRight++;
-    pObs.innerHTML=`<span style="color:var(--ok); font-weight:600">Correct.</span> The value is
-      <strong>${fmt(pVal)}</strong>, of type <code>${pVal.type}</code>.`;
+    pObs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <strong>${pP.label}${pVal.type==="int"?pVal.v:pVal.v.toFixed(6)}</strong>.`;
   }else{
-    const fr=trace(pSrc);
-    const firstOp=fr.find(f=>f.pending);
-    pObs.innerHTML=`<span style="color:var(--no); font-weight:600">Not correct.</span> ${firstOp?firstOp.note.replace(/Next: <strong>.*<\/strong>/,""):""}
-      Work through it one operator at a time, and check whether any division has integer operands.`;
+    const resolved={}; pP.vars.forEach(v=>resolved[v.n]={type:v.t,value:v.v});
+    const {frames}=reduce(pP.expr,resolved);
+    const first=frames.find(f=>f.pending);
+    pObs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> `+
+      (first?first.note.replace(/ Next: <strong>.*<\/strong>/,""):"")+
+      ` Substitute the values first, then apply one operator at a time — and check whether any division has two integer operands.`;
   }
   document.getElementById("p-show").disabled=false;
   pScoreEl.textContent=`Correct ${pRight} · Attempts ${pTries}`;
@@ -654,10 +844,16 @@ document.getElementById("p-ans").addEventListener("keydown",e=>{
   if(e.key==="Enter"){e.preventDefault(); document.getElementById("p-check").click();}
 });
 document.getElementById("p-show").onclick=()=>{
-  const fr=trace(pSrc).filter(f=>f.done||f.final);
-  pObs.innerHTML=fr.map((f,i)=>
-    `<div style="font-family:'IBM Plex Mono',monospace; font-size:14px; padding:2px 0">
-      ${i+1}. ${f.final?"= "+fmt(f.final)+"  (final value)":f.done.opText+" = "+fmt(f.done.result)}</div>`).join("");
+  const resolved={}; pP.vars.forEach(v=>resolved[v.n]={type:v.t,value:v.v});
+  const {frames,value}=reduce(pP.expr,resolved);
+  const done=frames.filter(f=>f.done);
+  pObs.innerHTML=
+    `<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:2px 0">
+       substitute → ${pP.vars.map(v=>v.n+" = "+v.v).join(", ")}</div>`+
+    done.map((f,i)=>`<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:2px 0">
+       ${i+1}. ${f.done.opText} = ${fmt(f.done.result)}</div>`).join("")+
+    `<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:2px 0">
+       prints ${pP.label}${value.type==="int"?value.v:value.v.toFixed(6)}</div>`;
 };
 newPractice();
 
@@ -672,14 +868,17 @@ const QUIZ={
     {q:"What does the % operator return?", o:["A percentage","The remainder after integer division","The quotient","The larger operand"], a:1}
   ],
   post:[
-    {q:"What is 100 / 5 * 2?", o:["10","40","1000","50"], a:1},
-    {q:"float avg = 7 / 2; stores what value in avg?", o:["3.5","3.0","4.0","A compile error"], a:1},
-    {q:"What is the value of 5 / 2 * 2.0?", o:["5.0","4.0","2.5","2.0"], a:1},
-    {q:"What is the value of 2.0 * 5 / 2?", o:["5.0","4.0","2.5","10.0"], a:0},
+    {q:"With int a = 100, b = 5, c = 2; what does a / b * c give?", o:["10","40","1000","50"], a:1},
+    {q:"With int total = 250, n = 4; float avg = total / n; what does avg hold?",
+     o:["62.5","62.0","63.0","A compile error"], a:1},
+    {q:"With int a = 5, b = 2; what is a / b * 2.0?", o:["5.0","4.0","2.5","2.0"], a:1},
+    {q:"With int a = 5, b = 2; what is 2.0 * a / b?", o:["5.0","4.0","2.5","10.0"], a:0},
     {q:"In C, what is -7 % 2?", o:["1","-1","0","2"], a:1},
     {q:"Applying % to a float operand causes:", o:["Rounding to the nearest int","A compile-time error","The float part to be ignored","Division instead"], a:1},
-    {q:"In 10 + 20 % 7 * 2, which operation is performed first?",
-     o:["10 + 20","20 % 7","7 * 2","It is undefined"], a:1}
+    {q:"In a + b % c * 2, which operation is performed first?",
+     o:["a + b","b % c","c * 2","It is undefined"], a:1},
+    {q:"In result = a + b * c; the values of a, b and c after the statement are:",
+     o:["Unchanged","All set to the result","Set to zero","Undefined"], a:0}
   ]
 };
 function buildQuiz(key){
