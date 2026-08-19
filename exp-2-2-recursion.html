@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 2.2 — Recursion and the Call Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:14px 24px;
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+  .brand{font-family:Newsreader,serif; font-size:22px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:14px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:220px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:28px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:28px 34px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:24px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:28px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 15px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:14px 0}
+  select,input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff; font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase; display:flex; gap:10px}
+  .card h4 .r{margin-left:auto; font-weight:400; color:#9fb8b4; text-transform:none; letter-spacing:0}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.72;
+    padding:10px 0; margin:0; background:#fff; max-height:400px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  .stack{padding:10px; display:flex; flex-direction:column; gap:6px; max-height:400px; overflow:auto}
+  .frame{border:1px solid var(--line); border-radius:4px; background:#fff}
+  .frame.top{border-color:var(--gold); box-shadow:0 0 0 2px #fdf4e0}
+  .frame.base{border-color:var(--ok); box-shadow:0 0 0 2px #e4f4ec}
+  .frame .fh{display:flex; align-items:baseline; gap:8px; padding:4px 9px;
+    background:var(--wash); border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600}
+  .frame.top .fh{background:#fdf4e0}
+  .frame.base .fh{background:#e4f4ec}
+  .frame .tag{margin-left:auto; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    font-family:"Source Sans 3",sans-serif; color:var(--ink-soft)}
+  .frame.top .tag{color:var(--gold)} .frame.base .tag{color:var(--ok)}
+  .frame .fv{padding:5px 9px; display:flex; gap:14px; flex-wrap:wrap;
+    font-family:"IBM Plex Mono",monospace; font-size:13px}
+  .frame .fv .waiting{color:var(--ink-soft); font-style:italic; font-family:"Source Sans 3",sans-serif; font-size:12.5px}
+  .frame .fv b{font-weight:600}
+  .frame.ret .fh{background:#e4f4ec}
+
+  .trace{padding:9px 12px; font-family:"IBM Plex Mono",monospace; font-size:13px;
+    max-height:400px; overflow:auto}
+  .trace div{padding:1px 0; white-space:pre}
+  .trace .call{color:var(--ink)}
+  .trace .ret{color:var(--ok)}
+  .trace .base{color:var(--gold); font-weight:600}
+
+  .stats{display:flex; gap:18px; flex-wrap:wrap; padding:10px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius); margin-top:12px; font-size:14px}
+  .stats b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:44px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:16px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:62px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:12px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:14px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:120px}
+
+  .quiz .q{margin:18px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:20px 16px 60px}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb"><a href="index.html">Programming and Problem Solving</a> &rsaquo; Unit 2 &rsaquo; Experiment 2.2</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Recursion and the Call Stack</h1>
+    <div class="sub">Unit 2 · Modularity · Estimated time: 60 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand how a recursive function solves a problem by calling itself on a smaller
+      subproblem, and to observe the call stack expanding until the base case is reached and then
+      contracting as values are returned.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Identify the base case and the recursive case of a recursive function and explain why both
+        are essential.</li>
+        <li>Trace a recursive call, stating the value of the parameter in every frame on the stack.</li>
+        <li>Explain that nothing is computed on the way down: the pending calls wait, and the answer is
+        assembled on the way back up.</li>
+        <li>Write a valid recurrence relation for problems such as factorial, digit counting, GCD and
+        power.</li>
+        <li>Explain what causes a stack overflow and how a missing or unreachable base case produces
+        one.</li>
+        <li>Count the number of calls made and the maximum stack depth, and use these to compare
+        recursive solutions.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>Experiment 2.1 — functions, the call stack and pointers.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>A recursive function is one that calls itself. It is not a special language feature: every call
+      creates its own stack frame in the ordinary way, so a function calling itself simply produces
+      several frames of the same function, each with its own parameters and local variables.</p>
+
+      <h2>The two parts of every recursive function</h2>
+      <p>A correct recursive function has exactly two kinds of case:</p>
+      <ul>
+        <li>The <strong>base case</strong> — a version of the problem small enough to answer
+        immediately, with no further call.</li>
+        <li>The <strong>recursive case</strong> — which does a little work and then calls itself on a
+        <em>strictly smaller</em> subproblem.</li>
+      </ul>
+      <p>Both are required. Without a base case the calls never stop. And the subproblem must actually
+      move towards the base case: <code>fact(n)</code> calling <code>fact(n)</code> would recurse
+      forever even though a base case exists, because the argument never shrinks.</p>
+
+      <h2>Down, then up</h2>
+      <p>This is the part that most often confuses beginners. When <code>fact(4)</code> is evaluated,
+      almost nothing is computed on the way down. Each call reaches the line
+      <code>return n * fact(n - 1);</code>, finds that it cannot multiply yet because the right-hand
+      operand is unknown, and suspends. A new frame is created and the old one waits.</p>
+      <p>So the stack grows: <code>fact(4)</code>, <code>fact(3)</code>, <code>fact(2)</code>,
+      <code>fact(1)</code>. Only when the base case returns 1 does anything get multiplied. The values
+      are then combined on the way back up, each suspended frame resuming, completing its
+      multiplication and returning in turn.</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">going down                    coming back up
+fact(4) = 4 * fact(3)  …waits      … = 4 * 6  = 24
+fact(3) = 3 * fact(2)  …waits      … = 3 * 2  = 6
+fact(2) = 2 * fact(1)  …waits      … = 2 * 1  = 2
+fact(1) = 1            base case   returns 1</pre>
+      </div>
+
+      <h2>Recurrence relations</h2>
+      <table>
+        <tr><th>Problem</th><th>Base case</th><th>Recursive case</th></tr>
+        <tr><td>Factorial</td><td>fact(0) = 1</td><td>fact(n) = n × fact(n−1)</td></tr>
+        <tr><td>Count digits</td><td>count(n) = 1 when n &lt; 10</td><td>count(n) = 1 + count(n / 10)</td></tr>
+        <tr><td>GCD (Euclid)</td><td>gcd(a, 0) = a</td><td>gcd(a, b) = gcd(b, a % b)</td></tr>
+        <tr><td>Power</td><td>power(a, 0) = 1</td><td>power(a, n) = a × power(a, n−1)</td></tr>
+        <tr><td>Fibonacci</td><td>fib(0) = 0, fib(1) = 1</td><td>fib(n) = fib(n−1) + fib(n−2)</td></tr>
+      </table>
+
+      <h2>The cost of recursion</h2>
+      <p>Every pending call occupies a frame, so the memory used grows with the depth of the recursion.
+      A recursion 10 deep is harmless; one 100,000 deep exhausts the space the operating system reserves
+      for the stack, and the program is terminated with a <strong>stack overflow</strong>. A missing
+      base case reaches this within a fraction of a second.</p>
+
+      <h2>Linear and tree recursion</h2>
+      <p>Factorial makes one call per level, so <em>n</em> calls in total and a maximum depth of
+      <em>n</em>. Fibonacci makes <strong>two</strong> calls per level, so the number of calls grows
+      exponentially while the depth stays around <em>n</em>. Computing <code>fib(20)</code> naively
+      takes over thirteen thousand calls, most of them recomputing values already worked out elsewhere.
+      The Demo counts the calls so this can be seen rather than taken on trust.</p>
+      <p>Depth and call count are therefore two separate costs, and a recursive solution can be cheap in
+      one and expensive in the other.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo, select <em>Factorial</em> with n = 4, and step through. Watch the stack grow
+      four frames deep. Note that each waiting frame shows the multiplication it is suspended on.</p>
+      <h3>Step 3</h3>
+      <p>Keep stepping past the base case. Watch the frames disappear one at a time and the returned
+      value being multiplied at each level on the way back up. Confirm that nothing was multiplied
+      before the base case was reached.</p>
+      <h3>Step 4</h3>
+      <p>Select <em>Count the digits</em> and run it for a five-digit number. Note the maximum depth and
+      compare it with the number of digits.</p>
+      <h3>Step 5</h3>
+      <p>Run <em>GCD by Euclid's algorithm</em> for 48 and 18. Note how quickly the arguments shrink,
+      and how few frames are needed compared with the size of the numbers.</p>
+      <h3>Step 6</h3>
+      <p>Run <em>Fibonacci</em> for n = 5, then n = 6, then n = 7, and record the call count each time
+      from the statistics bar. Note how fast it grows while the depth barely changes.</p>
+      <h3>Step 7</h3>
+      <p>Run <em>A missing base case</em> and observe what happens. Read the final observation
+      carefully.</p>
+      <h3>Step 8</h3>
+      <p>Open Practice and complete at least eight programs correctly, then attempt the Posttest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores are shown immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <div class="controls">
+        <label class="note">Program <select id="ex"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-step">Step</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="200" max="1600" value="800" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="card">
+        <h4>Program</h4>
+        <pre class="code" id="d-code"></pre>
+      </div>
+
+      <div class="grid2" style="margin-top:18px">
+        <div class="card">
+          <h4>Call stack <span class="r" id="d-depth"></span></h4>
+          <div class="stack" id="d-stack"></div>
+        </div>
+        <div class="card">
+          <h4>Call trace</h4>
+          <div class="trace" id="d-trace"></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <span>Calls made <b id="s-calls">0</b></span>
+        <span>Current depth <b id="s-depth">0</b></span>
+        <span>Maximum depth <b id="s-max">0</b></span>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin execution.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+      <p>Read the recursive function and its argument, work out the returned value, and write it down
+      before answering.</p>
+
+      <div class="controls">
+        <button class="btn" id="p-new">New program</button>
+        <strong id="p-score">Correct 0 · Attempts 0</strong>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="p-code"></pre>
+        </div>
+        <div class="card">
+          <h4>What will it print?</h4>
+          <div style="padding:14px">
+            <div id="p-opts"></div>
+            <div class="controls" style="margin-bottom:0">
+              <button class="btn" id="p-check">Check</button>
+              <button class="btn ghost" id="p-show" disabled>Show the trace</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="p-obs">Choose the output you expect and press Check.</div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 4, Section 4.10 (Recursion), Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapter 9 (User-defined Functions),
+        McGraw Hill Education.</li>
+        <li>Roberts, E., <em>Thinking Recursively with Java</em>, Wiley. (Language differs; the
+        reasoning applies directly.)</li>
+        <li>Cormen, T. H. et al., <em>Introduction to Algorithms</em>, 4th ed., Chapter 4 (Divide and
+        Conquer, and recurrences), MIT Press.</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Contributors</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and academic review</td>
+            <td>Department of Computer Science and Engineering,<br>SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", practice:"Practice", posttest:"Posttest", references:"References",
+  contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   RECURSION MACHINE
+   ============================================================ */
+const MAX_FRAMES=14;
+function Machine(){
+  this.frames=[]; this.out=""; this.steps=[]; this.trace=[];
+  this.calls=0; this.maxDepth=0; this.overflow=false;
+}
+Machine.prototype.snap=function(line,note,flag){
+  this.steps.push({
+    line, note, flag,
+    out:this.out, calls:this.calls, maxDepth:this.maxDepth,
+    frames:this.frames.map(f=>({...f})),
+    trace:this.trace.slice()
+  });
+};
+Machine.prototype.push=function(fn,args,line,note,label){
+  if(this.frames.length>=MAX_FRAMES){ this.overflow=true; throw {overflow:true}; }
+  this.frames.push({fn, args:{...args}, label:label||"", waiting:"", ret:null});
+  this.calls++;
+  this.maxDepth=Math.max(this.maxDepth,this.frames.length);
+  this.trace.push({d:this.frames.length-1, kind:"call",
+    text:`${fn}(${Object.values(args).join(", ")})`});
+  this.snap(line,note);
+};
+Machine.prototype.wait=function(text,line,note){
+  this.top().waiting=text; this.snap(line,note);
+};
+Machine.prototype.ret=function(value,line,note,isBase){
+  const f=this.top();
+  f.ret=value;
+  this.trace.push({d:this.frames.length-1, kind:isBase?"base":"ret",
+    text:`${f.fn}(${Object.values(f.args).join(", ")}) returns ${value}`});
+  this.snap(line,note,isBase?"base":"ret");
+  this.frames.pop();
+  return value;
+};
+Machine.prototype.top=function(){return this.frames[this.frames.length-1];};
+Machine.prototype.print=function(text,line,note){
+  this.out+=text; this.snap(line,note);
+};
+
+/* ============================================================
+   PROGRAMS
+   ============================================================ */
+const PROGRAMS=[
+{
+ id:"fact", title:"Factorial  —  the stack grows, then unwinds",
+ inputs:[{n:"n",label:"n",def:4,min:0,max:10}],
+ code:[
+ "#include <stdio.h>","",
+ "int fact(int n) {",
+ "    if (n <= 1)",
+ "        return 1;",
+ "    return n * fact(n - 1);",
+ "}","",
+ "int main() {",
+ "    int n = N;",
+ '    printf("%d! = %d", n, fact(n));',
+ "    return 0;","}"],
+ run(m,V){
+  function fact(n,line){
+    m.push("fact",{n},2,`<code>fact(${n})</code> is called. A new frame is created, with its own copy of <code>n</code>.`);
+    if(n<=1){
+      m.snap(3,`<code>n &lt;= 1</code> is true — this is the <strong>base case</strong>. No further call is made.`);
+      return m.ret(1,4,`<code>fact(${n})</code> returns 1. The stack now begins to unwind.`,true);
+    }
+    m.snap(3,`<code>n &lt;= 1</code> is false, so the recursive case applies.`);
+    m.wait(`${n} * fact(${n-1})`,5,
+      `To compute <code>${n} * fact(${n-1})</code>, the value of <code>fact(${n-1})</code> is needed first. <strong>Nothing is multiplied yet</strong> — this frame suspends and waits.`);
+    const sub=fact(n-1);
+    m.top().waiting=`${n} * ${sub}`;
+    m.snap(5,`<code>fact(${n-1})</code> has returned ${sub}. Only now can this frame finish its multiplication: ${n} × ${sub}.`);
+    return m.ret(n*sub,5,`<code>fact(${n})</code> returns ${n*sub} and its frame is destroyed.`);
+  }
+  m.snap(8,"Execution begins in <code>main</code>.");
+  const r=fact(V.n);
+  m.print(`${V.n}! = ${r}`,10,`All frames have been destroyed. The answer was assembled entirely on the way back up.`);
+  m.snap(11,"main returns 0 and the program ends.");
+ }
+},
+{
+ id:"digits", title:"Count the digits  —  depth equals the number of digits",
+ inputs:[{n:"n",label:"n",def:5407,min:0,max:99999}],
+ code:[
+ "#include <stdio.h>","",
+ "int countDigits(int n) {",
+ "    if (n < 10)",
+ "        return 1;",
+ "    return 1 + countDigits(n / 10);",
+ "}","",
+ "int main() {",
+ "    int n = N;",
+ '    printf("%d has %d digits", n, countDigits(n));',
+ "    return 0;","}"],
+ run(m,V){
+  function cd(n){
+    m.push("countDigits",{n},2,`<code>countDigits(${n})</code> is called.`);
+    if(n<10){
+      m.snap(3,`<code>${n} &lt; 10</code> is true — a single-digit number is the <strong>base case</strong>.`);
+      return m.ret(1,4,`Returns 1.`,true);
+    }
+    m.snap(3,`<code>${n} &lt; 10</code> is false, so one digit is stripped off.`);
+    m.wait(`1 + countDigits(${Math.trunc(n/10)})`,5,
+      `Integer division by 10 removes the last digit: ${n} / 10 = ${Math.trunc(n/10)}. This frame waits for the count of the shorter number.`);
+    const sub=cd(Math.trunc(n/10));
+    m.top().waiting=`1 + ${sub}`;
+    m.snap(5,`The shorter number has ${sub} digit${sub>1?"s":""}, so this one has ${sub} + 1.`);
+    return m.ret(1+sub,5,`Returns ${1+sub}.`);
+  }
+  m.snap(8,"Execution begins in <code>main</code>.");
+  const r=cd(V.n);
+  m.print(`${V.n} has ${r} digit${r===1?"":"s"}`,10,`Maximum depth reached: ${r}. Each frame stripped exactly one digit.`);
+  m.snap(11,"main returns 0 and the program ends.");
+ }
+},
+{
+ id:"gcd", title:"GCD by Euclid's algorithm  —  the arguments shrink fast",
+ inputs:[{n:"a",label:"a",def:48,min:1,max:9999},{n:"b",label:"b",def:18,min:0,max:9999}],
+ code:[
+ "#include <stdio.h>","",
+ "int gcd(int a, int b) {",
+ "    if (b == 0)",
+ "        return a;",
+ "    return gcd(b, a % b);",
+ "}","",
+ "int main() {",
+ "    int a = A, b = B;",
+ '    printf("gcd = %d", gcd(a, b));',
+ "    return 0;","}"],
+ run(m,V){
+  function g(a,b){
+    m.push("gcd",{a,b},2,`<code>gcd(${a}, ${b})</code> is called.`);
+    if(b===0){
+      m.snap(3,`<code>b == 0</code> is true — the <strong>base case</strong>. When the remainder reaches zero, the other argument is the answer.`);
+      return m.ret(a,4,`Returns ${a}.`,true);
+    }
+    m.snap(3,`<code>b == 0</code> is false.`);
+    m.wait(`gcd(${b}, ${a%b})`,5,
+      `Euclid's step: replace the pair (${a}, ${b}) with (${b}, ${a} % ${b} = ${a%b}). The numbers shrink quickly, which is why this needs so few frames.`);
+    const sub=g(b,a%b);
+    m.snap(5,`The inner call returned ${sub}. This function simply passes it straight back — no further work is needed.`);
+    return m.ret(sub,5,`Returns ${sub}.`);
+  }
+  m.snap(8,"Execution begins in <code>main</code>.");
+  const r=g(V.a,V.b);
+  m.print(`gcd = ${r}`,10,`Only ${m.maxDepth} frames were needed. Compare this with counting up to ${Math.min(V.a,V.b)} by hand.`);
+  m.snap(11,"main returns 0 and the program ends.");
+ }
+},
+{
+ id:"power", title:"Power  —  a × power(a, n−1)",
+ inputs:[{n:"a",label:"a",def:2,min:1,max:9},{n:"n",label:"n",def:5,min:0,max:10}],
+ code:[
+ "#include <stdio.h>","",
+ "int power(int a, int n) {",
+ "    if (n == 0)",
+ "        return 1;",
+ "    return a * power(a, n - 1);",
+ "}","",
+ "int main() {",
+ "    int a = A, n = N;",
+ '    printf("%d^%d = %d", a, n, power(a, n));',
+ "    return 0;","}"],
+ run(m,V){
+  function p(a,n){
+    m.push("power",{a,n},2,`<code>power(${a}, ${n})</code> is called.`);
+    if(n===0){
+      m.snap(3,`<code>n == 0</code> — the <strong>base case</strong>. Anything raised to the power 0 is 1.`);
+      return m.ret(1,4,`Returns 1.`,true);
+    }
+    m.snap(3,`<code>n == 0</code> is false.`);
+    m.wait(`${a} * power(${a}, ${n-1})`,5,
+      `The exponent is reduced by one and the frame waits.`);
+    const sub=p(a,n-1);
+    m.top().waiting=`${a} * ${sub}`;
+    m.snap(5,`The inner call returned ${sub}, so this frame computes ${a} × ${sub}.`);
+    return m.ret(a*sub,5,`Returns ${a*sub}.`);
+  }
+  m.snap(8,"Execution begins in <code>main</code>.");
+  const r=p(V.a,V.n);
+  m.print(`${V.a}^${V.n} = ${r}`,10,`${m.calls} calls were made for an exponent of ${V.n}.`);
+  m.snap(11,"main returns 0 and the program ends.");
+ }
+},
+{
+ id:"fib", title:"Fibonacci  —  two calls per level, and the cost of repetition",
+ inputs:[{n:"n",label:"n",def:5,min:0,max:8}],
+ code:[
+ "#include <stdio.h>","",
+ "int fib(int n) {",
+ "    if (n < 2)",
+ "        return n;",
+ "    return fib(n - 1) + fib(n - 2);",
+ "}","",
+ "int main() {",
+ "    int n = N;",
+ '    printf("fib(%d) = %d", n, fib(n));',
+ "    return 0;","}"],
+ run(m,V){
+  const seen={};
+  function f(n){
+    m.push("fib",{n},2,`<code>fib(${n})</code> is called.`+
+      (seen[n]?` <strong>This value has already been computed ${seen[n]} time${seen[n]>1?"s":""} elsewhere</strong> — the work is being repeated.`:""));
+    if(n<2){
+      m.snap(3,`<code>n &lt; 2</code> — the <strong>base case</strong>. Returns n itself.`);
+      seen[n]=(seen[n]||0)+1;
+      return m.ret(n,4,`Returns ${n}.`,true);
+    }
+    m.snap(3,`<code>n &lt; 2</code> is false, so <strong>two</strong> recursive calls will be made — this is what makes the cost grow so fast.`);
+    m.wait(`fib(${n-1}) + fib(${n-2})`,5,`The left call <code>fib(${n-1})</code> is made first. The whole of its subtree is finished before <code>fib(${n-2})</code> begins.`);
+    const l=f(n-1);
+    m.top().waiting=`${l} + fib(${n-2})`;
+    m.snap(5,`The left call returned ${l}. Now the right call <code>fib(${n-2})</code> is made.`);
+    const r=f(n-2);
+    m.top().waiting=`${l} + ${r}`;
+    m.snap(5,`Both subtrees are done: ${l} + ${r}.`);
+    seen[n]=(seen[n]||0)+1;
+    return m.ret(l+r,5,`<code>fib(${n})</code> returns ${l+r}.`);
+  }
+  m.snap(8,"Execution begins in <code>main</code>.");
+  const r=f(V.n);
+  m.print(`fib(${V.n}) = ${r}`,10,
+    `<strong>${m.calls} calls</strong> were needed for fib(${V.n}), but the stack never went deeper than ${m.maxDepth}. Depth and call count are two different costs. Try n one larger and watch the call count roughly double.`);
+  m.snap(11,"main returns 0 and the program ends.");
+ }
+},
+{
+ id:"nobase", title:"A missing base case  —  stack overflow",
+ inputs:[{n:"n",label:"n",def:4,min:1,max:9}],
+ code:[
+ "#include <stdio.h>","",
+ "int fact(int n) {",
+ "    /* the base case has been left out */",
+ "    return n * fact(n - 1);",
+ "}","",
+ "int main() {",
+ "    int n = N;",
+ '    printf("%d", fact(n));',
+ "    return 0;","}"],
+ run(m,V){
+  m.snap(6,"Execution begins in <code>main</code>.");
+  try{
+    (function f(n){
+      m.push("fact",{n},2,`<code>fact(${n})</code> is called.`);
+      m.wait(`${n} * fact(${n-1})`,4,
+        `There is no test to stop the recursion, so another call is made — whatever the value of <code>n</code>.`);
+      f(n-1);
+    })(V.n);
+  }catch(e){
+    if(!e || !e.overflow) throw e;
+    m.snap(4,`<strong>Stack overflow.</strong> The argument passed 0 and kept going negative, so the base case was never reached. Each call added another frame until the memory reserved for the stack was exhausted, and the operating system terminated the program. On a real machine this happens after roughly a hundred thousand frames, within a fraction of a second.`);
+    m.print("Segmentation fault (core dumped)",4,
+      `No result was ever printed. Note that the frames are still on the stack — none of them ever returned, because none of them ever finished its multiplication. A recursive function needs a base case <em>and</em> a subproblem that genuinely moves towards it.`);
+  }
+ }
+}
+];
+
+function buildProgram(spec,vals){
+  return spec.code.map(l=>l
+    .replace(/\bN\b/,vals.n).replace(/\bA\b/,vals.a).replace(/\bB\b/,vals.b));
+}
+function runProgram(spec,vals){
+  const m=new Machine();
+  spec.run(m,vals);
+  return m;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit){
+  mount.innerHTML=lines.map((l,i)=>
+    `<div class="ln${i===hit?" hit":""}"><span class="n">${i+1}</span><span>${
+      l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span></div>`).join("");
+}
+function renderStack(mount,frames,flag){
+  if(!frames||!frames.length){mount.innerHTML='<div class="note" style="padding:6px">Only main() is running.</div>'; return;}
+  const rev=frames.slice().reverse();
+  mount.innerHTML=rev.map((f,i)=>{
+    const isTop=i===0;
+    const cls="frame"+(isTop&&flag==="base"?" base":isTop?" top":"")+(isTop&&flag==="ret"?" ret":"");
+    const args=Object.entries(f.args).map(([k,v])=>`<b>${k}</b> = ${v}`).join(" &nbsp; ");
+    return `<div class="${cls}">
+      <div class="fh"><span>${f.fn}(${Object.values(f.args).join(", ")})</span>
+        <span class="tag">${isTop?(flag==="base"?"base case":flag==="ret"?"returning":"running"):"waiting"}</span></div>
+      <div class="fv">${args}
+        ${f.ret!==null&&isTop?`<span style="color:var(--ok)">returns <b>${f.ret}</b></span>`
+          :f.waiting?`<span class="waiting">suspended on ${f.waiting.replace(/</g,"&lt;")}</span>`:""}</div>
+    </div>`;}).join("");
+}
+function renderTrace(mount,trace){
+  if(!trace||!trace.length){mount.innerHTML='<div class="note">No calls yet.</div>'; return;}
+  mount.innerHTML=trace.map(t=>{
+    const pad="  ".repeat(t.d);
+    const arrow = t.kind==="call" ? "→ " : "← ";
+    return `<div class="${t.kind}">${pad}${arrow}${t.text}</div>`;
+  }).join("");
+  mount.scrollTop=mount.scrollHeight;
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const exSel=document.getElementById("ex");
+PROGRAMS.forEach((p,i)=>{
+  const o=document.createElement("option"); o.value=i; o.textContent=p.title; exSel.appendChild(o);
+});
+const dCode=document.getElementById("d-code"), dStack=document.getElementById("d-stack"),
+      dTrace=document.getElementById("d-trace"), dOut=document.getElementById("d-out"),
+      dObs=document.getElementById("d-obs"), dIn=document.getElementById("d-inputs");
+let curSpec=PROGRAMS[0], code=[], steps=[], idx=-1, timer=null;
+
+function buildInputs(){
+  dIn.innerHTML=curSpec.inputs.map(i=>
+    `<label>${i.label}<input type="number" data-in="${i.n}" value="${i.def}" min="${i.min}" max="${i.max}"></label>`)
+    .join("")+`<span class="note">Values are limited to keep the stack readable.</span>`;
+  dIn.querySelectorAll("[data-in]").forEach(el=>el.onchange=load);
+}
+function readInputs(){
+  const v={};
+  dIn.querySelectorAll("[data-in]").forEach(el=>{
+    const spec=curSpec.inputs.find(i=>i.n===el.dataset.in);
+    let n=Number(el.value);
+    if(spec){ n=Math.max(spec.min,Math.min(spec.max,isNaN(n)?spec.def:n)); el.value=n; }
+    v[el.dataset.in]=n;
+  });
+  return v;
+}
+function load(){
+  const vals=readInputs();
+  let m;
+  try{ code=buildProgram(curSpec,vals); m=runProgram(curSpec,vals); }
+  catch(e){ dObs.textContent="Error: "+(e.message||"could not run"); return; }
+  steps=m.steps;
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,code,-1); renderStack(dStack,[]); renderTrace(dTrace,[]);
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin execution.";
+  setStats(0,0,0);
+}
+function setStats(c,d,mx){
+  document.getElementById("s-calls").textContent=c;
+  document.getElementById("s-depth").textContent=d;
+  document.getElementById("s-max").textContent=mx;
+  document.getElementById("d-depth").textContent=d?`depth ${d}`:"";
+}
+function paint(){
+  const s=steps[idx];
+  renderCode(dCode,code,s.line);
+  renderStack(dStack,s.frames,s.flag);
+  renderTrace(dTrace,s.trace);
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+  setStats(s.calls,s.frames.length,s.maxDepth);
+}
+function step(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+exSel.onchange=()=>{curSpec=PROGRAMS[+exSel.value]; buildInputs(); load();};
+document.getElementById("d-step").onclick=step;
+document.getElementById("d-reset").onclick=load;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) load();
+  this.textContent="Pause";
+  timer=setInterval(step,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(step,+this.value);}
+};
+buildInputs(); load();
+
+/* ============================================================
+   PRACTICE
+   ============================================================ */
+const pCode=document.getElementById("p-code"), pOpts=document.getElementById("p-opts"),
+      pObs=document.getElementById("p-obs"), pScoreEl=document.getElementById("p-score");
+let pSpec=null, pM=null, pAns="", pRight=0, pTries=0;
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+
+function randVals(spec){
+  const v={};
+  spec.inputs.forEach(i=>{
+    if(spec.id==="digits") v[i.n]=R(90000)+10;
+    else if(spec.id==="gcd") v[i.n]= i.n==="a"?R(90)+10:R(40)+2;
+    else if(spec.id==="fib") v[i.n]=R(6)+2;
+    else if(spec.id==="power") v[i.n]= i.n==="a"?R(3)+2:R(5)+1;
+    else v[i.n]=R(6)+1;
+  });
+  return v;
+}
+function newPractice(){
+  for(let k=0;k<30;k++){
+    const spec=pick(PROGRAMS.filter(p=>p.id!=="nobase"));
+    const vals=randVals(spec);
+    let m;
+    try{ m=runProgram(spec,vals); }catch(e){ continue; }
+    const out=m.steps[m.steps.length-1].out||"";
+    if(!out) continue;
+    pSpec=spec; pM=m; pAns=out;
+    renderCode(pCode,buildProgram(spec,vals),-1);
+    const opts=new Set([out]);
+    const num=out.match(/-?\d+$/);
+    if(num){
+      const n=Number(num[0]);
+      [n+1,n-1,n*2,Math.max(0,n-2)].forEach(x=>{
+        if(x!==n) opts.add(out.replace(/-?\d+$/,String(x)));
+      });
+    }
+    const list=[...opts].slice(0,5).sort(()=>Math.random()-0.5);
+    pOpts.innerHTML=list.map(o=>
+      `<label style="display:block;padding:3px 0;cursor:pointer">
+         <input type="radio" name="pans" value="${encodeURIComponent(o)}">
+         <code>${o.replace(/</g,"&lt;")}</code></label>`).join("");
+    pObs.textContent="Choose the output you expect and press Check.";
+    document.getElementById("p-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("p-new").onclick=newPractice;
+document.getElementById("p-check").onclick=()=>{
+  const sel=document.querySelector('input[name="pans"]:checked');
+  if(!sel){pObs.textContent="Select an answer before checking."; return;}
+  pTries++;
+  if(decodeURIComponent(sel.value)===pAns){
+    pRight++;
+    pObs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${pAns}</code>, after ${pM.calls} calls and a maximum depth of ${pM.maxDepth}.`;
+  }else{
+    pObs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Write the calls
+      out going down until the base case is reached, then work back up substituting each returned value.
+      Check the base case first: what does it return, and for which argument?`;
+  }
+  document.getElementById("p-show").disabled=false;
+  pScoreEl.textContent=`Correct ${pRight} · Attempts ${pTries}`;
+};
+document.getElementById("p-show").onclick=()=>{
+  const t=pM.trace;
+  pObs.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:13.5px">`+
+    t.map(x=>`<div style="white-space:pre;color:${x.kind==="call"?"var(--ink)":x.kind==="base"?"var(--gold)":"var(--ok)"}">${
+      "  ".repeat(x.d)}${x.kind==="call"?"→ ":"← "}${x.text}</div>`).join("")+
+    `</div><div style="padding-top:6px">prints <code>${pAns}</code></div>`;
+};
+newPractice();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"A recursive function is one that:", o:["Runs in a loop","Calls itself","Has no parameters","Returns void"], a:1},
+    {q:"What is the purpose of a base case?", o:["To speed the function up","To stop the recursion","To declare variables","To print the result"], a:1},
+    {q:"For fact(n) = n * fact(n-1), what is the base case?",
+     o:["fact(0) = 1","fact(n) = n","fact(1) = 0","There is none"], a:0},
+    {q:"What happens if a recursive function never reaches its base case?",
+     o:["It returns 0","It runs forever with no cost","The stack overflows and the program crashes","The compiler rejects it"], a:2}
+  ],
+  post:[
+    {q:"When fact(4) is called, how many frames are on the stack at the deepest point (excluding main)?",
+     o:["1","2","4","8"], a:2},
+    {q:"In return n * fact(n - 1); the multiplication for fact(4) is performed:",
+     o:["Immediately, before the recursive call","Only after fact(3) has returned","Never","Inside fact(1)"], a:1},
+    {q:"countDigits(5407) reaches a maximum stack depth of:", o:["1","4","5407","10"], a:1},
+    {q:"For gcd(48, 18), the base case is reached when:",
+     o:["a becomes 0","b becomes 0","a equals b","a becomes 1"], a:1},
+    {q:"fib(n) makes two recursive calls per level. Compared with fact(n), its number of calls grows:",
+     o:["More slowly","At the same rate","Exponentially faster","Not at all"], a:2},
+    {q:"For fib(n), the maximum stack depth is roughly:",
+     o:["n","2^n","n squared","1"], a:0},
+    {q:"A stack overflow happens because:",
+     o:["The numbers get too large","Each pending call occupies a frame and the stack space runs out","Recursion is not allowed in C","The compiler runs out of memory"], a:1},
+    {q:"fact(n) with the base case removed crashes because:",
+     o:["n becomes negative and the calls never stop","Multiplication overflows","C forbids it","It returns garbage"], a:0}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${it.q.replace(/</g,"&lt;")}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${o.replace(/</g,"&lt;")}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>
