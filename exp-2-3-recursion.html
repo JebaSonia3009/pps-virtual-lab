@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 2.3 — Recursion and the Call Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase; display:flex; gap:10px}
+  .card h4 .r{margin-left:auto; font-weight:400; color:#9fb8b4; text-transform:none; letter-spacing:0}
+  .grid2{display:grid; grid-template-columns:1.02fr .98fr; gap:17px; align-items:start}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:450px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.ran{background:#eef7f2; box-shadow:inset 3px 0 0 var(--ok)}
+  .code .ln.hit.ran{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  /* ---- memory inspector: frames, cells and arrows ---- */
+  .memwrap{position:relative; padding:14px; min-height:200px; max-height:470px; overflow:auto;
+    display:flex; flex-direction:column; gap:12px}
+  .block{position:relative; border:1px dashed var(--line); border-radius:12px;
+    padding:10px 12px 12px; background:var(--paper)}
+  .block.callee{border-color:var(--gold); background:#fffdf6}
+  .block.enter{animation:slideUp .34s ease-out}
+  @keyframes slideUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+  .block-label{display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600; color:var(--ink-soft)}
+  .block.callee .block-label{color:var(--gold)}
+  .block-label .tag{margin-left:auto; font-family:"Source Sans 3",sans-serif; font-size:10px;
+    letter-spacing:.07em; text-transform:uppercase; font-weight:700}
+  .lane{margin-top:9px}
+  .lane:first-of-type{margin-top:0}
+  .lane-label{font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:#9aa9ae; margin-bottom:5px}
+  .lane-row{display:flex; flex-wrap:wrap; gap:9px}
+  .cell{position:relative; z-index:2; min-width:98px; background:#fff; border:1.5px solid var(--line);
+    border-radius:9px; padding:7px 9px 6px; text-align:center}
+  .cell.var{border-color:var(--teal)}
+  .cell.ptr{border-color:var(--gold); background:#fdf4e0}
+  .cell.unset{opacity:.6; border-style:dashed}
+  .cell-name{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-soft)}
+  .cell-name em{font-style:normal; opacity:.65; font-size:10.5px}
+  .cell-val{font-family:"IBM Plex Mono",monospace; font-size:16px; font-weight:700; margin:2px 0 1px;
+    font-variant-numeric:tabular-nums}
+  .cell.var .cell-val{color:var(--teal)}
+  .cell.ptr .cell-val{color:var(--gold)}
+  .cell-addr{font-family:"IBM Plex Mono",monospace; font-size:10px; color:#9aa9ae}
+  .cell.flash{animation:flashRing .95s ease-out}
+  @keyframes flashRing{
+    0%{box-shadow:0 0 0 5px rgba(232,180,41,.85)}
+    100%{box-shadow:0 0 0 0 rgba(232,180,41,0)}
+  }
+  .arrows{position:absolute; top:0; left:0; pointer-events:none; z-index:1}
+  .arrow-line{stroke:var(--gold); stroke-width:2.2; fill:none}
+  .arrow-head{fill:var(--gold)}
+  .empty{color:var(--ink-soft); font-size:14px; padding:4px 2px}
+  @media (prefers-reduced-motion:reduce){
+    .cell.flash,.block.enter{animation:none}
+  }
+
+  /* ---- the p versus *p reader ---- */
+  .reader{border-top:1px solid var(--line); background:var(--wash); padding:0}
+  .reader:empty{display:none}
+  .reader .trfoot{border-top:1px solid var(--line); padding:7px 10px; font-size:13px; color:var(--ink-soft)}
+  .reader tr.tr-open td{color:var(--ink-soft)}
+  .reader tr.tr-done td{color:var(--ink)}
+  .reader tr.tr-done .tr-mark{color:var(--ok)}
+  .reader tr.tr-open .tr-mark{color:var(--gold)}
+  .reader .tr-mark{display:inline-block; width:14px; font-weight:700}
+  .reader table{max-height:none}
+  .xframe{border:1px solid var(--line); border-radius:var(--radius); margin:0 0 9px; overflow:hidden}
+  .xframe .xhead{display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:6px 10px; background:var(--wash); border-bottom:1px solid var(--line); font-size:14px}
+  .xframe .xlvl{font-size:12px; color:var(--ink-soft)}
+  .xframe .xbody{padding:7px 10px; font-size:13.5px}
+  .xframe .xfoot{padding:5px 10px; border-top:1px dashed var(--line); font-size:13px}
+  .xframe.x-open{border-color:var(--gold)}
+  .xframe.x-base{border-color:var(--teal); background:var(--teal-soft)}
+  .xframe.x-done{border-color:var(--ok)}
+  .xframe.x-done .xfoot{color:var(--ok)}
+  .reader .rhead{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; padding:8px 12px 4px}
+  .reader table{margin:0; font-size:13.5px; border:0}
+  .reader td{border:0; border-top:1px solid var(--line); padding:6px 12px;
+    font-family:"IBM Plex Mono",monospace}
+  .reader td:first-child{width:52px; font-weight:700; color:var(--gold)}
+  .reader td.what{color:var(--ink-soft); font-family:"Source Sans 3",sans-serif; font-size:13px}
+  .reader tr.deref td:first-child{color:var(--teal)}
+
+  /* ---- playground ---- */
+  .pgbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px}
+  .pggroup{display:flex; flex-wrap:wrap; align-items:center; gap:7px; min-width:0;
+    padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .pggroup .gl{font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; margin-right:2px}
+  .pggroup input{width:68px; max-width:100%; padding:5px 7px; font-size:13.5px}
+  .pgbtn{font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; padding:6px 11px;
+    border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:5px;
+    font-family:"IBM Plex Mono",monospace}
+  .pgbtn:hover:not(:disabled){border-color:var(--teal); color:var(--teal)}
+  .pgbtn:disabled{opacity:.38; cursor:not-allowed}
+  .pgbtn.go{background:var(--teal); border-color:var(--teal); color:#fff;
+    font-family:"Source Sans 3",sans-serif}
+  .pgbtn.go:hover:not(:disabled){filter:brightness(1.08); color:#fff}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:46px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+  .yn{display:flex; gap:12px; justify-content:center; padding:8px 0 16px}
+  .yn button{font:inherit; font-weight:700; font-size:16px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; padding:10px 28px; border-radius:var(--radius)}
+  .yn button.y:hover{border-color:var(--ok); background:#e4f4ec; color:var(--ok)}
+  .yn button.n:hover{border-color:var(--no); background:#fbe9e9; color:var(--no)}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 2 &rsaquo; Experiment 2.3</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Recursion and the Call Stack</h1>
+    <div class="sub">Unit 2 · Modularity · 20 programs to explore · Estimated time: 75 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To solve a problem by letting a function call itself on a smaller version of the same problem,
+      and to watch the call stack grow to the base case and shrink again as answers are handed back.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Recognise a problem whose answer depends on the answer to a smaller version of itself.</li>
+        <li>Write the two parts every recursive function needs: the <strong>base case</strong> that
+        answers without calling again, and the <strong>recursive case</strong> that calls itself on
+        something smaller.</li>
+        <li>State the recurrence relation for factorial, digit counting, GCD, power and Fibonacci.</li>
+        <li>Trace the call stack as it expands to the base case and contracts as values return, and say
+        what each waiting call is waiting for.</li>
+        <li>Explain why a missing base case makes the program stop, and what the stack looks like when
+        it happens.</li>
+        <li>Handle corner cases such as <code>0</code> and single-digit numbers correctly.</li>
+        <li>Compare a recursive solution with a loop and say which is clearer and which does less work.</li>
+      </ol>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+
+      <h3>The idea in one sentence</h3>
+      <p>A recursive function solves a big problem by asking <em>itself</em> to solve a slightly smaller
+      problem, and then doing one small piece of work with the answer it gets back.</p>
+
+      <p>Think of counting the people in a queue when you cannot see the whole queue. You ask the person
+      in front of you, "how many people are ahead of you?" They ask the person in front of them. The
+      question travels forward until it reaches the first person, who can answer without asking anyone:
+      <strong>"nobody is ahead of me."</strong> That answer then travels back down the queue, each person
+      adding one to it, until it reaches you.</p>
+
+      <p>Two things make this work, and recursion needs exactly the same two things:</p>
+      <table>
+        <tr><th>The part</th><th>What it does</th><th>In the queue</th></tr>
+        <tr><td><strong>Base case</strong></td>
+            <td>Answers immediately, without calling again. Stops the recursion.</td>
+            <td>The first person says "nobody."</td></tr>
+        <tr><td><strong>Recursive case</strong></td>
+            <td>Calls itself on something <em>smaller</em>, then does one small piece of work with the
+            answer.</td>
+            <td>Everyone else asks forward, then adds one.</td></tr>
+      </table>
+
+      <p class="note">If the base case is missing, the question travels forward forever and never comes
+      back. If the recursive call is not on something <em>smaller</em>, it never reaches the base case.
+      Both mistakes end the same way: the program stops.</p>
+
+      <h3>The shape of every recursive function</h3>
+      <pre class="code">int solve(int n) {
+    if (/* the smallest case */) {
+        return /* the answer, with no further call */;   /* base case */
+    }
+    return /* one small step */ solve(/* something smaller */);   /* recursive case */
+}</pre>
+
+      <h3>Factorial, written out</h3>
+      <p>The mathematical definition is already recursive:</p>
+      <table>
+        <tr><th>Recurrence relation</th><th>In C</th></tr>
+        <tr><td>0! = 1</td><td><code>if (n == 0) return 1;</code></td></tr>
+        <tr><td>n! = n &times; (n&minus;1)!</td><td><code>return n * fact(n - 1);</code></td></tr>
+      </table>
+
+      <p>Reading <code>fact(5)</code> out loud: 5 factorial is 5 times 4 factorial. And 4 factorial is 4
+      times 3 factorial. And so on, down to 0 factorial, which is simply 1. Nothing is multiplied until
+      the bottom is reached &mdash; the multiplications all happen on the way <em>back up</em>:</p>
+
+      <pre class="code">fact(5) = 5 &times; fact(4)                    going down: nobody can answer yet
+  fact(4) = 4 &times; fact(3)
+    fact(3) = 3 &times; fact(2)
+      fact(2) = 2 &times; fact(1)
+        fact(1) = 1 &times; fact(0)
+          fact(0) = 1                    base case reached, the first real answer
+        fact(1) = 1 &times; 1   = 1          coming back up: now the work happens
+      fact(2) = 2 &times; 1   = 2
+    fact(3) = 3 &times; 2   = 6
+  fact(4) = 4 &times; 6   = 24
+fact(5) = 5 &times; 24  = 120</pre>
+
+      <h3>Two phases, and why they matter</h3>
+      <p>Every recursion has a <strong>going-down phase</strong> (calls being made, frames piling up,
+      nothing answered yet) and a <strong>coming-back phase</strong> (answers returning, frames being
+      thrown away, the work being done). Where you put your <code>printf</code> decides which phase you
+      see:</p>
+
+      <table>
+        <tr><th>Code</th><th>Prints</th><th>Why</th></tr>
+        <tr><td><code>printf</code> <em>before</em> the recursive call</td><td>5 4 3 2 1</td>
+            <td>Work happens on the way down.</td></tr>
+        <tr><td><code>printf</code> <em>after</em> the recursive call</td><td>1 2 3 4 5</td>
+            <td>Work waits until the answers come back.</td></tr>
+      </table>
+      <p class="note">These two programs differ by one moved line, and they print in opposite orders.
+      Both are in the Demo, side by side. If a student understands that pair, they understand recursion.</p>
+
+      <h3>Why the stack is the whole story</h3>
+      <p>Each call gets its own stack frame with its own copy of <code>n</code>. When
+      <code>fact(5)</code> calls <code>fact(4)</code>, the frame for <code>fact(5)</code> does not go
+      away &mdash; it <strong>waits</strong>, holding its own <code>n</code> of 5, because it still has a
+      multiplication to do once the answer arrives. That is why seven frames exist at the deepest moment of
+      <code>fact(5)</code>: <code>main</code>, plus one each for 5, 4, 3, 2, 1 and 0. The Demo's
+      counter says the same thing &mdash; <em>deepest 7 frames</em>.</p>
+      <p>The Demo shows these frames stacked, the newest on top, and a trace beside them telling you
+      which calls are still waiting and which have given their answer back.</p>
+
+      <h3>The recurrences in this experiment</h3>
+      <table>
+        <tr><th>Problem</th><th>Base case</th><th>Recursive case</th></tr>
+        <tr><td>Factorial</td><td><code>n == 0</code> &rarr; 1</td><td><code>n * fact(n-1)</code></td></tr>
+        <tr><td>Count digits</td><td><code>n == 0</code> &rarr; 0</td><td><code>1 + countDigits(n/10)</code></td></tr>
+        <tr><td>Sum of digits</td><td><code>n == 0</code> &rarr; 0</td><td><code>n%10 + sumOfDigits(n/10)</code></td></tr>
+        <tr><td>Power</td><td><code>n == 0</code> &rarr; 1</td><td><code>x * power(x, n-1)</code></td></tr>
+        <tr><td>GCD (Euclid)</td><td><code>b == 0</code> &rarr; <code>a</code></td><td><code>gcd(b, a%b)</code></td></tr>
+        <tr><td>Reverse a number</td><td><code>n == 0</code> &rarr; <code>rev</code></td><td><code>reverse(n/10, rev*10 + n%10)</code></td></tr>
+        <tr><td>Fibonacci</td><td><code>n == 0</code> &rarr; 0, <code>n == 1</code> &rarr; 1</td><td><code>fib(n-1) + fib(n-2)</code></td></tr>
+      </table>
+
+      <h3>One recursion that is different</h3>
+      <p>Look closely at GCD. On the way back up it does <strong>no work at all</strong> &mdash; it just
+      passes the answer along unchanged. Factorial multiplies on the way back; GCD does not. Recursions
+      that do nothing on the way back are called <em>tail recursive</em>, and they are the ones that can
+      be rewritten as a loop most easily. Students do not need the word, but they should notice the
+      difference, and the trace panel makes it visible.</p>
+
+      <h3>Fibonacci, and the cost of repeating work</h3>
+      <p><code>fib(n) = fib(n-1) + fib(n-2)</code> is correct and beautiful, and also wasteful. Each call
+      splits into two, so the same small problems get solved again and again &mdash; <code>fib(5)</code>
+      alone makes 15 calls, and <code>fib(9)</code> makes 109. The Demo counts the calls for you, so a
+      student can watch the number grow and see for themselves why a loop is faster here, even though the
+      recursion is easier to read.</p>
+
+      <h3>Recursion against iteration</h3>
+      <table>
+        <tr><th></th><th>Recursion</th><th>Loop</th></tr>
+        <tr><td>Reads like</td><td>The definition of the problem</td><td>A set of instructions</td></tr>
+        <tr><td>Memory</td><td>One stack frame per level</td><td>One frame, whatever the size</td></tr>
+        <tr><td>Risk</td><td>Stack runs out if it goes too deep</td><td>Loops forever if the test never fails</td></tr>
+        <tr><td>Best for</td><td>Problems defined on smaller versions of themselves</td><td>Plain repetition</td></tr>
+      </table>
+      <p class="note">Neither is "better". Use whichever matches the shape of the problem.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <ol>
+        <li>Read the Theory, especially the written-out trace of <code>fact(5)</code>.</li>
+        <li>Attempt the <strong>Pretest</strong>. Do not look anything up first &mdash; the point is to
+        find out what you already think.</li>
+        <li>Open the <strong>Demo</strong> and start with the first concept tab, <em>How recursion
+        works</em>. Step through <em>Counting down</em> and then <em>Counting up</em>. They are the same
+        program with one line moved. Watch the output appear in a different order and look at the trace
+        panel to see why.</li>
+        <li>Step through <em>Factorial</em> slowly. At each step read the trace panel on the right: which
+        calls are still waiting, and which have given an answer back.</li>
+        <li>Run <em>A base case that never happens</em> and read what the lab tells you when the stack
+        runs out.</li>
+        <li>Move to <em>Counting digits</em>. Trace it to the base case, then try <code>n = 0</code> and
+        <code>n = 7</code> and explain the answers.</li>
+        <li>In <em>Classic recursions</em>, run Fibonacci and watch the call counter. Compare it with the
+        loop version.</li>
+        <li>Open the <strong>Explorer</strong> and drive the recursion yourself &mdash; go down one level
+        at a time until you reach the base case, then hand the answers back up one at a time.</li>
+        <li>Work through the <strong>Practice</strong> section until you get several right in a row in
+        both modes.</li>
+        <li>Attempt the <strong>Posttest</strong> and compare your score with the pretest.</li>
+      </ol>
+      <p class="note">Everything here runs inside this page. Nothing is installed and nothing is sent
+      anywhere.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p>Five questions before you begin.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <span class="score" id="pre-score"></span>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program. Change the values at the top and the program
+      runs again with your numbers. The panel under Memory tells the story of the calls: which are still
+      waiting, and what each one handed back.</p>
+      <p class="note">Some recursions take hundreds of steps &mdash; Fibonacci at <code>n = 12</code>
+      makes 465 calls. Use <strong>Skip to the end</strong> to jump straight to the finished trace and
+      the call count without pressing Step hundreds of times.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-end">Skip to the end</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="950" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div class="card">
+          <h4>Memory <span class="r" id="d-depth"></span></h4>
+          <div class="memwrap" id="d-stack"></div>
+          <div class="reader" id="d-reader"></div>
+        </div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin.</div>
+      </div>
+    </section>
+
+    <!-- EXPLORER -->
+    <section id="playground">
+      <h2>Explorer</h2>
+      <p>Here <strong>you</strong> are the computer. Pick a function and a starting value, then make the
+      calls yourself, one level at a time. Nothing moves unless you press a button.</p>
+      <p class="note">Press <em>Call the next level</em> to go down. You cannot hand an answer back until
+      you have reached the base case &mdash; just like a real call, which has to wait. Then press
+      <em>Give the answer back</em> and watch the work finally happen.</p>
+
+      <div class="controls">
+        <label class="note">Function <select id="x-fn"></select></label>
+        <span class="note" id="x-argwrap"></span>
+        <button class="btn" id="x-start">Start</button>
+        <button class="btn ghost" id="x-down">Call the next level &#8595;</button>
+        <button class="btn ghost" id="x-up">Give the answer back &#8593;</button>
+        <button class="btn ghost" id="x-reset">Reset</button>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>The stack of calls <span class="r" id="x-depth"></span></h4>
+          <div class="memwrap" id="x-stack"></div>
+        </div>
+        <div class="card">
+          <h4>The recurrence, as it builds</h4>
+          <div class="reader" id="x-trace"></div>
+        </div>
+      </div>
+
+      <div class="obs">
+        <h4>What just happened</h4>
+        <div class="obsbody" id="x-obs">Choose a function and press Start.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+      <p>Two kinds of question, with fresh numbers every time. The answers are worked out by running the
+      program, so they are always right.</p>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="change">How deep, how many calls?</button>
+      </div>
+
+      <div id="mode-predict">
+        <div class="card">
+          <h4>Predict the output</h4>
+          <div class="controls">
+            <label class="note">Concept <select id="pp-concept"></select></label>
+            <button class="btn" id="pp-new">New question</button>
+          </div>
+          <pre class="code" id="pp-code"></pre>
+          <div class="opts" id="pp-opts"></div>
+          <div class="controls">
+            <button class="btn" id="pp-check">Check</button>
+            <button class="btn ghost" id="pp-show" disabled>Show me the trace</button>
+          </div>
+          <div class="obs"><h4>Result</h4><div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div></div>
+          <p class="note">Right <span class="score" id="pp-right">0</span> of
+          <span class="score" id="pp-tries">0</span> · streak <span class="score" id="pp-streak">0</span></p>
+        </div>
+      </div>
+
+      <div id="mode-change" style="display:none">
+        <div class="card">
+          <h4>How deep, how many calls?</h4>
+          <div class="controls">
+            <button class="btn" id="pc-new">New question</button>
+          </div>
+          <pre class="code" id="pc-code"></pre>
+          <p id="pc-q"></p>
+          <div class="opts" id="pc-opts"></div>
+          <div class="controls">
+            <button class="btn" id="pc-check">Check</button>
+          </div>
+          <div class="obs"><h4>Result</h4><div class="obsbody" id="pc-obs">Choose an answer and press Check.</div></div>
+          <p class="note">Right <span class="score" id="pc-right">0</span> of
+          <span class="score" id="pc-tries">0</span> · streak <span class="score" id="pc-streak">0</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <p>Ten questions. Attempt these after finishing the Demo, the Explorer and the Practice section.</p>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <span class="score" id="post-score"></span>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M. <em>The C Programming Language</em>, 2nd edition.
+        Prentice Hall, 1988. Section 4.10, Recursion.</li>
+        <li>Balagurusamy, E. <em>Programming in ANSI C</em>, 8th edition. McGraw Hill Education, 2019.
+        Chapter 9, Functions &mdash; the section on recursion.</li>
+        <li>Gottfried, B. S. <em>Schaum's Outline of Programming with C</em>, 3rd edition. McGraw Hill,
+        2018. Chapter 7.</li>
+        <li>Reema Thareja. <em>Programming in C</em>, 2nd edition. Oxford University Press, 2016.
+        Chapter 10.</li>
+        <li>ISO/IEC 9899:2018, <em>Information technology &mdash; Programming languages &mdash; C</em>,
+        clause 6.5.2.2 on function calls.</li>
+      </ol>
+      <p class="note">The step-by-step execution in this page is produced by a C interpreter written for
+      this lab. It follows the rules of C for <code>int</code> and <code>float</code> arithmetic,
+      integer division and function calls, so the outputs shown match what a C compiler produces.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Experiment design and content</th><td>Dr. Jeba Sonia J, Department of Computer Science
+        and Engineering, SRM Institute of Science and Technology, Kattankulathur</td></tr>
+        <tr><th>Course</th><td>26CSE1002J &mdash; Programming for Problem Solving</td></tr>
+        <tr><th>Unit</th><td>Unit 2 &mdash; Modularity</td></tr>
+        <tr><th>Experiment</th><td>2.3 &mdash; Recursion and the Call Stack</td></tr>
+      </table>
+      <p class="note">Reviewers, student testers and co-developers are added here as the lab is used in
+      class.</p>
+    </section>
+  </main>
+</div>
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", playground:"Explorer", practice:"Practice", posttest:"Posttest",
+  references:"References", contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   VALUES AND TYPES
+   ============================================================ */
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  if(type==="float"){dv.setFloat32(0,v,true); return dv.getFloat32(0,true);}
+  return v;                                   /* pointers keep their address */
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function hexAddr(a){return "0x"+(a>>>0).toString(16).toUpperCase();}
+function isPtr(t){return typeof t==="string" && t.indexOf("*")>=0;}
+function showVal(type,v){
+  if(v===null||v===undefined) return null;
+  if(isPtr(type)) return hexAddr(v);
+  if(type==="char"){ const p=v>=32&&v<=126; return p?`'${String.fromCharCode(v)}'`:String(v); }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ============================================================
+   EXPRESSION ENGINE
+   Arithmetic, comparisons, logic, casts, & (address of) and * (value at)
+   ============================================================ */
+const LEVEL={"||":1,"&&":2,"==":3,"!=":3,"<":4,">":4,"<=":4,">=":4,
+             "+":5,"-":5,"*":6,"/":6,"%":6};
+const TYPES=["int","float","char"];
+
+function xtok(src){
+  const t=[]; let i=0;
+  const unaryHere=()=>{
+    const p=t[t.length-1];
+    return !p || p.k==="op" || p.k==="not" || p.k==="addr" || p.k==="deref" ||
+           p.k==="cast" || (p.k==="paren"&&p.v==="(");
+  };
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const two=src.substr(i,2);
+    if(["==","!=","<=",">=","&&","||"].includes(two)){t.push({k:"op",v:two}); i+=2; continue;}
+    if(c==="&"&&/[A-Za-z_]/.test(src[i+1]||"")&&unaryHere()){t.push({k:"addr"}); i++; continue;}
+    if(c==="*"&&unaryHere()){t.push({k:"deref"}); i++; continue;}
+    if("<>+-*/%".includes(c)){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="!"){t.push({k:"not"}); i++; continue;}
+    if(c==="?"||c===":"){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="("){
+      const m=src.slice(i).match(/^\(\s*(int|float|char)\s*\)/);
+      if(m){t.push({k:"cast",to:m[1]}); i+=m[0].length; continue;}
+      t.push({k:"paren",v:"("}); i++; continue;
+    }
+    if(c===")"){t.push({k:"paren",v:")"}); i++; continue;}
+    if(c==="'"){
+      const ch=src[i+1];
+      if(src[i+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"lit",type:"char",v:ch.charCodeAt(0),txt:"'"+ch+"'"}); i+=3; continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i; while(j<src.length&&/[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      t.push({k:"lit",type:lit.includes(".")?"float":"int",v:parseFloat(lit),txt:lit});
+      i=j; continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j])) j++;
+      t.push({k:"id",name:src.slice(i,j)}); i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty expression");
+  return t;
+}
+function xparse(t){
+  let p=0;
+  function primary(){
+    const x=t[p];
+    if(!x) throw new Error("Unexpected end of expression");
+    if(x.k==="not"){p++; return {op:"!",a:primary()};}
+    if(x.k==="addr"){p++; return {op:"addr",a:primary()};}
+    if(x.k==="deref"){p++; return {op:"deref",a:primary()};}
+    if(x.k==="cast"){p++; return {op:"cast",to:x.to,a:primary()};}
+    if(x.k==="op"&&x.v==="-"){p++; return {op:"neg",a:primary()};}
+    if(x.k==="paren"&&x.v==="("){
+      p++; const e=cond();
+      if(!t[p]||t[p].v!==")") throw new Error("Missing )");
+      p++; return e;
+    }
+    p++;
+    if(x.k==="lit") return {lit:x};
+    if(x.k==="id") return {id:x.name};
+    throw new Error("Unexpected token in expression");
+  }
+  function expr(min){
+    let left=primary();
+    while(t[p]&&t[p].k==="op"&&LEVEL[t[p].v]>=min){
+      const o=t[p].v; p++;
+      left={op:o,a:left,b:expr(LEVEL[o]+1)};
+    }
+    return left;
+  }
+  /* the conditional operator sits below every other level and groups to the right */
+  function cond(){
+    const c=expr(1);
+    if(t[p]&&t[p].k==="op"&&t[p].v==="?"){
+      p++; const a=cond();
+      if(!t[p]||!(t[p].k==="op"&&t[p].v===":"))
+        throw new Error("A ? needs a matching : in the same expression");
+      p++; const b=cond();
+      return {op:"?:",c:c,a:a,b:b};
+    }
+    return c;
+  }
+  const e=cond();
+  if(p!==t.length) throw new Error("Malformed expression");
+  return e;
+}
+/* ctx: {get(name), addrOf(name), readAddr(addr)} */
+function evalAst(n,ctx){
+  if(n.lit) return {v:n.lit.v,type:n.lit.type};
+  if(n.id!==undefined){
+    const v=ctx.get(n.id);
+    if(!v) throw new Error("Unknown variable: "+n.id);
+    if(v.value===null||v.value===undefined) throw new Error(n.id+" has no value yet");
+    return {v:v.value,type:v.type};
+  }
+  if(n.op==="addr"){
+    if(n.a.id===undefined) throw new Error("& needs a variable name after it");
+    return {v:ctx.addrOf(n.a.id), type:(ctx.get(n.a.id).type)+" *"};
+  }
+  if(n.op==="deref"){
+    const a=evalAst(n.a,ctx);
+    if(!isPtr(a.type)) throw new Error("* can only be used on a pointer");
+    const cell=ctx.readAddr(a.v);
+    if(!cell) throw new Error("this pointer does not point at a live variable");
+    return {v:cell.value, type:cell.type};
+  }
+  if(n.op==="cast"){
+    const a=evalAst(n.a,ctx);
+    return {v:fitToType(n.to,a.v), type:n.to};
+  }
+  if(n.op==="neg"){const a=evalAst(n.a,ctx); return {v:-a.v,type:a.type};}
+  if(n.op==="!"){const a=evalAst(n.a,ctx); return {v:a.v?0:1,type:"int"};}
+  if(n.op==="?:"){
+    /* only the branch that is chosen is worked out at all */
+    return evalAst(n.c,ctx).v ? evalAst(n.a,ctx) : evalAst(n.b,ctx);
+  }
+  if(n.op==="&&"){const a=evalAst(n.a,ctx); if(!a.v) return {v:0,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  if(n.op==="||"){const a=evalAst(n.a,ctx); if(a.v) return {v:1,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  const a=evalAst(n.a,ctx), b=evalAst(n.b,ctx);
+  const bothInt = a.type!=="float" && b.type!=="float";
+  const type=bothInt?"int":"float";
+  switch(n.op){
+    case "+": return {v:a.v+b.v,type};
+    case "-": return {v:a.v-b.v,type};
+    case "*": return {v:a.v*b.v,type};
+    case "/":
+      if(b.v===0) throw new Error("Division by zero");
+      return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
+    case "%":
+      if(!bothInt) throw new Error("% needs whole numbers");
+      if(b.v===0) throw new Error("Modulus by zero");
+      return {v:a.v%b.v,type:"int"};
+    case "==": return {v:a.v===b.v?1:0,type:"int"};
+    case "!=": return {v:a.v!==b.v?1:0,type:"int"};
+    case "<":  return {v:a.v<b.v?1:0,type:"int"};
+    case ">":  return {v:a.v>b.v?1:0,type:"int"};
+    case "<=": return {v:a.v<=b.v?1:0,type:"int"};
+    case ">=": return {v:a.v>=b.v?1:0,type:"int"};
+  }
+  throw new Error("Unknown operator "+n.op);
+}
+
+/* ============================================================
+   PARSER
+   ============================================================ */
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){
+      if(c==="(") d++; if(c===")") d--;
+      if(c===","&&d===0){out.push(cur); cur=""; continue;}
+    }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+function matchBrace(lines,start,end){
+  let depth=0;
+  for(let i=start;i<end;i++){
+    let q=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ q=!q; continue; }
+      if(q) continue;
+      if(ch==="{") depth++;
+      else if(ch==="}" && i>start){ depth--; if(depth===0) return i; }
+    }
+  }
+  return end-1;
+}
+function parseParams(s){
+  s=s.trim();
+  if(s===""||s==="void") return [];
+  return splitTop(s).map(p=>{
+    const m=p.trim().match(/^(int|float|char)\s*(\*?)\s*([A-Za-z_]\w*)$/);
+    if(!m) throw new Error("Cannot understand the parameter: "+p.trim());
+    return {type:m[1]+(m[2]?" *":""), name:m[3]};
+  });
+}
+function parseSimple(s,i,out){
+  let m;
+  if((m=s.match(/^return\s*;$/))){ out.push({kind:"return",line:i,expr:null}); return true; }
+  if((m=s.match(/^return\s+(.+);$/))){ out.push({kind:"return",line:i,expr:m[1].trim()}); return true; }
+  if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+    const base=m[1];
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      let ptr=false;
+      if(part.startsWith("*")){ ptr=true; part=part.slice(1).trim(); }
+      const eq=part.indexOf("=");
+      const type=base+(ptr?" *":"");
+      if(eq<0) out.push({kind:"decl",line:i,type,name:part.trim(),init:null});
+      else out.push({kind:"decl",line:i,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+    });
+    return true;
+  }
+  if((m=s.match(/^printf\((.*)\);$/))){
+    const args=splitTop(m[1]);
+    out.push({kind:"printf",line:i,fmt:args[0].trim().replace(/^"|"$/g,""),
+              args:args.slice(1).map(a=>a.trim())});
+    return true;
+  }
+  if((m=s.match(/^\*\s*([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"storeVia",line:i,ptr:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"assign",line:i,name:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*\((.*)\)\s*;$/))){
+    out.push({kind:"callStmt",line:i,name:m[1],args:m[2]}); return true;
+  }
+  return false;
+}
+function parseBlock(lines,i,end){
+  const out=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")||s==="}"){i++; continue;}
+    let m=s.match(/^for\s*\((.+)\)\s*\{$/);
+    if(m){
+      const parts=m[1].split(";");
+      if(parts.length!==3) throw new Error("A for loop needs three parts: for (start; test; step)");
+      const close=matchBrace(lines,i,end);
+      out.push({kind:"for",line:i,init:parts[0].trim(),cond:parts[1].trim(),
+                update:parts[2].trim(),body:parseBlock(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    m=s.match(/^while\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      out.push({kind:"while",line:i,cond:m[1].trim(),
+                body:parseBlock(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    /* an if written without braces: the statement sits on the same line or the
+       one below, and any else-if or else that follow are read the same way */
+    m=s.match(/^if\s*\((.+)\)\s*$/) || s.match(/^if\s*\((.+)\)\s*([^{].*;)\s*$/);
+    if(m){
+      const mixed=(ln)=>new Error("Line "+(ln+1)+" puts braces on one branch of this if and not "+
+        "on another. Put braces on every branch, or leave them off every branch.");
+      const readBody=(txt,ln)=>{
+        const body=[];
+        if(txt!==undefined && String(txt).trim()!==""){
+          if(!parseSimple(String(txt).trim(),ln,body))
+            throw new Error("Cannot understand the statement on line "+(ln+1));
+          return {body:body, next:ln+1};
+        }
+        const nl=(lines[ln+1]||"").replace(/\/\*.*?\*\//g,"").trim();
+        if(nl===""||nl.charAt(0)==="{") throw mixed(ln+1);
+        if(!parseSimple(nl,ln+1,body))
+          throw new Error("Cannot understand the statement on line "+(ln+2));
+        return {body:body, next:ln+2};
+      };
+      const node={kind:"if",line:i,branches:[],else:null};
+      let r=readBody(m[2],i);
+      node.branches.push({line:i,cond:m[1],body:r.body});
+      let j=r.next;
+      while(j<end){
+        const t=(lines[j]||"").replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^else\s+if\s*\((.+)\)\s*$/) ||
+               t.match(/^else\s+if\s*\((.+)\)\s*([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[2],j);
+          node.branches.push({line:j,cond:em[1],body:r.body});
+          j=r.next; continue;
+        }
+        em=t.match(/^else\s*$/) || t.match(/^else\s+([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[1],j);
+          node.else={line:j,body:r.body};
+          j=r.next; break;
+        }
+        if(/^else\b/.test(t)) throw mixed(j);
+        break;
+      }
+      out.push(node); i=j; continue;
+    }
+    m=s.match(/^if\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      const node={kind:"if",line:i,
+        branches:[{line:i,cond:m[1],body:parseBlock(lines,i+1,close)}], else:null};
+      let j=close;
+      while(j<end){
+        const t=lines[j].replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^\}\s*else\s+if\s*\((.+)\)\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.branches.push({line:j,cond:em[1],body:parseBlock(lines,j+1,c2)});
+          j=c2; continue;
+        }
+        em=t.match(/^\}\s*else\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.else={line:j,body:parseBlock(lines,j+1,c2)};
+          j=c2;
+        }
+        break;
+      }
+      out.push(node); i=j+1; continue;
+    }
+    if(!parseSimple(s,i,out)) throw new Error("Cannot parse line "+(i+1)+": "+s);
+    i++;
+  }
+  return out;
+}
+function parseFunctions(lines){
+  const fns={}; let i=0;
+  while(i<lines.length){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")){i++; continue;}
+    const m=s.match(/^(int|float|char|void)\s*(\*?)\s*([A-Za-z_]\w*)\s*\((.*)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,lines.length);
+      fns[m[3]]={name:m[3], retType:m[1]+(m[2]?" *":""), params:parseParams(m[4]),
+                 body:parseBlock(lines,i+1,close), line:i, endLine:close};
+      i=close+1; continue;
+    }
+    i++;
+  }
+  if(!fns.main) throw new Error("This program has no main function");
+  return fns;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(\.\d+)?([dfc%])/);
+      if(m){
+        if(m[2]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        if(m[2]==="d") out+=String(Math.trunc(v.v));
+        else if(m[2]==="c") out+=String.fromCharCode(v.v);
+        else out+=Number(v.v).toFixed(m[1]?parseInt(m[1].slice(1)):6);
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+
+/* ============================================================
+   MACHINE — frames, calls, pointers
+   ============================================================ */
+const STACK_TOP=0x7FF0, MAX_DEPTH=60, MAX_STEPS=6000, MAX_LOOPS=20000;
+function Machine(lines){
+  this.lines=lines;
+  this.fns=parseFunctions(lines);
+  this.frames=[];
+  this.out="";
+  this.steps=[];
+  this.ran=new Set();
+  this.nextAddr=STACK_TOP;
+  this.returning=false;
+  this.calls=0;          /* how many function calls have been made */
+  this.deepest=1;        /* the most frames that have ever been on the stack */
+  this.trace=[];         /* the going-down / coming-back story, one line per event */
+}
+Machine.prototype.ctx=function(){
+  const M=this;
+  return {
+    get:n=>M.find(n),
+    addrOf:n=>{const v=M.find(n); if(!v) throw new Error("Unknown variable: "+n); return v.addr;},
+    readAddr:a=>{const t=M.byAddr(a); return t?t.v:null;}
+  };
+};
+Machine.prototype.top=function(){return this.frames[this.frames.length-1];};
+Machine.prototype.find=function(name){
+  const f=this.top(); if(!f) return null;
+  return f.vars.find(v=>v.name===name)||null;
+};
+Machine.prototype.byAddr=function(addr){
+  for(let i=this.frames.length-1;i>=0;i--){
+    const v=this.frames[i].vars.find(x=>x.addr===addr);
+    if(v) return {v, frame:this.frames[i], idx:i};
+  }
+  return null;
+};
+Machine.prototype.snap=function(line,note,touch){
+  const M=this;
+  if(this.steps.length>=MAX_STEPS) throw new Error("TOO_MANY_STEPS");
+  if(typeof touch==="string") touch={name:touch, idx:this.frames.length-1};
+  this.steps.push({
+    line, note, touch, out:this.out, ran:new Set(this.ran),
+    calls:this.calls, deepest:this.deepest, depth:this.frames.length,
+    trace:this.trace.map(t=>({...t})),
+    frames:this.frames.map(f=>({fn:f.fn, vars:f.vars.map(v=>{
+      const o={name:v.name,type:v.type,value:v.value,addr:v.addr};
+      if(isPtr(v.type)&&v.value!==null){
+        const t=M.byAddr(v.value);
+        o.points = t ? {name:t.v.name, fn:t.frame.fn, idx:t.idx} : null;
+      }
+      return o;
+    })}))
+  });
+};
+Machine.prototype.declare=function(name,type,value,line,note){
+  const f=this.top();
+  const addr=this.nextAddr; this.nextAddr-=4;
+  f.vars.push({name,type,value:(value===undefined?null:value),addr});
+  this.ran.add(line);
+  if(note) this.snap(line,note,name);
+};
+Machine.prototype.evalExpr=function(src,line){
+  const resolved=this.resolveCalls(src,line);
+  return evalAst(xparse(xtok(resolved)),this.ctx());
+};
+Machine.prototype.resolveCalls=function(src,line){
+  let s=src, guard=0;
+  while(guard++<40){
+    const call=findCall(s,this.fns);
+    if(!call) break;
+    const argSrcs = call.args.trim()==="" ? [] : splitTop(call.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),line));
+    const ret=this.callFunction(call.name,argVals,line);
+    s = s.slice(0,call.start) + literalOf(ret) + s.slice(call.end);
+  }
+  return s;
+};
+Machine.prototype.callFunction=function(name,argVals,callLine){
+  const fn=this.fns[name];
+  if(!fn) throw new Error("Unknown function: "+name);
+  if(argVals.length!==fn.params.length)
+    throw new Error(name+" expects "+fn.params.length+" value(s)");
+  if(this.frames.length>=MAX_DEPTH) throw new Error("RUNAWAY");
+
+  const argText=argVals.map(a=>showVal(a.type,a.v)).join(", ");
+  this.calls++;
+  const traceRow={depth:this.frames.length, call:name+"("+argText+")", gives:null, open:true};
+  this.trace.push(traceRow);
+  if(this.frames.length+1>this.deepest) this.deepest=this.frames.length+1;
+  this.snap(callLine,`<code>${name}(${esc(argText)})</code> is called. The values in the brackets are worked out <strong>first</strong>, then control moves into the function.`);
+
+  this.frames.push({fn:name, vars:[], ret:undefined});
+  fn.params.forEach((p,i)=>{
+    const a=argVals[i];
+    const stored = isPtr(p.type) ? a.v : fitToType(p.type,a.v);
+    this.top().vars.push({name:p.name,type:p.type,value:stored,addr:this.nextAddr});
+    this.nextAddr-=4;
+  });
+  this.ran.add(fn.line);
+  const plist=fn.params.length
+    ? "Its parameters are set up as <strong>new variables at new addresses</strong>: "+
+      fn.params.map(p=>`<code>${p.name}</code>`).join(", ")+
+      (fn.params.some(p=>isPtr(p.type))
+        ? ". The ones with a <code>*</code> hold addresses, so they lead back to the caller's variables."
+        : ". They are <strong>copies</strong> of the values that were passed in.")
+    : "It takes no parameters.";
+  this.snap(fn.line,`A new stack frame for <code>${name}</code> is created on top of the stack. ${plist}`);
+
+  const saved=this.returning; this.returning=false;
+  this.runBlock(fn.body);
+  const frame=this.frames[this.frames.length-1];
+  const ret = frame.ret!==undefined ? frame.ret : {v:0,type:"void"};
+  this.returning=saved;
+
+  const names=frame.vars.map(v=>v.name);
+  traceRow.gives = ret.type==="void" ? "nothing" : showVal(ret.type,ret.v);
+  traceRow.open=false;
+  this.frames.pop();
+  this.snap(callLine,
+    `<code>${name}</code> has finished. Its frame is thrown away, so ${
+      names.length?names.map(n=>`<code>${n}</code>`).join(", ")+" stop existing":"nothing is left behind"}. ${
+      ret.type==="void" ? "It returns no value." : `The value <strong>${showVal(ret.type,ret.v)}</strong> is handed back to the caller.`}`);
+  return ret;
+};
+/* the "i = 2" and "i = i + 1" parts of a for loop */
+Machine.prototype.miniAssign=function(src,line,prefix){
+  if(!src) return;
+  const m=src.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/);
+  if(!m) throw new Error("Cannot understand this part of the loop: "+src);
+  const v=this.find(m[1]);
+  if(!v) throw new Error("Unknown variable: "+m[1]);
+  const r=this.evalExpr(m[2],line);
+  const old=v.value;
+  v.value=fitToType(v.type,r.v);
+  this.ran.add(line);
+  this.snap(line, prefix+`<code>${m[1]}</code> ${old===null?"starts at":"goes from "+showVal(v.type,old)+" to"} ${showVal(v.type,v.value)}.`, m[1]);
+};
+Machine.prototype.runBlock=function(block){
+  for(const s of block){
+    this.runStatement(s);
+    if(this.returning) return;
+  }
+};
+Machine.prototype.runStatement=function(s){
+  if(s.kind==="decl"){
+    if(s.init===null){
+      this.declare(s.name,s.type,null,s.line,
+        `<code>${s.name}</code> is created in this frame, but it has no value yet.`);
+    }else{
+      const r=this.evalExpr(s.init,s.line);
+      const val = isPtr(s.type) ? r.v : fitToType(s.type,r.v);
+      this.declare(s.name,s.type,val,s.line,
+        isPtr(s.type)
+          ? `<code>${s.name}</code> is a <strong>pointer</strong>. It now holds the address ${showVal(s.type,val)}.`
+          : `<code>${s.name}</code> now holds ${showVal(s.type,val)}.`);
+    }
+  }else if(s.kind==="assign"){
+    const v=this.find(s.name);
+    if(!v) throw new Error("Unknown variable: "+s.name);
+    const r=this.evalExpr(s.expr,s.line);
+    const old=v.value;
+    v.value = isPtr(v.type) ? r.v : fitToType(v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line, isPtr(v.type)
+      ? `<code>${s.name}</code> is pointed somewhere else: it now holds ${showVal(v.type,v.value)}.`
+      : `<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(v.type,old)+" to"} ${showVal(v.type,v.value)}.`,
+      s.name);
+  }else if(s.kind==="storeVia"){
+    const p=this.find(s.ptr);
+    if(!p) throw new Error("Unknown variable: "+s.ptr);
+    if(!isPtr(p.type)) throw new Error(s.ptr+" is not a pointer, so *"+s.ptr+" has no meaning");
+    const t=this.byAddr(p.value);
+    if(!t) throw new Error(s.ptr+" does not point at a live variable");
+    const r=this.evalExpr(s.expr,s.line);
+    const old=t.v.value;
+    t.v.value=fitToType(t.v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line,
+      `<code>*${s.ptr} = …</code> writes through the pointer. <strong>${t.v.name}</strong> in <code>${t.frame.fn}</code> changes from ${showVal(t.v.type,old)} to ${showVal(t.v.type,t.v.value)} — follow the arrow to see which box just changed.`,
+      {name:t.v.name, idx:t.idx});
+  }else if(s.kind==="printf"){
+    const vals=s.args.map(a=>this.evalExpr(a,s.line));
+    this.out+=formatPrintf(s.fmt,vals);
+    this.ran.add(s.line);
+    this.snap(s.line,"This line writes to the screen.");
+  }else if(s.kind==="callStmt"){
+    const argSrcs = s.args.trim()==="" ? [] : splitTop(s.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),s.line));
+    this.ran.add(s.line);
+    const ret=this.callFunction(s.name,argVals,s.line);
+    if(ret.type!=="void")
+      this.snap(s.line,`The value <strong>${showVal(ret.type,ret.v)}</strong> came back, but nothing was done with it, so it is <strong>thrown away</strong>. To keep it you would have to store it, as in <code>n = ${s.name}(…);</code>`);
+  }else if(s.kind==="return"){
+    const f=this.top();
+    if(s.expr===null){ f.ret={v:0,type:"void"}; }
+    else{
+      const r=this.evalExpr(s.expr,s.line);
+      const fn=this.fns[f.fn];
+      f.ret = isPtr(fn.retType) ? r : {v:fitToType(fn.retType,r.v), type:fn.retType};
+    }
+    this.ran.add(s.line);
+    this.returning=true;
+    this.snap(s.line, s.expr===null
+      ? "<code>return;</code> ends the function here."
+      : `<code>return</code> hands back ${showVal(f.ret.type,f.ret.v)} and ends the function immediately.`);
+  }else if(s.kind==="for"){
+    this.ran.add(s.line);
+    this.miniAssign(s.init,s.line,"The loop sets up its counter. ");
+    let spins=0;
+    while(spins++<MAX_LOOPS){
+      const c=this.evalExpr(s.cond,s.line);
+      this.snap(s.line, `Test <code>${esc(s.cond)}</code> &rarr; <strong>${c.v?"true":"false"}</strong>. `+
+        (c.v?"The body below runs once more.":"The loop is finished and the program carries on after it."));
+      if(!c.v) break;
+      this.runBlock(s.body);
+      if(this.returning) return;
+      this.miniAssign(s.update,s.line,"One round is done, so the counter moves on. ");
+    }
+  }else if(s.kind==="while"){
+    this.ran.add(s.line);
+    let spins=0;
+    while(spins++<MAX_LOOPS){
+      const c=this.evalExpr(s.cond,s.line);
+      this.snap(s.line, `Test <code>${esc(s.cond)}</code> &rarr; <strong>${c.v?"true":"false"}</strong>. `+
+        (c.v?"The body below runs once more.":"The loop is finished."));
+      if(!c.v) break;
+      this.runBlock(s.body);
+      if(this.returning) return;
+    }
+  }else if(s.kind==="if"){
+    let done=false;
+    for(const br of s.branches){
+      const r=this.evalExpr(br.cond,br.line);
+      if(r.v){
+        this.ran.add(br.line);
+        this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>true</strong>, so this block runs.`);
+        this.runBlock(br.body); done=true; break;
+      }
+      this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>false</strong>, so this block is skipped.`);
+      if(this.returning) return;
+    }
+    if(!done&&s.else){
+      this.ran.add(s.else.line);
+      this.snap(s.else.line,"None of the conditions were true, so the <code>else</code> block runs.");
+      this.runBlock(s.else.body);
+    }
+  }
+};
+function literalOf(r){
+  if(!r||r.type==="void") return "0";
+  if(r.type==="char") return "'"+String.fromCharCode(r.v)+"'";
+  if(r.type==="float"){ const s=String(r.v); return (s.includes(".")||s.includes("e"))?s:s+".0"; }
+  return String(r.v);
+}
+function findCall(s,fns){
+  const re=/([A-Za-z_]\w*)\s*\(/g;
+  let m;
+  while((m=re.exec(s))){
+    if(!(m[1] in fns)) continue;
+    const open=m.index+m[0].length-1;
+    let d=0;
+    for(let j=open;j<s.length;j++){
+      if(s[j]==="(") d++;
+      else if(s[j]===")"){ d--; if(d===0) return {name:m[1],args:s.slice(open+1,j),start:m.index,end:j+1}; }
+    }
+    throw new Error("A closing bracket is missing in a function call");
+  }
+  return null;
+}
+/* ============================================================
+   SHORTHAND
+   i++, ++i, i--, --i and x += 3 are written out into the long form, one line
+   for one line, so nothing about the numbering or the picture changes.
+   ============================================================ */
+const SH_STEP=/^\s*(?:(\+\+|--)\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)|((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*(\+\+|--))\s*$/;
+const SH_COMP=/^\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*([-+*\/%])=\s*(.+)$/;
+/* one expression written out in full, or null when there is no shorthand in it */
+function expandShorthand(src){
+  const s=String(src).trim();
+  if(s==="") return null;
+  let m=s.match(SH_STEP);
+  if(m){
+    const tgt=(m[2]!==undefined?m[2]:m[3]).trim();
+    const op=((m[1]!==undefined?m[1]:m[4])==="++") ? "+" : "-";
+    return tgt+" = "+tgt+" "+op+" 1";
+  }
+  m=s.match(SH_COMP);
+  if(m) return m[1].trim()+" = "+m[1].trim()+" "+m[2]+" ("+m[3].trim()+")";
+  return null;
+}
+function expandLine(line){
+  const raw=String(line);
+  const code=raw.replace(/\/\*.*?\*\//g,"");
+  const ind=raw.match(/^\s*/)[0];
+  /* a for header: the first and third parts may carry shorthand */
+  let m=code.match(/^\s*for\s*\((.*)\)\s*(\{?)\s*$/);
+  if(m){
+    const parts=m[1].split(";");
+    if(parts.length===3){
+      let changed=false;
+      [0,2].forEach(k=>{
+        const ex=expandShorthand(parts[k]);
+        if(ex!==null){ parts[k]=" "+ex; changed=true; }
+      });
+      if(changed) return ind+"for ("+parts.join(";")+")"+(m[2]?" {":"");
+    }
+    return raw;
+  }
+  m=code.match(/^\s*(.*?)\s*;\s*$/);
+  if(m){
+    const ex=expandShorthand(m[1]);
+    if(ex!==null) return ind+ex+";";
+  }
+  return raw;
+}
+/* Comments and string bodies are blanked before anything is looked for, so that
+   a dash in a comment is never mistaken for an operator. Line count is kept, and
+   only the parser sees this version -- the page still shows what was written. */
+function shStrip(lines){
+  let block=false;
+  return (lines||[]).map(src=>{
+    const s=String(src); let out="", i=0;
+    while(i<s.length){
+      if(block){
+        if(s.substr(i,2)==="*/"){ block=false; out+="  "; i+=2; }
+        else { out+=" "; i++; }
+        continue;
+      }
+      if(s.substr(i,2)==="/*"){ block=true; out+="  "; i+=2; continue; }
+      if(s.substr(i,2)==="//"){ while(i<s.length){ out+=" "; i++; } continue; }
+      if(s[i]==='"'||s[i]==="'"){
+        const q=s[i]; out+=s[i]; i++;
+        while(i<s.length){
+          if(s[i]==="\\"&&i+1<s.length){ out+=s[i]+s[i+1]; i+=2; continue; }
+          out+=s[i]; if(s[i]===q){ i++; break; }
+          i++;
+        }
+        continue;
+      }
+      out+=s[i]; i++;
+    }
+    return out;
+  });
+}
+/* ++ and -- have no other meaning in C, so anything left really is in an expression */
+const SH_LEFT=t=>/(\+\+|--)/.test(String(t).replace(/"[^"]*"/g,'""').replace(/'[^']*'/g,"''"));
+function expandProgram(lines){
+  return shStrip(lines).map(l=>{
+    const out=expandLine(l);
+    if(SH_LEFT(out)) throw new Error("SHORTHAND_INSIDE");
+    return out;
+  });
+}
+function runProgram(lines){
+  try{ lines=expandProgram(lines); }
+  catch(x){
+    if(String(x.message)!=="SHORTHAND_INSIDE") throw x;
+    return [{line:0, out:"\n[the program stopped here]", ran:new Set(), touch:null,
+      note:"<strong>The program cannot continue.</strong> This page follows <code>i++</code>, "+
+        "<code>++i</code>, <code>i--</code> and <code>x += 3</code> when each one is a statement "+
+        "on its own, or the first or last part of a <code>for</code> header. Inside a larger "+
+        "expression &mdash; <code>a[i++]</code>, or <code>printf(\"%d\", n++)</code> &mdash; the "+
+        "order in which C does the parts catches out experienced programmers too, so this page "+
+        "asks you to put it on a line of its own instead.",
+      calls:0, deepest:1, depth:1, trace:[], loops:[], frames:[], crashed:true}];
+  }
+  const M=new Machine(lines);
+  const mainFn=M.fns.main;
+  M.frames.push({fn:"main",vars:[],ret:undefined});
+  M.ran.add(mainFn.line);
+  M.snap(mainFn.line,"The program starts in <code>main</code>. A stack frame is created for it.");
+  try{
+    M.runBlock(mainFn.body);
+    M.snap(mainFn.endLine,"<code>main</code> finishes and the program ends.");
+  }catch(err){
+    const msg=String(err&&err.message||"");
+    const why = /RUNAWAY/.test(msg)
+      ? "The stack reached "+MAX_DEPTH+" frames and stopped. There are two reasons this happens, and it "+
+        "is worth working out which one you are looking at. Either the <strong>base case</strong> is "+
+        "missing or can never be reached, so the calls would never stop &mdash; or the base case is "+
+        "fine and the starting number is simply larger than this page can draw at once. Look at the "+
+        "function: does it have a case that answers <em>without</em> calling itself again, and does "+
+        "each call get closer to it?"
+      : /TOO_MANY_STEPS/.test(msg)
+      ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Division by zero/.test(msg)
+      ? "A whole number cannot be divided by zero. In C this stops the program with an error."
+      : /Modulus by zero/.test(msg)
+      ? "<code>%</code> cannot be used with zero on the right."
+      : /no value yet/.test(msg)
+      ? "A variable was used before it was given a value."
+      : esc(msg)+".";
+    M.out += "\n[the program stopped here]";
+    const last=M.steps.length?M.steps[M.steps.length-1].line:0;
+    M.steps.push({line:last,
+      note:`<strong>The program cannot continue.</strong> ${why} Change the values at the top and run it again.`,
+      touch:null,out:M.out,ran:new Set(M.ran),
+      frames:M.frames.map(f=>({fn:f.fn,vars:f.vars.map(v=>({...v}))})),
+      crashed:true});
+  }
+  return M.steps;
+}
+function finalOutput(lines){
+  const st=runProgram(lines);
+  const last=st[st.length-1];
+  return last.crashed ? "" : last.out;
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const MAIN=b=>["int main() {"].concat(b,["    return 0;","}"]);
+const PROG=(...parts)=>["#include <stdio.h>",""].concat(...parts);
+
+const CONCEPTS=[
+{ name:"How recursion works", key:"basic", programs:[
+
+  {t:"Counting down — work on the way down", limits:{n:[0,30]}, code:PROG([
+    "void countDown(int n) {",
+    "    if (n == 0) return;",
+    '    printf("%d ", n);',
+    "    countDown(n - 1);",
+    "}",""],
+    MAIN([
+    "    int n = 5;",
+    "    countDown(n);"]))},
+
+  {t:"Counting up — the same code, one line moved", limits:{n:[0,30]}, code:PROG([
+    "void countUp(int n) {",
+    "    if (n == 0) return;",
+    "    countUp(n - 1);",
+    '    printf("%d ", n);',
+    "}",""],
+    MAIN([
+    "    int n = 5;",
+    "    countUp(n);"]))},
+
+  {t:"Adding 1 + 2 + ... + n", limits:{n:[0,30]}, code:PROG([
+    "int sumTo(int n) {",
+    "    if (n == 0) return 0;",
+    "    return n + sumTo(n - 1);",
+    "}",""],
+    MAIN([
+    "    int n = 5;",
+    '    printf("1 to %d adds up to %d", n, sumTo(n));']))},
+
+  {t:"Factorial", limits:{n:[0,12]}, code:PROG([
+    "int fact(int n) {",
+    "    if (n == 0) return 1;",
+    "    return n * fact(n - 1);",
+    "}",""],
+    MAIN([
+    "    int n = 5;",
+    '    printf("factorial of %d is %d", n, fact(n));']))},
+
+  {t:"A base case that never happens", code:PROG([
+    "int broken(int n) {",
+    "    return n + broken(n - 1);",
+    "}",""],
+    MAIN([
+    "    int n = 4;",
+    '    printf("%d", broken(n));'])), noQuiz:true},
+
+  {t:"The base case does the stopping", limits:{n:[0,30]}, code:PROG([
+    "int sumTo(int n) {",
+    "    if (n <= 0) return 0;",
+    "    return n + sumTo(n - 1);",
+    "}",""],
+    MAIN([
+    "    int n = 3;",
+    '    printf("from %d the total is %d\\n", n, sumTo(n));',
+    '    printf("from 0 the total is %d", sumTo(0));']))}
+]},
+
+{ name:"Counting digits", key:"digits", programs:[
+
+  {t:"How many digits are in a number", code:PROG([
+    "int countDigits(int n) {",
+    "    if (n == 0) return 0;",
+    "    return 1 + countDigits(n / 10);",
+    "}",""],
+    MAIN([
+    "    int n = 12345;",
+    '    printf("the number of digits in %d is %d", n, countDigits(n));']))},
+
+  {t:"Why zero gives an odd answer", code:PROG([
+    "int countDigits(int n) {",
+    "    if (n == 0) return 0;",
+    "    return 1 + countDigits(n / 10);",
+    "}",""],
+    MAIN([
+    "    int n = 0;",
+    '    printf("countDigits(%d) returns %d\\n", n, countDigits(n));',
+    '    printf("but 0 is written with 1 digit on paper");'])), noQuiz:true},
+
+  {t:"Counting digits, zero handled properly", code:PROG([
+    "int countDigits(int n) {",
+    "    if (n < 10) return 1;",
+    "    return 1 + countDigits(n / 10);",
+    "}",""],
+    MAIN([
+    "    int n = 0;",
+    '    printf("the number of digits in %d is %d", n, countDigits(n));']))},
+
+  {t:"Adding up the digits", code:PROG([
+    "int sumOfDigits(int n) {",
+    "    if (n == 0) return 0;",
+    "    return n % 10 + sumOfDigits(n / 10);",
+    "}",""],
+    MAIN([
+    "    int n = 4729;",
+    '    printf("the digits of %d add up to %d", n, sumOfDigits(n));']))},
+
+  {t:"The same count, written as a loop", code:PROG(
+    MAIN([
+    "    int n = 12345;",
+    "    int left = n, count = 0;",
+    "    while (left > 0) {",
+    "        count = count + 1;",
+    "        left = left / 10;",
+    "    }",
+    '    printf("the number of digits in %d is %d", n, count);']))}
+]},
+
+{ name:"Classic recursions", key:"classic", programs:[
+
+  {t:"Fibonacci — watch the call counter", limits:{n:[0,12]}, code:PROG([
+    "int fib(int n) {",
+    "    if (n == 0) return 0;",
+    "    if (n == 1) return 1;",
+    "    return fib(n - 1) + fib(n - 2);",
+    "}",""],
+    MAIN([
+    "    int n = 6;",
+    '    printf("fib(%d) = %d", n, fib(n));']))},
+
+  {t:"The same Fibonacci, written as a loop", limits:{n:[0,40]}, code:PROG(
+    MAIN([
+    "    int n = 6;",
+    "    int a = 0, b = 1, i = 0, next = 0;",
+    "    if (n == 0) {",
+    '        printf("fib(0) = 0");',
+    "    } else {",
+    "        for (i = 2; i <= n; i = i + 1) {",
+    "            next = a + b;",
+    "            a = b;",
+    "            b = next;",
+    "        }",
+    '        printf("fib(%d) = %d", n, b);',
+    "    }"]))},
+
+  {t:"Raising a number to a power", limits:{x:[0,9],n:[0,9]}, code:PROG([
+    "int power(int x, int n) {",
+    "    if (n == 0) return 1;",
+    "    return x * power(x, n - 1);",
+    "}",""],
+    MAIN([
+    "    int x = 2, n = 8;",
+    '    printf("%d to the power %d is %d", x, n, power(x, n));']))},
+
+  {t:"GCD by Euclid's algorithm", code:PROG([
+    "int gcd(int a, int b) {",
+    "    if (b == 0) return a;",
+    "    return gcd(b, a % b);",
+    "}",""],
+    MAIN([
+    "    int a = 48, b = 18;",
+    '    printf("gcd(%d, %d) = %d", a, b, gcd(a, b));']))},
+
+  {t:"GCD does no work on the way back", code:PROG([
+    "int gcd(int a, int b) {",
+    "    if (b == 0) return a;",
+    "    return gcd(b, a % b);",
+    "}",""],
+    MAIN([
+    "    int a = 1071, b = 462;",
+    '    printf("gcd(%d, %d) = %d\\n", a, b, gcd(a, b));',
+    '    printf("every level handed back the same answer");']))}
+]},
+
+{ name:"Practice problems", key:"practice", programs:[
+
+  {t:"Reversing a number", code:PROG([
+    "int reverse(int n, int rev) {",
+    "    if (n == 0) return rev;",
+    "    return reverse(n / 10, rev * 10 + n % 10);",
+    "}",""],
+    MAIN([
+    "    int n = 12345;",
+    '    printf("%d reversed is %d", n, reverse(n, 0));']))},
+
+  {t:"Reversing — the corner cases", code:PROG([
+    "int reverse(int n, int rev) {",
+    "    if (n == 0) return rev;",
+    "    return reverse(n / 10, rev * 10 + n % 10);",
+    "}",""],
+    MAIN([
+    "    int a = 0, b = 7, c = 100;",
+    '    printf("%d gives %d\\n", a, reverse(a, 0));',
+    '    printf("%d gives %d\\n", b, reverse(b, 0));',
+    '    printf("%d gives %d", c, reverse(c, 0));']))},
+
+  {t:"Is the number a palindrome?", code:PROG([
+    "int reverse(int n, int rev) {",
+    "    if (n == 0) return rev;",
+    "    return reverse(n / 10, rev * 10 + n % 10);",
+    "}",""],
+    MAIN([
+    "    int n = 1221;",
+    "    if (n == reverse(n, 0)) {",
+    '        printf("%d is a palindrome", n);',
+    "    } else {",
+    '        printf("%d is not a palindrome", n);',
+    "    }"]))},
+
+  {t:"A palindrome helper of its own", code:PROG([
+    "int reverse(int n, int rev) {",
+    "    if (n == 0) return rev;",
+    "    return reverse(n / 10, rev * 10 + n % 10);",
+    "}","",
+    "int isPalindrome(int n) {",
+    "    if (n == reverse(n, 0)) return 1;",
+    "    return 0;",
+    "}",""],
+    MAIN([
+    "    int n = 12321;",
+    '    printf("isPalindrome(%d) returns %d", n, isPalindrome(n));']))}
+]}
+];
+
+function editablesOf(lines){
+  const out=[];
+  let from=lines.findIndex(l=>/^\s*int\s+main\s*\(/.test(l));
+  if(from<0) from=0;
+  lines.forEach((l,idx)=>{
+    if(idx<from) return;
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      if(part.startsWith("*")) return;
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1],kind:"num"});
+      else if(/^'.'$/.test(init)) out.push({name,init:init[1],line:idx,type:m[1],kind:"char"});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    let v=vals[e.name];
+    if(v===undefined||v===null||v==="") return;
+    if(e.kind==="char"){
+      v=String(v).charAt(0); if(v==="'") return;
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*'.'"), e.name+" = '"+v+"'");
+    }else{
+      const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".0"):String(v);
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+    }
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit,ran){
+  mount.innerHTML=lines.map((l,i)=>{
+    let cls="ln";
+    if(ran&&ran.has(i)) cls+=" ran";
+    if(i===hit) cls+=" hit";
+    return `<div class="${cls}"><span class="n">${i+1}</span><span>${esc(l)}</span></div>`;
+  }).join("");
+  const el=mount.querySelector(".ln.hit");
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+/* ---- memory inspector: boxes for variables, arrows for pointers ---- */
+function cellHtml(v,fi,flash){
+  const ptr=isPtr(v.type);
+  const cls="cell "+(ptr?"ptr":"var")+(v.value===null?" unset":"")+(flash?" flash":"");
+  const val = v.value===null ? "?" : (ptr ? "&rarr; "+hexAddr(v.value) : esc(showVal(v.type,v.value)));
+  return `<div class="${cls}" id="c${fi}-${v.name}">
+      <div class="cell-name">${esc(v.name)} <em>${esc(v.type)}</em></div>
+      <div class="cell-val">${val}</div>
+      <div class="cell-addr">${hexAddr(v.addr)}</div>
+    </div>`;
+}
+function laneHtml(label,vars,fi,touch){
+  if(!vars.length) return "";
+  return `<div class="lane"><div class="lane-label">${label}</div><div class="lane-row">`+
+    vars.map(v=>cellHtml(v,fi,touch&&touch.idx===fi&&touch.name===v.name)).join("")+
+    `</div></div>`;
+}
+function renderMemory(mount,frames,touch,entered){
+  if(!frames||!frames.length){ mount.innerHTML='<div class="empty">Nothing in memory yet.</div>'; return; }
+  const arrows=[];
+  const blocks=frames.map((f,fi)=>({f,fi})).reverse().map(({f,fi})=>{
+    const ptrs=f.vars.filter(v=>isPtr(v.type));
+    const vars=f.vars.filter(v=>!isPtr(v.type));
+    ptrs.forEach(v=>{
+      if(v.points) arrows.push({from:`c${fi}-${v.name}`, to:`c${v.points.idx}-${v.points.name}`});
+    });
+    const running = fi===frames.length-1;
+    const cls="block"+(fi>0?" callee":"")+((running&&entered&&fi>0)?" enter":"");
+    return `<div class="${cls}">
+      <div class="block-label">${f.fn}()
+        <span class="tag">${running?"running now":"waiting"}</span></div>
+      ${laneHtml("Pointers",ptrs,fi,touch)}
+      ${laneHtml("Variables",vars,fi,touch)}
+      ${f.vars.length?"":'<div class="empty">no variables yet</div>'}
+    </div>`;
+  }).join("");
+  mount.innerHTML=blocks;
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","arrows");
+  mount.appendChild(svg);
+  requestAnimationFrame(()=>drawArrows(mount,svg,arrows));
+  mount._arrows=arrows; mount._svg=svg;
+}
+function drawArrows(container,svg,arrows){
+  const cr=container.getBoundingClientRect();
+  const ox=cr.left-container.scrollLeft, oy=cr.top-container.scrollTop;
+  svg.setAttribute("width",container.scrollWidth);
+  svg.setAttribute("height",container.scrollHeight);
+  let lines="";
+  arrows.forEach(a=>{
+    const A=container.querySelector('[id="'+a.from+'"]'), B=container.querySelector('[id="'+a.to+'"]');
+    if(!A||!B||A===B) return;
+    const ra=A.getBoundingClientRect(), rb=B.getBoundingClientRect();
+    const ax=ra.left+ra.width/2-ox, ay=ra.top+ra.height/2-oy;
+    const bx=rb.left+rb.width/2-ox, by=rb.top+rb.height/2-oy;
+    const dx=bx-ax, dy=by-ay;
+    let sx,sy,tx,ty;
+    if(Math.abs(dx)>Math.abs(dy)){
+      sx=ax+(dx>=0?1:-1)*(ra.width/2); sy=ay;
+      tx=bx-(dx>=0?1:-1)*(rb.width/2+6); ty=by;
+    }else{
+      sx=ax; sy=ay+(dy>=0?1:-1)*(ra.height/2);
+      tx=bx; ty=by-(dy>=0?1:-1)*(rb.height/2+6);
+    }
+    const mx=(sx+tx)/2, my=(sy+ty)/2;
+    const d = Math.abs(dx)>Math.abs(dy)
+      ? `M${sx},${sy} C${mx},${sy} ${mx},${ty} ${tx},${ty}`
+      : `M${sx},${sy} C${sx},${my} ${tx},${my} ${tx},${ty}`;
+    lines+=`<path class="arrow-line" d="${d}" marker-end="url(#ah-${container.id})"/>`;
+  });
+  svg.innerHTML=`<defs><marker id="ah-${container.id}" markerWidth="9" markerHeight="9"
+      refX="6.5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" class="arrow-head"/></marker></defs>`+lines;
+}
+/* the p versus *p reader — the clearest way to keep the two apart */
+function renderTrace(mount,step){
+  if(!mount) return;
+  if(!step || !step.trace || !step.trace.length){ mount.innerHTML=""; return; }
+  const rows=step.trace.map((t,i)=>{
+    const pad=(t.depth-1)*16;
+    const last = i===step.trace.length-1;
+    let right, cls;
+    if(t.open){
+      cls="open";
+      right = last
+        ? `<span class="what">just called &mdash; nothing answered yet</span>`
+        : `<span class="what">waiting for the call below it</span>`;
+    }else{
+      cls="done";
+      right = t.gives==="nothing"
+        ? `<span class="what">finished, no value to give back</span>`
+        : `gives back <b>${esc(t.gives)}</b>`;
+    }
+    return `<tr class="tr-${cls}"><td style="padding-left:${8+pad}px">
+        <span class="tr-mark">${t.open?"&#8595;":"&#8593;"}</span>
+        <code>${esc(t.call)}</code></td><td>${right}</td></tr>`;
+  });
+  const waiting=step.trace.filter(t=>t.open).length;
+  const head = `Calls so far <b>${step.calls||0}</b> &middot; deepest <b>${step.deepest||1}</b> frames`+
+    (waiting?` &middot; <b>${waiting}</b> still waiting`:"");
+  mount.innerHTML=`<div class="rhead">The calls, in order${step.trace.length>12?" (newest at the bottom)":""}</div>
+    <table><tbody>${rows.join("")}</tbody></table>
+    <div class="trfoot">${head}</div>`;
+  const el=mount.querySelector("tr.tr-open:last-of-type");
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+function redrawArrows(mount){
+  if(mount&&mount._svg&&mount._arrows) drawArrows(mount,mount._svg,mount._arrows);
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dStack=document.getElementById("d-stack"),
+      dOut=document.getElementById("d-out"), dObs=document.getElementById("d-obs"),
+      dIn=document.getElementById("d-inputs"), dDepth=document.getElementById("d-depth"),
+      dReader=document.getElementById("d-reader");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=loadProgram;
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  dIn.innerHTML = eds.length
+    ? eds.map(e=> e.kind==="char"
+        ? `<label>${e.name}<input type="text" maxlength="1" data-ed="${e.name}" value="${e.init}"></label>`
+        : (()=>{ const lim=(prog.limits||{})[e.name];
+            const a = lim ? ` min="${lim[0]}" max="${lim[1]}"` : "";
+            const t = lim ? ` title="Use a value from ${lim[0]} to ${lim[1]} in this program"` : "";
+            return `<label>${e.name}<input type="number" step="${e.type==="float"?"0.1":"1"}" data-ed="${e.name}" value="${e.init}"${a}${t}></label>`; })()
+      ).join("")+`<span class="note">Change a value and the program runs again.</span>`
+    : `<span class="note">This program has no values to change.</span>`;
+  dIn.querySelectorAll("[data-ed]").forEach(el=>el.onchange=function(){
+    const lim=(prog.limits||{})[this.dataset.ed];
+    if(lim && this.type==="number" && this.value!==""){
+      const v=Number(this.value);
+      if(v<lim[0]) this.value=lim[0];
+      if(v>lim[1]) this.value=lim[1];
+    }
+    build();
+  });
+  build();
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1,null); renderMemory(dStack,[]); renderTrace(dReader,null);
+  dDepth.textContent="";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin.";
+}
+function paint(){
+  const s=steps[idx];
+  const prev = idx>0 ? steps[idx-1] : null;
+  const entered = !prev || s.frames.length>prev.frames.length;
+  renderCode(dCode,lines,s.line,s.ran);
+  renderMemory(dStack,s.frames,s.touch,entered);
+  renderTrace(dReader,s);
+  dDepth.textContent = s.frames.length ? `${s.frames.length} frame${s.frames.length>1?"s":""} on the stack` : "";
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+window.addEventListener("resize",()=>{ redrawArrows(dStack); });
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1,null); renderMemory(dStack,[]); renderTrace(dReader,null);
+    dDepth.textContent=""; dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-end").onclick=function(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(!steps.length) return;
+  idx=steps.length-1; paint();
+};
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+fillPrograms(); loadProgram();
+
+/* ============================================================
+   EXPLORER — the student makes the calls, one level at a time
+   ============================================================ */
+const XFNS=[
+  { key:"fact", label:"factorial(n)", args:[{name:"n",init:5,min:0,max:12}],
+    call:a=>`fact(${a[0]})`,
+    isBase:a=>a[0]===0,
+    baseText:a=>`<code>fact(0)</code> is the base case. It answers <b>1</b> straight away, without calling again.`,
+    baseVal:a=>1,
+    next:a=>[a[0]-1],
+    expr:a=>`${a[0]} &times; fact(${a[0]-1})`,
+    combine:(a,c)=>a[0]*c,
+    work:(a,c)=>`${a[0]} &times; ${c} = <b>${a[0]*c}</b>`,
+    note:a=>`<code>fact(${a[0]})</code> cannot answer yet. It needs <code>fact(${a[0]-1})</code> first, so it waits.` },
+
+  { key:"digits", label:"countDigits(n)", args:[{name:"n",init:4096,min:0,max:999999}],
+    call:a=>`digits(${a[0]})`,
+    isBase:a=>a[0]===0,
+    baseText:a=>`<code>digits(0)</code> is the base case. There is nothing left to count, so it answers <b>0</b>.`,
+    baseVal:a=>0,
+    next:a=>[Math.trunc(a[0]/10)],
+    expr:a=>`1 + digits(${Math.trunc(a[0]/10)})`,
+    combine:(a,c)=>1+c,
+    work:(a,c)=>`1 + ${c} = <b>${1+c}</b>`,
+    note:a=>`Chop the last digit off with <code>/ 10</code> and ask about what is left: <code>digits(${Math.trunc(a[0]/10)})</code>.` },
+
+  { key:"sumdig", label:"sumOfDigits(n)", args:[{name:"n",init:4729,min:0,max:999999}],
+    call:a=>`sum(${a[0]})`,
+    isBase:a=>a[0]===0,
+    baseText:a=>`<code>sum(0)</code> is the base case. No digits left to add, so the answer is <b>0</b>.`,
+    baseVal:a=>0,
+    next:a=>[Math.trunc(a[0]/10)],
+    expr:a=>`${a[0]%10} + sum(${Math.trunc(a[0]/10)})`,
+    combine:(a,c)=>(a[0]%10)+c,
+    work:(a,c)=>`${a[0]%10} + ${c} = <b>${(a[0]%10)+c}</b>`,
+    note:a=>`Take the last digit, <code>${a[0]} % 10</code> = <b>${a[0]%10}</b>, and keep it aside until the rest comes back.` },
+
+  { key:"power", label:"power(x, n)", args:[{name:"x",init:2,min:0,max:9},{name:"n",init:5,min:0,max:9}],
+    call:a=>`power(${a[0]}, ${a[1]})`,
+    isBase:a=>a[1]===0,
+    baseText:a=>`Any number to the power 0 is <b>1</b>. That is the base case, and it answers without calling again.`,
+    baseVal:a=>1,
+    next:a=>[a[0],a[1]-1],
+    expr:a=>`${a[0]} &times; power(${a[0]}, ${a[1]-1})`,
+    combine:(a,c)=>a[0]*c,
+    work:(a,c)=>`${a[0]} &times; ${c} = <b>${a[0]*c}</b>`,
+    note:a=>`One factor of ${a[0]} is set aside, and the smaller problem <code>power(${a[0]}, ${a[1]-1})</code> is asked.` },
+
+  { key:"gcd", label:"gcd(a, b) — Euclid", args:[{name:"a",init:48,min:1,max:9999},{name:"b",init:18,min:0,max:9999}],
+    call:a=>`gcd(${a[0]}, ${a[1]})`,
+    isBase:a=>a[1]===0,
+    baseText:a=>`When the second number reaches 0, the first one <b>is</b> the answer: <b>${a[0]}</b>. No further call.`,
+    baseVal:a=>a[0],
+    next:a=>[a[1], a[0]%a[1]],
+    expr:a=>`gcd(${a[1]}, ${a[0]%a[1]})`,
+    combine:(a,c)=>c,
+    work:(a,c)=>`<b>${c}</b> &mdash; passed straight up, unchanged`,
+    note:a=>`Euclid's step: the gcd of ${a[0]} and ${a[1]} is the same as the gcd of ${a[1]} and ${a[0]} % ${a[1]} = ${a[0]%a[1]}.` }
+];
+
+const xFnSel=document.getElementById("x-fn"), xArgWrap=document.getElementById("x-argwrap"),
+      xStack=document.getElementById("x-stack"), xTrace=document.getElementById("x-trace"),
+      xObs=document.getElementById("x-obs"), xDepth=document.getElementById("x-depth");
+let xFn=XFNS[0], xStackArr=[], xPhase="idle";   /* idle | down | base | up | done */
+
+xFnSel.innerHTML=XFNS.map((f,i)=>`<option value="${i}">${f.label}</option>`).join("");
+function xArgs(){
+  xArgWrap.innerHTML=xFn.args.map(a=>
+    `<label>${a.name}<input type="number" id="xa-${a.name}" value="${a.init}" min="${a.min}" max="${a.max}"></label>`
+  ).join("");
+}
+function xRead(){
+  return xFn.args.map(a=>{
+    const el=document.getElementById("xa-"+a.name);
+    let v=Math.trunc(Number(el.value)||0);
+    if(v<a.min) v=a.min; if(v>a.max) v=a.max;
+    el.value=v; return v;
+  });
+}
+xFnSel.onchange=()=>{ xFn=XFNS[+xFnSel.value]; xArgs(); xReset(); };
+
+function xReset(){
+  xStackArr=[]; xPhase="idle";
+  xStack.innerHTML=`<div class="empty">Nothing has been called yet. Press Start.</div>`;
+  xTrace.innerHTML="";
+  xDepth.textContent="";
+  xObs.innerHTML="Choose a function and press Start.";
+  xButtons();
+}
+function xButtons(){
+  const top=xStackArr[xStackArr.length-1];
+  document.getElementById("x-down").disabled = !(xPhase==="down"||xPhase==="idle") || xPhase==="idle" || (top&&top.isBase);
+  document.getElementById("x-up").disabled   = !(xStackArr.length && top && (top.isBase || top.child!==null));
+  document.getElementById("x-start").disabled = xPhase!=="idle";
+}
+function xStart(){
+  const a=xRead();
+  xStackArr=[{args:a, isBase:xFn.isBase(a), child:null, value:null}];
+  xPhase="down";
+  const f=xStackArr[0];
+  xObs.innerHTML = f.isBase
+    ? `${xFn.baseText(a)} There is nothing to go down to, so press
+       <em>Give the answer back</em>.`
+    : `<code>${xFn.call(a)}</code> has been called. ${xFn.note(a)}`;
+  xPaint();
+}
+function xDown(){
+  const top=xStackArr[xStackArr.length-1];
+  if(!top || top.isBase) return;
+  const na=xFn.next(top.args);
+  const f={args:na, isBase:xFn.isBase(na), child:null, value:null};
+  top.child=f;
+  xStackArr.push(f);
+  xObs.innerHTML = f.isBase
+    ? `<code>${xFn.call(na)}</code> has been called, and this one is the <b>base case</b>.
+       ${xFn.baseText(na)} The calls stop going down here. Now press
+       <em>Give the answer back</em> and watch the waiting calls finish, one at a time.`
+    : `<code>${xFn.call(na)}</code> has been called. ${xFn.note(na)}
+       There ${xStackArr.length===2?"is now 1 call":"are now "+(xStackArr.length-1)+" calls"} waiting above it.`;
+  xPaint();
+}
+function xUp(){
+  const top=xStackArr[xStackArr.length-1];
+  if(!top) return;
+  if(top.isBase && top.value===null){
+    top.value=xFn.baseVal(top.args);
+    xObs.innerHTML=`The base case answers <b>${top.value}</b> without calling anything.
+      This is the first real value in the whole chain. Press <em>Give the answer back</em> again to hand
+      it to the call that is waiting for it.`;
+    xPaint(); return;
+  }
+  if(top.value===null) return;
+  const v=top.value;
+  xStackArr.pop();
+  const parent=xStackArr[xStackArr.length-1];
+  if(!parent){
+    xPhase="done";
+    xObs.innerHTML=`<b>Finished.</b> The first call has given its answer back to <code>main</code>:
+      <b>${v}</b>. The stack is empty again.`;
+    xStack.innerHTML=`<div class="empty">The stack is empty. The answer <b>${v}</b> went back to main.</div>`;
+    xTraceDone(v);
+    xDepth.textContent="";
+    xButtons();
+    return;
+  }
+  parent.value=xFn.combine(parent.args,v);
+  xObs.innerHTML=`<code>${xFn.call(top.args)}</code> gave back <b>${v}</b> and its frame was thrown away.
+    The call waiting below can finally do its piece of work: ${xFn.work(parent.args,v)}.`;
+  xPaint();
+}
+function xPaint(){
+  const blocks=[...xStackArr].reverse().map((f,ri)=>{
+    const i=xStackArr.length-1-ri;
+    const state = f.value!==null ? "done" : (f.isBase ? "base" : "open");
+    const right = f.value!==null
+      ? `answer <b>${f.value}</b>`
+      : (f.isBase ? `<span class="what">base case &mdash; ready to answer</span>`
+                  : `<span class="what">waiting</span>`);
+    const body = f.isBase
+      ? `<code>return ${xFn.baseVal(f.args)};</code>`
+      : `<code>return ${xFn.expr(f.args)};</code>`;
+    return `<div class="xframe x-${state}">
+        <div class="xhead"><code>${xFn.call(f.args)}</code>
+          <span class="xlvl">level ${i+1}</span></div>
+        <div class="xbody">${body}</div>
+        <div class="xfoot">${right}</div>
+      </div>`;
+  });
+  xStack.innerHTML=blocks.join("")||`<div class="empty">The stack is empty.</div>`;
+  xDepth.textContent=xStackArr.length+(xStackArr.length===1?" frame":" frames");
+  const rows=xStackArr.map((f,i)=>{
+    const done=f.value!==null;
+    return `<tr class="tr-${done?"done":"open"}"><td style="padding-left:${8+i*16}px">
+       <span class="tr-mark">${done?"&#8593;":"&#8595;"}</span><code>${xFn.call(f.args)}</code></td>
+       <td>${done?`gives back <b>${f.value}</b>`
+               :`= <code>${f.isBase?xFn.baseVal(f.args):xFn.expr(f.args)}</code>`}</td></tr>`;
+  });
+  xTrace.innerHTML=`<div class="rhead">The recurrence, as it builds</div>
+    <table><tbody>${rows.join("")}</tbody></table>
+    <div class="trfoot">${xStackArr.length} level${xStackArr.length===1?"":"s"} on the stack</div>`;
+  xButtons();
+}
+function xTraceDone(v){
+  xTrace.innerHTML=`<div class="rhead">The recurrence, as it builds</div>
+    <table><tbody><tr class="tr-done"><td style="padding-left:8px">
+      <span class="tr-mark">&#8593;</span><code>main</code></td>
+      <td>received <b>${v}</b></td></tr></tbody></table>
+    <div class="trfoot">Every frame has been thrown away. Press Reset to try another value.</div>`;
+}
+document.getElementById("x-start").onclick=xStart;
+document.getElementById("x-down").onclick=xDown;
+document.getElementById("x-up").onclick=xUp;
+document.getElementById("x-reset").onclick=()=>{ xPhase="idle"; xReset(); };
+xArgs(); xReset();
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display=b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-change").style.display=b.dataset.mode==="change"?"block":"none";
+    if(b.dataset.mode==="change" && !pcSpec) pcNew();
+  };
+});
+
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+
+/* a value for one editable, obeying whatever range the program allows */
+function randValue(p,e){
+  if(e.kind==="char") return pick("ABCF".split(""));
+  const lim=(p.limits||{})[e.name];
+  if(lim) return lim[0]+R(lim[1]-lim[0]+1);
+  const base=Math.abs(Number(e.init));
+  if(base>=1000) return R(99999)+1;          /* numbers to pick apart digit by digit */
+  if(base>=100)  return R(999)+1;
+  return R(12)+1;
+}
+function randomiseProgram(p){
+  const es=editablesOf(p.code), vals={};
+  es.forEach(e=>vals[e.name]=randValue(p,e));
+  return applyEdits(p.code,es,vals);
+}
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+{
+  const all=document.createElement("option"); all.value="all"; all.textContent="All concepts";
+  ppSel.appendChild(all);
+  CONCEPTS.forEach(c=>{
+    const o=document.createElement("option"); o.value=c.key; o.textContent=c.name; ppSel.appendChild(o);
+  });
+}
+let ppLines=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+function ppNew(){
+  const pool = (ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.key===ppSel.value).programs).filter(p=>!p.noQuiz);
+  for(let k=0;k<120;k++){
+    const p=pick(pool);
+    const code = Math.random()<0.85 ? randomiseProgram(p) : p.code;
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    const opts=new Set([out]);
+    try{ const base=finalOutput(p.code); if(base) opts.add(base); }catch(e){}
+    for(let a=0;a<60&&opts.size<4;a++){
+      try{ const alt=finalOutput(randomiseProgram(p)); if(alt) opts.add(alt); }catch(e){}
+    }
+    if(opts.size<2) continue;
+    ppLines=code; ppAns=out;
+    renderCode(document.getElementById("pp-code"),code,-1,null);
+    const list=[...opts].sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${esc(o).replace(/\n/g," &#9166; ")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Work down to the
+      base case first, write down the value it returns, then come back up one level at a time doing the
+      small piece of work at each level. Press <em>Show me the trace</em> to see those levels.`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  if(!ppLines) return;
+  const st=runProgram(ppLines);
+  const last=st[st.length-1];
+  const obs=document.getElementById("pp-obs");
+  if(!last.trace||!last.trace.length){
+    obs.innerHTML=`This program makes no function calls of its own &mdash; everything happens inside
+      <code>main</code>, and the output is <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.`;
+    return;
+  }
+  const rows=last.trace.map(t=>
+    `<div style="padding-left:${(t.depth-1)*18}px"><code>${esc(t.call)}</code> &rarr; ${
+      t.gives==="nothing" ? "returned without a value" : "<b>"+esc(t.gives)+"</b>"}</div>`).join("");
+  obs.innerHTML=`<p>Every call that was made, deepest last. Read the values from the bottom upwards
+    &mdash; that is the order they were worked out in.</p>${rows}
+    <p class="note">${last.calls} call${last.calls===1?"":"s"} in all, ${last.deepest} frames at the
+    deepest moment. The output is <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.</p>`;
+};
+
+/* ---------- MODE B: how deep, how many calls? ---------- */
+let pcSpec=null, pcRight=0, pcTries=0, pcStreak=0;
+
+/* only the programs that actually recurse are worth asking about */
+const PC_POOL=CONCEPTS.flatMap(c=>c.programs).filter(p=>{
+  if(p.noQuiz) return false;
+  try{
+    const st=runProgram(p.code);
+    const L=st[st.length-1];
+    return !L.crashed && L.trace && L.trace.length>=3;
+  }catch(e){ return false; }
+});
+
+function pcNew(){
+  for(let k=0;k<120;k++){
+    const p=pick(PC_POOL);
+    const code=randomiseProgram(p);
+    let st,L;
+    try{ st=runProgram(code); L=st[st.length-1]; }catch(e){ continue; }
+    if(!L || L.crashed || !L.trace || L.trace.length<3) continue;
+
+    const kinds=["calls","deepest","base","gives"];
+    const kind=pick(kinds);
+    let q, right, opts, why;
+    const fname=L.trace[0].call.replace(/\(.*$/,"");
+
+    if(kind==="calls"){
+      right=String(L.calls);
+      q=`How many times is <code>${esc(fname)}</code> called altogether, counting the first call from
+         <code>main</code>?`;
+      opts=[right,String(L.calls-1),String(L.calls+1),String(L.deepest)];
+      why=`The trace shows ${L.calls} call${L.calls===1?"":"s"}. Count the first one too &mdash;
+        the call from <code>main</code> is a call like any other.`;
+    }else if(kind==="deepest"){
+      right=String(L.deepest);
+      q=`At the deepest moment, how many stack frames exist at once, counting
+         <code>main</code>?`;
+      opts=[right,String(L.deepest-1),String(L.deepest+1),String(L.calls)];
+      why=`<code>main</code> plus one frame for every call that is still waiting. At the deepest
+        moment that is ${L.deepest} frame${L.deepest===1?"":"s"}. Note it is not the same as the number
+        of calls unless every call is still waiting at once.`;
+    }else if(kind==="base"){
+      const b=L.trace[L.trace.length-1];
+      right=b.gives==="nothing" ? "it returns without a value" : b.gives;
+      q=`The deepest call made is <code>${esc(b.call)}</code>. What does that call give back?`;
+      const alt=new Set([right]);
+      L.trace.slice(0,-1).forEach(t=>{ if(t.gives&&t.gives!==right) alt.add(t.gives); });
+      alt.add("0"); alt.add("1");
+      opts=[...alt].slice(0,4);
+      why=`<code>${esc(b.call)}</code> matches the base case, so it answers straight away without
+        calling again. That is the first real value in the whole chain, and everything else is built
+        on top of it.`;
+    }else{
+      const i=1+R(Math.max(1,L.trace.length-1));
+      const t=L.trace[Math.min(i,L.trace.length-1)];
+      right=t.gives==="nothing" ? "it returns without a value" : t.gives;
+      q=`What does the call <code>${esc(t.call)}</code> give back to the call waiting below it?`;
+      const alt=new Set([right]);
+      L.trace.forEach(x=>{ if(x.gives&&x.gives!==right) alt.add(x.gives); });
+      opts=[...alt].slice(0,4);
+      why=`Working from the base case upwards, <code>${esc(t.call)}</code> gives back
+        <b>${esc(right)}</b>. The call below it then does its own small piece of work with that value.`;
+    }
+
+    const list=[...new Set(opts.filter(x=>x!==undefined&&x!==null&&x!==""))].slice(0,4)
+                 .sort(()=>Math.random()-0.5);
+    if(!list.includes(right)) list[0]=right;
+    if(list.length<2) continue;
+
+    pcSpec={right,why};
+    renderCode(document.getElementById("pc-code"),code,-1,null);
+    document.getElementById("pc-q").innerHTML=q;
+    document.getElementById("pc-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="pca" value="${encodeURIComponent(o)}"> <code>${esc(o)}</code></label>`).join("");
+    document.getElementById("pc-obs").textContent="Choose an answer and press Check.";
+    return;
+  }
+}
+document.getElementById("pc-new").onclick=pcNew;
+document.getElementById("pc-check").onclick=()=>{
+  const sel=document.querySelector('input[name="pca"]:checked');
+  const obs=document.getElementById("pc-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  if(!pcSpec) return;
+  pcTries++;
+  if(decodeURIComponent(sel.value)===pcSpec.right){
+    pcRight++; pcStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> ${pcSpec.why}`;
+  }else{
+    pcStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> The answer is
+      <code>${esc(pcSpec.right)}</code>. ${pcSpec.why}`;
+  }
+  document.getElementById("pc-right").textContent=pcRight;
+  document.getElementById("pc-tries").textContent=pcTries;
+  document.getElementById("pc-streak").textContent=pcStreak;
+};
+ppNew(); pcNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"What is a recursive function?",
+     o:["A function with a loop inside it","A function that calls itself","A function with no return value","A function that calls another function"], a:1},
+    {q:"Every recursive function needs a base case. What does the base case do?",
+     o:["It calls the function one more time","It makes the function faster","It prints the result","It answers without calling again, so the calls stop"], a:3},
+    {q:"What happens if a recursive function has no base case?",
+     o:["The calls never stop and the program runs out of stack","It returns 0","It runs once and stops","The compiler fixes it"], a:0},
+    {q:"The recurrence n! = n x (n-1)! means factorial of n is:",
+     o:["n added to the factorial of n-1","n divided by n-1","n times the factorial of n-1","the factorial of n-1 only"], a:2},
+    {q:"When fact(5) calls fact(4), what happens to the frame for fact(5)?",
+     o:["It is thrown away","It waits on the stack until the answer comes back","It is copied into fact(4)","It is reused for fact(4)"], a:1}
+  ],
+  post:[
+    {q:"int fact(int n) { if (n == 0) return 1; return n * fact(n - 1); } What is fact(4)?",
+     o:["4","24","10","120"], a:1},
+    {q:"countDown prints before the recursive call and countUp prints after it. Why do they print in opposite orders?",
+     o:["One uses a loop","countUp is wrong","They print in the same order","printf before the call runs on the way down; printf after it waits for the answers to come back"], a:3},
+    {q:"int countDigits(int n) { if (n == 0) return 0; return 1 + countDigits(n / 10); } What is countDigits(407)?",
+     o:["3","2","4","407"], a:0},
+    {q:"With that same function, what does countDigits(0) return?",
+     o:["1","It never stops","0","An error"], a:2},
+    {q:"At the deepest moment of fact(3), how many stack frames exist, counting main?",
+     o:["3","5","4","6"], a:1},
+    {q:"int gcd(int a, int b) { if (b == 0) return a; return gcd(b, a % b); } What is gcd(20, 8)?",
+     o:["2","8","20","4"], a:3},
+    {q:"In that GCD function, what work happens on the way back up the stack?",
+     o:["A multiplication at each level","A subtraction at each level","None — each level passes the same answer up unchanged","The remainder is recalculated"], a:2},
+    {q:"fib(n) = fib(n-1) + fib(n-2). Why is this slower than a loop?",
+     o:["The same small problems are solved again and again","Loops are always faster in C","It uses floating point","It cannot be compiled"], a:0},
+    {q:"int reverse(int n, int rev) { if (n == 0) return rev; return reverse(n / 10, rev * 10 + n % 10); } What is reverse(120, 0)?",
+     o:["12","120","021","21"], a:3},
+    {q:"A recursive function is correct but the lab says the stack ran out. What should you check first?",
+     o:["Whether printf is spelled correctly","Whether the base case is reachable and each call gets closer to it","Whether main returns 0","Whether the function is declared before main"], a:1}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${esc(it.q)}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${esc(o)}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>

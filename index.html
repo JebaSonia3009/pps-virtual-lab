@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programming for Problem Solving — Virtual Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:14px 24px;
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
+  .brand{font-family:Newsreader,serif; font-size:22px; font-weight:600; letter-spacing:-.01em}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:14px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:220px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:28px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:28px 34px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:31px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:18px}
+
+  /* the figures strip: what the lab contains, at a glance */
+  .figs{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; margin:0 0 10px;
+    background:var(--line); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden}
+  .figs div{background:var(--paper); padding:11px 8px; text-align:center}
+  .figs b{display:block; font-family:Newsreader,serif; font-size:25px; font-weight:600;
+    color:var(--teal); line-height:1.15}
+  .figs span{font-size:12.5px; color:var(--ink-soft); letter-spacing:.01em}
+  .figs-note{text-align:center; font-size:13px; color:var(--ink-soft); margin:0 0 24px}
+  @media (max-width:760px){
+    .figs{grid-template-columns:repeat(2,1fr)}
+    .figs div:last-child{grid-column:1 / -1}
+  }
+  .lead{font-size:18px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:28px 0 8px}
+  h2:first-child{margin-top:0}
+  section{display:none}
+  section.on{display:block}
+  ul,ol{padding-left:22px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+
+  .unit{margin:26px 0}
+  .unit-head{display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--teal);
+    padding-bottom:6px; margin-bottom:4px; flex-wrap:wrap}
+  .unit-head .u{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+    letter-spacing:.08em; color:var(--gold)}
+  .unit-head h3{margin:0; font-family:Newsreader,serif; font-weight:600; font-size:21px}
+  .unit-head .hrs{margin-left:auto; font-size:13px; color:var(--ink-soft)}
+  .exp{border-bottom:1px solid var(--line); padding:13px 2px; display:flex; gap:16px; align-items:flex-start}
+  .exp .num{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--teal);
+    font-size:14px; padding-top:3px; min-width:26px}
+  .exp h4{margin:0 0 3px; font-size:17px; font-weight:700}
+  .exp p{margin:0; font-size:15px; color:var(--ink-soft)}
+  .status{font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700;
+    color:var(--gold); background:#fdf4e0; border-radius:3px; padding:3px 8px;
+    white-space:nowrap; margin-left:auto; align-self:center}
+  .status.live{color:var(--ok); background:#e4f4ec}
+
+  @media (max-width:860px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:20px 16px 60px}
+    .exp{flex-wrap:wrap}
+    .status{margin-left:42px}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">SRM Institute of Science and Technology, Kattankulathur &rsaquo; School of Computing &rsaquo; Data Science and Business Systems</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Programming for Problem Solving</h1>
+    <div class="sub">Course 26CSE1002J · A virtual laboratory in C · Five units</div>
+
+    <div class="figs">
+      <div><b>15</b><span>experiments</span></div>
+      <div><b>3</b><span>practice labs</span></div>
+      <div><b>532</b><span>C programs</span></div>
+      <div><b>444</b><span>questions</span></div>
+      <div><b>&#8377;0</b><span>to run, for ever</span></div>
+    </div>
+    <p class="figs-note">Every program runs in the browser, a line at a time, with the memory drawn
+    beside it. Nothing to install, no login, no server to pay for.</p>
+
+    <!-- INTRODUCTION -->
+    <section id="intro" class="on">
+      <h2>Introduction</h2>
+      <p>Beginning programmers can usually write a C program that compiles, yet still be unable to say
+      why it produced the output it did. The gap is that a compiler hides everything interesting: how a
+      value is stored in memory, why <code>5/2</code> is <code>2</code> and not <code>2.5</code>, which
+      branch of a decision was actually taken, how the call stack grows and shrinks during recursion,
+      and what happens on the heap when <code>malloc</code> is called.</p>
+
+      <p>This virtual lab makes those hidden steps visible. Each experiment pairs a short body of theory
+      with interactive simulations that execute real C programs one step at a time, showing the state of
+      memory and the reason for every decision as it happens. Several programs are provided for each
+      concept, and their values can be changed and re-run, so a student can test whether an idea holds
+      for numbers other than the ones in the textbook. Practice sections then ask the student to predict
+      behaviour and give a hint, rather than the answer, when they are wrong.</p>
+
+      <p>Beyond the fifteen experiments, three further labs draw on all five units at once and carry
+      no theory, so that one class can be taught at three speeds from the same link. <strong>Guided
+      Programs</strong> covers the ground again more slowly for students who need it. The
+      <strong>Challenge Lab</strong> sets scenario problems for students who finish early.
+      The <strong>Placement Lab</strong> holds a hundred written-test questions, each with a worked
+      explanation, and fifteen coding problems with the test cases an online judge would use.</p>
+
+      <p>The lab complements the physical programming laboratory rather than replacing it. Students
+      still write and compile their own code; the virtual lab explains what the machine did with it. It
+      runs entirely in a web browser, needs no installation and no login, and works on a phone as well
+      as on a desktop computer. Every program on every page has been run and its printed output
+      checked against the program itself, and every answer to every question has been verified the
+      same way.</p>
+    </section>
+
+    <!-- OBJECTIVE -->
+    <section id="objective">
+      <h2>Objectives</h2>
+      <p>The key objectives of this virtual lab are:</p>
+      <ol>
+        <li>To give students a concrete mental model of memory in C — how values of each data type are
+        stored, how arrays occupy contiguous locations, how the stack holds function calls, and how the
+        heap is managed by hand.</li>
+        <li>To make the order of evaluation visible, so that operator precedence, associativity, type
+        promotion and short-circuit logic become predictable rather than memorised.</li>
+        <li>To let students observe control flow directly: the path taken through a decision, the
+        iterations of a loop, and the expansion and contraction of the call stack during recursion.</li>
+        <li>To support reasoning about cost, by counting iterations, recursive calls and memory used, so
+        that students can compare an iterative and a recursive solution on evidence.</li>
+        <li>To develop the habit of predicting a program's output before running it, which is the
+        foundation of debugging.</li>
+        <li>To provide self-assessment through graded pretests and posttests attached to every
+        experiment.</li>
+        <li>To let one class be taught at more than one speed, by offering the same five units again as
+        guided practice for students who need the ground covered more slowly and as scenario problems
+        for students who finish early.</li>
+        <li>To prepare students for written placement tests and online coding rounds, by setting
+        questions in the forms those tests actually use &mdash; predict the output, find the mistake,
+        judge the cost &mdash; each answered with an explanation rather than a mark, and coding problems
+        whose test cases name the case that catches a careless solution.</li>
+      </ol>
+    </section>
+
+    <!-- EXPERIMENTS -->
+    <section id="experiments">
+      <h2>List of Experiments</h2>
+      <p class="note">Experiments are released as they are completed. Each contains Aim, Theory,
+      Procedure, Pretest, Demo, Practice, Posttest, References and Contributors.</p>
+
+      <!-- UNIT 1 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 1</span><h3>Decision Making</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.1</div>
+          <div>
+            <h4><a href="exp-1-1-memory.html">Data Types, Assignment and Expressions</a></h4>
+            <p>Size, range and storage of int, float and char. Overflow and truncation. Tracing
+            declarations and assignments. Operator precedence, integer division, type promotion, and
+            variable swapping with and without a temporary variable.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.2</div>
+          <div>
+            <h4><a href="exp-1-2-decisions.html">Decision Making with if…else and Boolean Logic</a></h4>
+            <p>if, if…else and else-if ladders. Relational and logical operators, short-circuit
+            evaluation and range checks. Classification problems: odd or even, positive or negative,
+            vowel or consonant, leap year, character type and eligibility checks.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">1.3</div>
+          <div>
+            <h4><a href="exp-1-3-switch.html">switch and Menu-Driven Programs</a></h4>
+            <p>Case selection, the effect of a missing break, and a comparison of switch with the
+            else-if ladder. Reading a choice from the user with scanf, the bank menu and triangle
+            classification.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+
+      <!-- UNIT 2 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 2</span><h3>Modularity</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">2.1</div>
+          <div>
+            <h4><a href="exp-2-1-functions.html">Functions, the Call Stack and Pointers</a></h4>
+            <p>Breaking a problem into smaller functions. Stack frames created and destroyed as
+            functions are called and return. Pass by value compared with pass by reference, with
+            pointer variables shown as arrows into memory.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">2.2</div>
+          <div>
+            <h4><a href="exp-2-2-pointers.html">Pointers and Helper Functions</a></h4>
+            <p>What a pointer holds and what it reaches: a side panel reads out <code>p</code> and
+            <code>*p</code> separately at every step, so the two are never confused. Helper functions
+            that return a value, <code>isPrime</code> written both as a return value and through a
+            pointer, and modular programs for a scorecard and temperature conversion.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">2.3</div>
+          <div>
+            <h4><a href="exp-2-3-recursion.html">Recursion and the Call Stack</a></h4>
+            <p>The stack expanding to the base case and contracting as values return, for factorial,
+            digit counting, sum of digits, power, GCD, Fibonacci, reversing a number and palindromes.
+            A trace panel names every call and what it handed back, the calls and the deepest level are
+            counted, and an Explorer lets the student make the calls by hand &mdash; down to the base
+            case, then back up one answer at a time.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+
+      <!-- UNIT 3 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 3</span><h3>Array and String</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.1</div>
+          <div>
+            <h4><a href="exp-3-1-arrays.html">Arrays and Strings</a></h4>
+            <p>Arrays drawn as touching boxes with the index above and the real address below, so
+            contiguous storage can be seen rather than taken on trust. The null terminator shown as its
+            own shaded box. strlen, strcpy, strcat, strcmp, strrev, strchr and strstr step by step,
+            pointers walking through an array, why a function can change the caller's array, and
+            recursive solutions for string length, largest element, vowel counting and reverse
+            printing.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.2</div>
+          <div>
+            <h4><a href="exp-3-2-loops.html">Iteration: while, do&hellip;while and for</a></h4>
+            <p>An iteration table beside every program, with one row per pass showing the test, what
+            each variable was before and after, and what that pass printed. Why
+            <code>do&hellip;while</code> always runs its body at least once, shown on the same task
+            written both ways, and why menus and input validation need it. Infinite loops and
+            off-by-one errors next to their corrected versions, and an Explorer that makes the student
+            run the test, body and step by hand in the order the form demands.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">3.3</div>
+          <div>
+            <h4><a href="exp-3-3-forloops.html">Count-Controlled for Loops and Linear Search</a></h4>
+            <p>Working out the number of passes before running the loop, and checking it against the
+            iteration table. Stepping up and down by any amount, and the two faults that come from the
+            start, the test and the step disagreeing. Linear search in both the successful and the
+            unsuccessful case, with the comparisons counted, written once with <code>return</code> and
+            once with <code>break</code>. Patterns with nested loops, and the three practice functions:
+            reverse printing, <code>countFrequency</code> and <code>mergeStrings</code>.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+
+      <!-- UNIT 4 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 4</span><h3>Structured Iterations</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.1</div>
+          <div>
+            <h4><a href="exp-4-1-matrices.html">Nested Loops, Matrices and Bubble Sort</a></h4>
+            <p>Tracing a nested loop and counting its iterations, with the growth from n to n squared
+            made visible. Patterns up to a hollow square. A matrix drawn as a grid with every cell's
+            real address, next to the truth that it is one straight row-major block &mdash; so
+            <code>m[0][4]</code> landing on <code>m[1][0]</code> becomes obvious rather than mysterious.
+            Row sums, column sums, both diagonals and the sparse-matrix test, including the integer
+            division that makes the obvious version of that test never fire. Bubble sort traced pass by
+            pass with the compared pair highlighted, the comparisons counted against n(n&minus;1)/2, and
+            the swap that loses a value when the temporary is left out.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.2</div>
+          <div>
+            <h4><a href="exp-4-2-recursion-iteration.html">Recursion against Iteration: Stack, Calls and Cost</a></h4>
+            <p>The same problem solved both ways, with the cost measured rather than argued about: frames
+            on the stack, function calls, loop passes and bytes of memory, counted live as the program
+            runs. Factorial and Fibonacci both ways, and why recursive Fibonacci is in a different class
+            of bad from recursive factorial. Binary search recursive and iterative with the calls and the
+            passes printed, including the extra call the recursion needs to discover a failure. Palindrome
+            and power both ways, global call counters drawn apart from the stack, and an Explorer that
+            measures the two approaches side by side at any size.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">4.3</div>
+          <div>
+            <h4><a href="exp-4-3-break-continue.html">break, continue and the Cost of Repetition</a></h4>
+            <p>What the two jump statements really do, shown by counting: <code>break</code> ends the
+            loop and the passes it skipped never happen, while <code>continue</code> ends only one pass
+            and the loop runs just as many times as before. The mistake that hangs a while loop, caught
+            and explained. Reading values with <code>scanf</code> until a stopping value arrives, with a
+            typed-input box the student can edit, and what happens when that value never comes. Sum of
+            digits written both iteratively and recursively with the intermediate steps counted, and an
+            Explorer that builds a loop from your choices and measures what each one cost.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+
+      <!-- UNIT 5 -->
+      <div class="unit">
+        <div class="unit-head">
+          <span class="u">UNIT 5</span><h3>Memory Driven Problems</h3><span class="hrs">12 hours</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.1</div>
+          <div>
+            <h4><a href="exp-5-1-structures.html">Structures and Arrays of Structures</a></h4>
+            <p>A record drawn as one block with its members laid side by side, each at a known distance
+            from the start &mdash; and the measurement showing that a structure costs no more memory than
+            the same facts kept in separate variables. Arrays of records, with every record exactly one
+            record-length after the last, so <code>list[i]</code> is one multiplication away. A record
+            passed by value appears twice, once in each frame, so the function provably works on a copy;
+            passed by pointer, one record with an arrow reaching it. Functions that take a record and
+            return an updated one, and a search through an array of records that returns either the
+            record or its position &mdash; with a program showing why the difference matters.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.2</div>
+          <div>
+            <h4><a href="exp-5-2-dynamic-memory.html">Dynamic Memory Allocation</a></h4>
+            <p>The heap drawn as its own region below the frames, so a block asked for inside a function
+            can be watched staying exactly where it is after that function has returned. Boxes from
+            <code>malloc</code> shown as unwritten until the program fills them, against the zeros
+            <code>calloc</code> gives; <code>realloc</code> both growing a block in place and having to
+            move it, copying as it goes. The three mistakes that follow <code>free</code> &mdash; a
+            dangling pointer, a double free and a leak &mdash; each with a program that stops and
+            explains itself. Records built on the heap and handed back by a function, a linked list grown
+            and freed one node at a time, and an Explorer that measures three ways of holding values
+            whose number is not known in advance.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+        <div class="exp">
+          <div class="num">5.3</div>
+          <div>
+            <h4><a href="exp-5-3-file-handling.html">File Handling</a></h4>
+            <p>The file drawn beside the program with a marker for the read position, so each
+            <code>fscanf</code> or <code>fgets</code> can be watched moving through it &mdash; and the
+            file itself is editable, so every count changes with the data. Newlines shown as the
+            characters they are, which is what makes <code>fgets</code> keeping them make sense. The
+            <code>while (!feof(fp))</code> mistake set next to the correct loop, reporting six values for
+            a file of five. Counting lines, words and characters, beside a word counter that misses the
+            first word of every line. A frequency report as a list, as bars, and written out to a second
+            file with <code>fprintf</code>. An Explorer that reads any text you paste both as lines and as
+            numbers at once.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRACTICE LABS -->
+    <section id="practice">
+      <h2>Practice Labs</h2>
+      <p>Alongside the fifteen experiments, these three labs gather work from all five units in one
+      place and carry no theory. The first covers the ground again more slowly; the second sets problems
+      for students who finish early; the third prepares for written placement tests and online coding
+      rounds. All three are open to everyone, and a student can move between them freely.</p>
+
+      <div class="unit">
+        <div class="unit-head">
+          <span>Across all five units</span>
+        </div>
+
+        <div class="exp">
+          <div class="num">P</div>
+          <div>
+            <h4><a href="practice-lab.html">Guided Programs &mdash; Slow Learners</a></h4>
+            <p>Fifty-four programs covering all five units, the easiest first and rising gently within
+            each unit, with no theory to read. Each program runs a line at a time with the memory picture
+            beside it and the values can be changed. <strong>Check yourself</strong> asks ten questions
+            per unit, where a wrong answer explains itself and names the program to go back to.
+            <strong>Write your own</strong> is a C editor that starts with a program already loaded, so a
+            student can begin by changing one number; it reports a missing semicolon in plain words
+            rather than failing silently.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+
+        <div class="exp">
+          <div class="num">C</div>
+          <div>
+            <h4><a href="challenge-lab.html">Challenge Lab &mdash; Fast Learners</a></h4>
+            <p>Forty problems across the same five units, each written as a situation to work out rather
+            than an instruction to follow: slab tariffs, Euclid's algorithm, the Tower of Hanoi, majority
+            voting, rotation by three reversals, the sieve of Eratosthenes, spiral printing, saddle
+            points, self-doubling arrays, reversing a linked list and finding its middle in one pass.
+            The solution stays hidden until it is asked for, and a hint sits between the two. Each
+            revealed solution carries a note on the trick it turns on and where else that trick applies.
+            The quizzes are about complexity, edge cases and why one approach beats another, and the
+            editor starts blank.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+
+        <div class="exp">
+          <div class="num">PL</div>
+          <div>
+            <h4><a href="placement-lab.html">Placement Lab &mdash; Written tests and coding rounds</a></h4>
+            <p>A hundred questions of the kind written tests actually ask &mdash; predict the output,
+            find the mistake, judge the cost &mdash; twenty per unit, chosen from a drop-down by unit
+            and by kind. A student answers, presses <strong>Check</strong>, and the explanation appears
+            at once; the questions come in a different order each time, so going round a unit twice is
+            not the same twice. Alongside them sit fifteen coding problems, three per unit, each with a
+            brief, a hint, and the test cases a judge would use &mdash; the empty input, the single
+            item, the value exactly on the boundary &mdash; with a note against each case saying which
+            careless solution it catches. The worked solution stays hidden until it is asked for, and
+            then runs a line at a time like everything else.</p>
+          </div>
+          <span class="status live">Open</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARGET AUDIENCE -->
+    <section id="audience">
+      <h2>Target Audience</h2>
+      <ul>
+        <li>First-year undergraduate students of engineering taking an introductory programming course
+        in C, across all branches. The fifteen experiments follow the syllabus unit by unit.</li>
+        <li>Students within the same class who are working at different speeds. Those who need the
+        ground covered again more slowly have <em>Guided Programs</em>; those who finish early have the
+        <em>Challenge Lab</em>. Both are open to everyone and a student may move between them freely,
+        so nobody is labelled by which link they open.</li>
+        <li>Students in any semester preparing for placement. The <em>Placement Lab</em> sets written-test
+        questions with worked explanations and coding problems with test cases, arranged by unit so that
+        revision can follow whichever topic is weakest.</li>
+        <li>Students in higher semesters revising C before a data structures course.</li>
+        <li>Diploma and polytechnic students studying computer programming fundamentals.</li>
+        <li>Teachers who wish to demonstrate memory layout, expression evaluation, recursion, dynamic
+        allocation and file handling live during a classroom lecture, without setting up a compiler.</li>
+      </ul>
+      <p>No prior programming experience is assumed. A student needs only a web browser and an internet
+      connection; the pages work on a phone as well as on a desktop computer.</p>
+    </section>
+
+    <!-- COURSE ALIGNMENT -->
+    <section id="alignment">
+      <h2>Course Alignment</h2>
+      <p>This lab covers the full syllabus of the Programming for Problem Solving course offered in the
+      first year at SRM Institute of Science and Technology, Kattankulathur.</p>
+
+      <table>
+        <tr><th>Course code</th><td>26CSE1002J</td></tr>
+        <tr><th>Course title</th><td>Programming for Problem Solving</td></tr>
+        <tr><th>Programme</th><td>B.Tech, First Year</td></tr>
+        <tr><th>Structure</th><td>Five units of 12 hours each</td></tr>
+      </table>
+
+      <h2>Mapping to units and course outcomes</h2>
+      <table>
+        <tr><th>Unit</th><th>Title</th><th>Experiments</th><th>Course outcome</th></tr>
+        <tr><td>1</td><td>Decision Making</td><td>1.1, 1.2, 1.3</td><td>[CO1]</td></tr>
+        <tr><td>2</td><td>Modularity</td><td>2.1, 2.2, 2.3</td><td>[CO2]</td></tr>
+        <tr><td>3</td><td>Array and String</td><td>3.1, 3.2, 3.3</td><td>[CO3]</td></tr>
+        <tr><td>4</td><td>Structured Iterations</td><td>4.1, 4.2, 4.3</td><td>[CO4]</td></tr>
+        <tr><td>5</td><td>Memory Driven Problems</td><td>5.1, 5.2, 5.3</td><td>[CO5]</td></tr>
+      </table>
+      <p class="note">Each experiment names the unit and course outcome it supports in its Aim section.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr>
+          <td>Dr. Jeba Sonia J</td>
+          <td>Concept, content and development</td>
+          <td>Department of Data Science and Business Systems,<br>
+              School of Computing, SRM Institute of Science and Technology, Kattankulathur</td>
+        </tr>
+      </table>
+      <p class="note">Developed for the first-year B.Tech programme as a free, open teaching resource.
+      It runs entirely in the browser, so no installation or login is required.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+  const SECTIONS = {
+    intro:"Introduction", objective:"Objective", experiments:"List of Experiments",
+    practice:"Practice Labs", audience:"Target Audience", alignment:"Course Alignment",
+    contributors:"Contributors"
+  };
+  const nav = document.getElementById("nav");
+  Object.keys(SECTIONS).forEach((id, i) => {
+    const b = document.createElement("button");
+    b.textContent = SECTIONS[id];
+    b.dataset.target = id;
+    b.setAttribute("aria-current", i === 0);
+    b.onclick = () => show(id);
+    nav.appendChild(b);
+  });
+  function show(id){
+    Object.keys(SECTIONS).forEach(s =>
+      document.getElementById(s).classList.toggle("on", s === id));
+    [...nav.children].forEach(b =>
+      b.setAttribute("aria-current", b.dataset.target === id));
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+</script>
+</body>
+</html>

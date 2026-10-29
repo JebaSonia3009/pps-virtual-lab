@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 2.1 — Functions, Pass by Value and Pass by Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase; display:flex; gap:10px}
+  .card h4 .r{margin-left:auto; font-weight:400; color:#9fb8b4; text-transform:none; letter-spacing:0}
+  .grid2{display:grid; grid-template-columns:1.02fr .98fr; gap:17px; align-items:start}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:450px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.ran{background:#eef7f2; box-shadow:inset 3px 0 0 var(--ok)}
+  .code .ln.hit.ran{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  /* ---- memory inspector: frames, cells and arrows ---- */
+  .memwrap{position:relative; padding:14px; min-height:200px; max-height:470px; overflow:auto;
+    display:flex; flex-direction:column; gap:12px}
+  .block{position:relative; border:1px dashed var(--line); border-radius:12px;
+    padding:10px 12px 12px; background:var(--paper)}
+  .block.callee{border-color:var(--gold); background:#fffdf6}
+  .block.enter{animation:slideUp .34s ease-out}
+  @keyframes slideUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+  .block-label{display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600; color:var(--ink-soft)}
+  .block.callee .block-label{color:var(--gold)}
+  .block-label .tag{margin-left:auto; font-family:"Source Sans 3",sans-serif; font-size:10px;
+    letter-spacing:.07em; text-transform:uppercase; font-weight:700}
+  .lane{margin-top:9px}
+  .lane:first-of-type{margin-top:0}
+  .lane-label{font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:#9aa9ae; margin-bottom:5px}
+  .lane-row{display:flex; flex-wrap:wrap; gap:9px}
+  .cell{position:relative; z-index:2; min-width:98px; background:#fff; border:1.5px solid var(--line);
+    border-radius:9px; padding:7px 9px 6px; text-align:center}
+  .cell.var{border-color:var(--teal)}
+  .cell.ptr{border-color:var(--gold); background:#fdf4e0}
+  .cell.unset{opacity:.6; border-style:dashed}
+  .cell-name{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-soft)}
+  .cell-name em{font-style:normal; opacity:.65; font-size:10.5px}
+  .cell-val{font-family:"IBM Plex Mono",monospace; font-size:16px; font-weight:700; margin:2px 0 1px;
+    font-variant-numeric:tabular-nums}
+  .cell.var .cell-val{color:var(--teal)}
+  .cell.ptr .cell-val{color:var(--gold)}
+  .cell-addr{font-family:"IBM Plex Mono",monospace; font-size:10px; color:#9aa9ae}
+  .cell.flash{animation:flashRing .95s ease-out}
+  @keyframes flashRing{
+    0%{box-shadow:0 0 0 5px rgba(232,180,41,.85)}
+    100%{box-shadow:0 0 0 0 rgba(232,180,41,0)}
+  }
+  .arrows{position:absolute; top:0; left:0; pointer-events:none; z-index:1}
+  .arrow-line{stroke:var(--gold); stroke-width:2.2; fill:none}
+  .arrow-head{fill:var(--gold)}
+  .empty{color:var(--ink-soft); font-size:14px; padding:4px 2px}
+  @media (prefers-reduced-motion:reduce){
+    .cell.flash,.block.enter{animation:none}
+  }
+
+  /* ---- playground ---- */
+  .pgbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px}
+  .pggroup{display:flex; flex-wrap:wrap; align-items:center; gap:7px; min-width:0;
+    padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .pggroup .gl{font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; margin-right:2px}
+  .pggroup input{width:68px; max-width:100%; padding:5px 7px; font-size:13.5px}
+  .pgbtn{font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; padding:6px 11px;
+    border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:5px;
+    font-family:"IBM Plex Mono",monospace}
+  .pgbtn:hover:not(:disabled){border-color:var(--teal); color:var(--teal)}
+  .pgbtn:disabled{opacity:.38; cursor:not-allowed}
+  .pgbtn.go{background:var(--teal); border-color:var(--teal); color:#fff;
+    font-family:"Source Sans 3",sans-serif}
+  .pgbtn.go:hover:not(:disabled){filter:brightness(1.08); color:#fff}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:46px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+  .yn{display:flex; gap:12px; justify-content:center; padding:8px 0 16px}
+  .yn button{font:inherit; font-weight:700; font-size:16px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; padding:10px 28px; border-radius:var(--radius)}
+  .yn button.y:hover{border-color:var(--ok); background:#e4f4ec; color:var(--ok)}
+  .yn button.n:hover{border-color:var(--no); background:#fbe9e9; color:var(--no)}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 2 &rsaquo; Experiment 2.1</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Functions, Pass by Value and Pass by Reference</h1>
+    <div class="sub">Unit 2 · Modularity · 20 programs to explore · Estimated time: 70 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand how a problem is broken into smaller functions, what happens in memory when a
+      function is called and when it returns, and how passing a value differs from passing an
+      address.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Break a larger problem into smaller functions, each doing one job.</li>
+        <li>Describe the stack frame created for a call and say what it holds.</li>
+        <li>Explain that a parameter is a copy, so changing it cannot affect the caller's variable.</li>
+        <li>Use <code>&amp;</code> to take the address of a variable and <code>*</code> to reach the
+        variable a pointer points to.</li>
+        <li>Write a function that changes a caller's variable by receiving its address.</li>
+        <li>Choose correctly between returning a value and using a pointer parameter.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>Unit 1 — data types and memory, expressions, and decision making.</p>
+
+      <h3>How to use this experiment</h3>
+      <p>The Demo has four concepts. Watch the <strong>Call stack</strong> panel at every step: a new
+      box appears when a function is called and disappears when it returns.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>So far every program has been one long <code>main</code>. That works for ten lines. It stops
+      working for a hundred. A <strong>function</strong> is a named piece of a program that does one
+      job, and splitting work into functions is the first real engineering skill in programming.</p>
+
+      <h2>Breaking a problem into sub-tasks</h2>
+      <p>Take the task "print a student's scorecard: total, average and grade". That is really three
+      smaller jobs:</p>
+      <ul>
+        <li>add the marks together,</li>
+        <li>divide to get the average,</li>
+        <li>turn the average into a letter grade.</li>
+      </ul>
+      <p>Each one becomes a function. Each is short enough to check on its own, each can be reused, and
+      <code>main</code> becomes a readable summary of the whole plan rather than a wall of
+      arithmetic.</p>
+      <p>A good rule for first-year programs: <strong>if you can describe a piece of the work in one
+      short sentence, it should probably be a function.</strong></p>
+
+      <h2>Writing a function</h2>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">int square(int x) {        /* int = what it gives back            */
+    return x * x;          /* x   = what it needs to be given      */
+}</pre>
+      </div>
+      <p>The type at the front is what the function hands back. <code>void</code> means it hands back
+      nothing — it just does something, such as printing. The things in the brackets are the
+      <strong>parameters</strong>: the information the function needs in order to work.</p>
+
+      <h2>The call stack</h2>
+      <p>When a function is called, the computer sets aside a block of memory for it called a
+      <strong>stack frame</strong>. The frame holds that call's parameters and its local variables.
+      Frames pile up: the function that is running sits on top, and the one that called it waits
+      underneath.</p>
+      <p>When the function returns, its frame is thrown away. Every parameter and every local variable
+      inside it stops existing at that moment. Only the returned value survives.</p>
+
+      <h2>Parameters are copies — pass by value</h2>
+      <p>C passes arguments <strong>by value</strong>. When you call <code>square(n)</code>, the current
+      value inside <code>n</code> is copied into the parameter <code>x</code>. They are two separate
+      variables at two different addresses that happen to start out holding the same number.</p>
+      <p>So changing a parameter changes only the copy. This is exactly why the obvious swap function
+      does nothing:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">void swap(int x, int y) {   /* x and y are copies          */
+    int t = x;
+    x = y;
+    y = t;                  /* the copies are exchanged    */
+}                           /* the frame is thrown away    */</pre>
+      </div>
+      <p>The exchange really happens — but to the copies, which vanish when the function returns. The
+      caller's variables were never touched.</p>
+
+      <h2>Addresses and pointers</h2>
+      <p>Every variable lives at an <strong>address</strong> in memory. The operator <code>&amp;</code>
+      gives you that address: <code>&amp;a</code> means "the address of a".</p>
+      <p>A <strong>pointer</strong> is a variable whose value is an address. It is declared with a
+      <code>*</code> in its type:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">int  a = 5;
+int *p = &amp;a;      /* p holds the address of a */</pre>
+      </div>
+      <p>The <code>*</code> means two different things depending on where it appears, and this trips
+      everyone up at first:</p>
+      <table>
+        <tr><th>Where</th><th>What it means</th></tr>
+        <tr><td><code>int *p;</code> — in a declaration</td><td>p is a pointer to an int</td></tr>
+        <tr><td><code>*p</code> — in an ordinary statement</td><td>the variable p points to</td></tr>
+      </table>
+      <p>So <code>*p</code> reads the value in <code>a</code>, and <code>*p = 9;</code> stores 9
+      <strong>into a itself</strong>. Using <code>*</code> this way is called
+      <strong>dereferencing</strong>.</p>
+
+      <h2>Pass by reference</h2>
+      <p>C has no true pass by reference, but passing an address gives the same effect. The address is
+      still copied into the parameter — so the pointer itself is passed by value — but a copy of an
+      address still leads back to the original variable, and writing through it reaches the real
+      thing:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">void swap(int *x, int *y) {   /* x and y hold addresses     */
+    int t = *x;
+    *x = *y;
+    *y = t;                   /* writes into the caller     */
+}
+
+swap(&amp;a, &amp;b);                /* pass addresses, not values */</pre>
+      </div>
+
+      <h2>Which should you use?</h2>
+      <table>
+        <tr><th>Situation</th><th>Use</th></tr>
+        <tr><td>The function works out one answer</td><td>Return it: <code>return x * x;</code></td></tr>
+        <tr><td>The function must change the caller's variable</td><td>Pass its address</td></tr>
+        <tr><td>The function must produce two or more answers</td><td>Pass addresses for the extras</td></tr>
+        <tr><td>The function only reads the value</td><td>Pass by value — it is simpler and safer</td></tr>
+      </table>
+      <p>Prefer returning a value when you can. A function that only reads what it is given is easier to
+      understand and cannot damage anything by accident.</p>
+
+      <h2>One trap worth knowing</h2>
+      <p>Calling <code>addHundred(n);</code> and then wondering why <code>n</code> did not change is
+      common. If the function returns the new value, you must <strong>store</strong> it:
+      <code>n = addHundred(n);</code>. A returned value that nobody catches is simply thrown away.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score before continuing.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo on <em>Functions and decomposition</em>. Step through <em>A first function</em>
+      and watch a second box appear in the Call stack, then disappear when the function returns.</p>
+      <h3>Step 3</h3>
+      <p>Run <em>Student scorecard</em>. Notice that only one helper frame exists at a time: each is
+      created and thrown away before the next call begins.</p>
+      <h3>Step 4</h3>
+      <p>Move to <em>Pass by value</em>. Run <em>The swap that does not work</em> and find the exact
+      step where the exchange succeeds inside the function — then watch it vanish with the frame.</p>
+      <h3>Step 5</h3>
+      <p>Move to <em>Addresses and pointers</em>. In <em>Changing a variable through a pointer</em>, look
+      at the caption under <code>p</code> in the Call stack: it names the variable it points to.</p>
+      <h3>Step 6</h3>
+      <p>Move to <em>Pass by reference</em> and run <em>The swap that works</em>. Compare it line by
+      line with the broken swap from Step 4. The only difference is <code>&amp;</code> and
+      <code>*</code>.</p>
+      <h3>Step 7</h3>
+      <p>Run <em>The same helper written both ways</em> and explain why one changes the caller and the
+      other does not.</p>
+      <h3>Step 8</h3>
+      <p>In Practice, answer at least six questions in <em>Predict the output</em> and at least eight in
+      <em>Does main's variable change?</em>. Then attempt the Posttest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores appear immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program. Change the values at the top and the program
+      runs again with your numbers.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="950" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div class="card">
+          <h4>Memory <span class="r" id="d-depth"></span></h4>
+          <div class="memwrap" id="d-stack"></div>
+        </div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin.</div>
+      </div>
+    </section>
+
+    <!-- PLAYGROUND -->
+    <section id="playground">
+      <h2>Playground</h2>
+      <p>Nothing is running here — you are. Press the buttons in any order and watch what happens to
+      memory. Start by declaring a pointer, then point it at <code>a</code> or <code>b</code>, then
+      write through it.</p>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Memory</h4>
+          <div class="memwrap" id="pg-mem"></div>
+        </div>
+        <div>
+          <div class="card">
+            <h4>What you have done</h4>
+            <div class="out" id="pg-log" style="margin:0; border-radius:0; min-height:168px;
+              max-height:230px; overflow:auto"></div>
+          </div>
+          <div class="obs" style="margin-top:14px">
+            <h4>What just happened</h4>
+            <div class="obsbody" id="pg-obs">Press a button to begin.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pgbar">
+        <div class="pggroup">
+          <span class="gl">Variables</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px">a =</span>
+          <input type="number" id="pg-av" value="5">
+          <button class="pgbtn" id="pg-seta">Set</button>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px">b =</span>
+          <input type="number" id="pg-bv" value="9">
+          <button class="pgbtn" id="pg-setb">Set</button>
+        </div>
+
+        <div class="pggroup">
+          <span class="gl">Pointer</span>
+          <button class="pgbtn" id="pg-decl">int *p;</button>
+          <button class="pgbtn" id="pg-pa" disabled>p = &amp;a;</button>
+          <button class="pgbtn" id="pg-pb" disabled>p = &amp;b;</button>
+        </div>
+
+        <div class="pggroup">
+          <span class="gl">Use it</span>
+          <button class="pgbtn" id="pg-read" disabled>read *p</button>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px">*p =</span>
+          <input type="number" id="pg-wv" value="99">
+          <button class="pgbtn" id="pg-write" disabled>Write</button>
+        </div>
+
+        <div class="pggroup">
+          <span class="gl">Call a function</span>
+          <button class="pgbtn go" id="pg-byval">byValue(a)</button>
+          <button class="pgbtn go" id="pg-byref">byRef(&amp;a)</button>
+        </div>
+
+        <button class="pgbtn" id="pg-reset">&#8635; Reset</button>
+      </div>
+
+      <p class="note" style="margin-top:12px">The two function buttons both try to add 100 to
+      <code>a</code>. Run them one after the other and watch which one actually changes
+      <code>a</code> in <code>main</code> — and why.</p>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="change">Does main's variable change?</button>
+      </div>
+
+      <!-- MODE A -->
+      <div id="mode-predict">
+        <p>Read the program, work out what it prints, and write your answer down before choosing.</p>
+        <div class="controls">
+          <label class="note">Concept
+            <select id="pp-concept"><option value="all">All concepts</option></select>
+          </label>
+          <button class="btn" id="pp-new">New program</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h4>Program</h4>
+            <pre class="code" id="pp-code"></pre>
+          </div>
+          <div class="card">
+            <h4>What will it print?</h4>
+            <div style="padding:13px">
+              <div class="opts" id="pp-opts"></div>
+              <div class="controls" style="margin-bottom:0">
+                <button class="btn" id="pp-check">Check</button>
+                <button class="btn ghost" id="pp-show" disabled>Show the calls</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pp-right">0</b></span>
+          <span>Attempts <b id="pp-tries">0</b></span>
+          <span>Streak <b id="pp-streak">0</b></span>
+        </div>
+      </div>
+
+      <!-- MODE B -->
+      <div id="mode-change" style="display:none">
+        <p>Read the function and the call. Decide whether the variable <code>n</code> inside
+        <code>main</code> is different after the call.</p>
+        <div class="controls">
+          <button class="btn" id="pc-new">New question</button>
+        </div>
+        <div class="card">
+          <h4>Does n in main change?</h4>
+          <pre class="code" id="pc-code"></pre>
+          <div class="yn">
+            <button class="y" data-ans="1">YES, it changes</button>
+            <button class="n" data-ans="0">NO, it stays the same</button>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pc-obs">Click YES or NO to answer.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pc-right">0</b></span>
+          <span>Attempts <b id="pc-tries">0</b></span>
+          <span>Streak <b id="pc-streak">0</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 4 (Functions and Program Structure) and Chapter 5 (Pointers and Arrays),
+        Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapter 9 (User-defined Functions) and
+        Chapter 11 (Pointers), McGraw Hill Education.</li>
+        <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapters 7 and 10,
+        McGraw Hill.</li>
+        <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.5.2.2 (Function calls) and
+        clause 6.5.3.2 (Address and indirection operators).</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and development</td>
+            <td>Department of Data Science and Business Systems,<br>School of Computing,
+                SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", playground:"Playground", practice:"Practice", posttest:"Posttest",
+  references:"References", contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   VALUES AND TYPES
+   ============================================================ */
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  if(type==="float"){dv.setFloat32(0,v,true); return dv.getFloat32(0,true);}
+  return v;                                   /* pointers keep their address */
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function hexAddr(a){return "0x"+(a>>>0).toString(16).toUpperCase();}
+function isPtr(t){return typeof t==="string" && t.indexOf("*")>=0;}
+function showVal(type,v){
+  if(v===null||v===undefined) return null;
+  if(isPtr(type)) return hexAddr(v);
+  if(type==="char"){ const p=v>=32&&v<=126; return p?`'${String.fromCharCode(v)}'`:String(v); }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ============================================================
+   EXPRESSION ENGINE
+   Arithmetic, comparisons, logic, casts, & (address of) and * (value at)
+   ============================================================ */
+const LEVEL={"||":1,"&&":2,"==":3,"!=":3,"<":4,">":4,"<=":4,">=":4,
+             "+":5,"-":5,"*":6,"/":6,"%":6};
+const TYPES=["int","float","char"];
+
+function xtok(src){
+  const t=[]; let i=0;
+  const unaryHere=()=>{
+    const p=t[t.length-1];
+    return !p || p.k==="op" || p.k==="not" || p.k==="addr" || p.k==="deref" ||
+           p.k==="cast" || (p.k==="paren"&&p.v==="(");
+  };
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const two=src.substr(i,2);
+    if(["==","!=","<=",">=","&&","||"].includes(two)){t.push({k:"op",v:two}); i+=2; continue;}
+    if(c==="&"&&/[A-Za-z_]/.test(src[i+1]||"")&&unaryHere()){t.push({k:"addr"}); i++; continue;}
+    if(c==="*"&&unaryHere()){t.push({k:"deref"}); i++; continue;}
+    if("<>+-*/%".includes(c)){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="!"){t.push({k:"not"}); i++; continue;}
+    if(c==="?"||c===":"){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="("){
+      const m=src.slice(i).match(/^\(\s*(int|float|char)\s*\)/);
+      if(m){t.push({k:"cast",to:m[1]}); i+=m[0].length; continue;}
+      t.push({k:"paren",v:"("}); i++; continue;
+    }
+    if(c===")"){t.push({k:"paren",v:")"}); i++; continue;}
+    if(c==="'"){
+      const ch=src[i+1];
+      if(src[i+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"lit",type:"char",v:ch.charCodeAt(0),txt:"'"+ch+"'"}); i+=3; continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i; while(j<src.length&&/[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      t.push({k:"lit",type:lit.includes(".")?"float":"int",v:parseFloat(lit),txt:lit});
+      i=j; continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j])) j++;
+      t.push({k:"id",name:src.slice(i,j)}); i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty expression");
+  return t;
+}
+function xparse(t){
+  let p=0;
+  function primary(){
+    const x=t[p];
+    if(!x) throw new Error("Unexpected end of expression");
+    if(x.k==="not"){p++; return {op:"!",a:primary()};}
+    if(x.k==="addr"){p++; return {op:"addr",a:primary()};}
+    if(x.k==="deref"){p++; return {op:"deref",a:primary()};}
+    if(x.k==="cast"){p++; return {op:"cast",to:x.to,a:primary()};}
+    if(x.k==="op"&&x.v==="-"){p++; return {op:"neg",a:primary()};}
+    if(x.k==="paren"&&x.v==="("){
+      p++; const e=cond();
+      if(!t[p]||t[p].v!==")") throw new Error("Missing )");
+      p++; return e;
+    }
+    p++;
+    if(x.k==="lit") return {lit:x};
+    if(x.k==="id") return {id:x.name};
+    throw new Error("Unexpected token in expression");
+  }
+  function expr(min){
+    let left=primary();
+    while(t[p]&&t[p].k==="op"&&LEVEL[t[p].v]>=min){
+      const o=t[p].v; p++;
+      left={op:o,a:left,b:expr(LEVEL[o]+1)};
+    }
+    return left;
+  }
+  /* the conditional operator sits below every other level and groups to the right */
+  function cond(){
+    const c=expr(1);
+    if(t[p]&&t[p].k==="op"&&t[p].v==="?"){
+      p++; const a=cond();
+      if(!t[p]||!(t[p].k==="op"&&t[p].v===":"))
+        throw new Error("A ? needs a matching : in the same expression");
+      p++; const b=cond();
+      return {op:"?:",c:c,a:a,b:b};
+    }
+    return c;
+  }
+  const e=cond();
+  if(p!==t.length) throw new Error("Malformed expression");
+  return e;
+}
+/* ctx: {get(name), addrOf(name), readAddr(addr)} */
+function evalAst(n,ctx){
+  if(n.lit) return {v:n.lit.v,type:n.lit.type};
+  if(n.id!==undefined){
+    const v=ctx.get(n.id);
+    if(!v) throw new Error("Unknown variable: "+n.id);
+    if(v.value===null||v.value===undefined) throw new Error(n.id+" has no value yet");
+    return {v:v.value,type:v.type};
+  }
+  if(n.op==="addr"){
+    if(n.a.id===undefined) throw new Error("& needs a variable name after it");
+    return {v:ctx.addrOf(n.a.id), type:(ctx.get(n.a.id).type)+" *"};
+  }
+  if(n.op==="deref"){
+    const a=evalAst(n.a,ctx);
+    if(!isPtr(a.type)) throw new Error("* can only be used on a pointer");
+    const cell=ctx.readAddr(a.v);
+    if(!cell) throw new Error("this pointer does not point at a live variable");
+    return {v:cell.value, type:cell.type};
+  }
+  if(n.op==="cast"){
+    const a=evalAst(n.a,ctx);
+    return {v:fitToType(n.to,a.v), type:n.to};
+  }
+  if(n.op==="neg"){const a=evalAst(n.a,ctx); return {v:-a.v,type:a.type};}
+  if(n.op==="!"){const a=evalAst(n.a,ctx); return {v:a.v?0:1,type:"int"};}
+  if(n.op==="?:"){
+    /* only the branch that is chosen is worked out at all */
+    return evalAst(n.c,ctx).v ? evalAst(n.a,ctx) : evalAst(n.b,ctx);
+  }
+  if(n.op==="&&"){const a=evalAst(n.a,ctx); if(!a.v) return {v:0,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  if(n.op==="||"){const a=evalAst(n.a,ctx); if(a.v) return {v:1,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  const a=evalAst(n.a,ctx), b=evalAst(n.b,ctx);
+  const bothInt = a.type!=="float" && b.type!=="float";
+  const type=bothInt?"int":"float";
+  switch(n.op){
+    case "+": return {v:a.v+b.v,type};
+    case "-": return {v:a.v-b.v,type};
+    case "*": return {v:a.v*b.v,type};
+    case "/":
+      if(b.v===0) throw new Error("Division by zero");
+      return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
+    case "%":
+      if(!bothInt) throw new Error("% needs whole numbers");
+      if(b.v===0) throw new Error("Modulus by zero");
+      return {v:a.v%b.v,type:"int"};
+    case "==": return {v:a.v===b.v?1:0,type:"int"};
+    case "!=": return {v:a.v!==b.v?1:0,type:"int"};
+    case "<":  return {v:a.v<b.v?1:0,type:"int"};
+    case ">":  return {v:a.v>b.v?1:0,type:"int"};
+    case "<=": return {v:a.v<=b.v?1:0,type:"int"};
+    case ">=": return {v:a.v>=b.v?1:0,type:"int"};
+  }
+  throw new Error("Unknown operator "+n.op);
+}
+
+/* ============================================================
+   PARSER
+   ============================================================ */
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){
+      if(c==="(") d++; if(c===")") d--;
+      if(c===","&&d===0){out.push(cur); cur=""; continue;}
+    }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+function matchBrace(lines,start,end){
+  let depth=0;
+  for(let i=start;i<end;i++){
+    let q=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ q=!q; continue; }
+      if(q) continue;
+      if(ch==="{") depth++;
+      else if(ch==="}" && i>start){ depth--; if(depth===0) return i; }
+    }
+  }
+  return end-1;
+}
+function parseParams(s){
+  s=s.trim();
+  if(s===""||s==="void") return [];
+  return splitTop(s).map(p=>{
+    const m=p.trim().match(/^(int|float|char)\s*(\*?)\s*([A-Za-z_]\w*)$/);
+    if(!m) throw new Error("Cannot understand the parameter: "+p.trim());
+    return {type:m[1]+(m[2]?" *":""), name:m[3]};
+  });
+}
+function parseSimple(s,i,out){
+  let m;
+  if((m=s.match(/^return\s*;$/))){ out.push({kind:"return",line:i,expr:null}); return true; }
+  if((m=s.match(/^return\s+(.+);$/))){ out.push({kind:"return",line:i,expr:m[1].trim()}); return true; }
+  if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+    const base=m[1];
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      let ptr=false;
+      if(part.startsWith("*")){ ptr=true; part=part.slice(1).trim(); }
+      const eq=part.indexOf("=");
+      const type=base+(ptr?" *":"");
+      if(eq<0) out.push({kind:"decl",line:i,type,name:part.trim(),init:null});
+      else out.push({kind:"decl",line:i,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+    });
+    return true;
+  }
+  if((m=s.match(/^printf\((.*)\);$/))){
+    const args=splitTop(m[1]);
+    out.push({kind:"printf",line:i,fmt:args[0].trim().replace(/^"|"$/g,""),
+              args:args.slice(1).map(a=>a.trim())});
+    return true;
+  }
+  if((m=s.match(/^\*\s*([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"storeVia",line:i,ptr:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"assign",line:i,name:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*\((.*)\)\s*;$/))){
+    out.push({kind:"callStmt",line:i,name:m[1],args:m[2]}); return true;
+  }
+  return false;
+}
+function parseBlock(lines,i,end){
+  const out=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")||s==="}"){i++; continue;}
+    /* an if written without braces: the statement sits on the same line or the
+       one below, and any else-if or else that follow are read the same way */
+    let m=s.match(/^if\s*\((.+)\)\s*$/) || s.match(/^if\s*\((.+)\)\s*([^{].*;)\s*$/);
+    if(m){
+      const mixed=(ln)=>new Error("Line "+(ln+1)+" puts braces on one branch of this if and not "+
+        "on another. Put braces on every branch, or leave them off every branch.");
+      const readBody=(txt,ln)=>{
+        const body=[];
+        if(txt!==undefined && String(txt).trim()!==""){
+          if(!parseSimple(String(txt).trim(),ln,body))
+            throw new Error("Cannot understand the statement on line "+(ln+1));
+          return {body:body, next:ln+1};
+        }
+        const nl=(lines[ln+1]||"").replace(/\/\*.*?\*\//g,"").trim();
+        if(nl===""||nl.charAt(0)==="{") throw mixed(ln+1);
+        if(!parseSimple(nl,ln+1,body))
+          throw new Error("Cannot understand the statement on line "+(ln+2));
+        return {body:body, next:ln+2};
+      };
+      const node={kind:"if",line:i,branches:[],else:null};
+      let r=readBody(m[2],i);
+      node.branches.push({line:i,cond:m[1],body:r.body});
+      let j=r.next;
+      while(j<end){
+        const t=(lines[j]||"").replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^else\s+if\s*\((.+)\)\s*$/) ||
+               t.match(/^else\s+if\s*\((.+)\)\s*([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[2],j);
+          node.branches.push({line:j,cond:em[1],body:r.body});
+          j=r.next; continue;
+        }
+        em=t.match(/^else\s*$/) || t.match(/^else\s+([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[1],j);
+          node.else={line:j,body:r.body};
+          j=r.next; break;
+        }
+        if(/^else\b/.test(t)) throw mixed(j);
+        break;
+      }
+      out.push(node); i=j; continue;
+    }
+    m=s.match(/^if\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      const node={kind:"if",line:i,
+        branches:[{line:i,cond:m[1],body:parseBlock(lines,i+1,close)}], else:null};
+      let j=close;
+      while(j<end){
+        const t=lines[j].replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^\}\s*else\s+if\s*\((.+)\)\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.branches.push({line:j,cond:em[1],body:parseBlock(lines,j+1,c2)});
+          j=c2; continue;
+        }
+        em=t.match(/^\}\s*else\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.else={line:j,body:parseBlock(lines,j+1,c2)};
+          j=c2;
+        }
+        break;
+      }
+      out.push(node); i=j+1; continue;
+    }
+    if(!parseSimple(s,i,out)) throw new Error("Cannot parse line "+(i+1)+": "+s);
+    i++;
+  }
+  return out;
+}
+function parseFunctions(lines){
+  const fns={}; let i=0;
+  while(i<lines.length){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")){i++; continue;}
+    const m=s.match(/^(int|float|char|void)\s*(\*?)\s*([A-Za-z_]\w*)\s*\((.*)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,lines.length);
+      fns[m[3]]={name:m[3], retType:m[1]+(m[2]?" *":""), params:parseParams(m[4]),
+                 body:parseBlock(lines,i+1,close), line:i, endLine:close};
+      i=close+1; continue;
+    }
+    i++;
+  }
+  if(!fns.main) throw new Error("This program has no main function");
+  return fns;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(\.\d+)?([dfc%])/);
+      if(m){
+        if(m[2]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        if(m[2]==="d") out+=String(Math.trunc(v.v));
+        else if(m[2]==="c") out+=String.fromCharCode(v.v);
+        else out+=Number(v.v).toFixed(m[1]?parseInt(m[1].slice(1)):6);
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+
+/* ============================================================
+   MACHINE — frames, calls, pointers
+   ============================================================ */
+const STACK_TOP=0x7FF0, MAX_DEPTH=10;
+function Machine(lines){
+  this.lines=lines;
+  this.fns=parseFunctions(lines);
+  this.frames=[];
+  this.out="";
+  this.steps=[];
+  this.ran=new Set();
+  this.nextAddr=STACK_TOP;
+  this.returning=false;
+}
+Machine.prototype.ctx=function(){
+  const M=this;
+  return {
+    get:n=>M.find(n),
+    addrOf:n=>{const v=M.find(n); if(!v) throw new Error("Unknown variable: "+n); return v.addr;},
+    readAddr:a=>{const t=M.byAddr(a); return t?t.v:null;}
+  };
+};
+Machine.prototype.top=function(){return this.frames[this.frames.length-1];};
+Machine.prototype.find=function(name){
+  const f=this.top(); if(!f) return null;
+  return f.vars.find(v=>v.name===name)||null;
+};
+Machine.prototype.byAddr=function(addr){
+  for(let i=this.frames.length-1;i>=0;i--){
+    const v=this.frames[i].vars.find(x=>x.addr===addr);
+    if(v) return {v, frame:this.frames[i], idx:i};
+  }
+  return null;
+};
+Machine.prototype.snap=function(line,note,touch){
+  const M=this;
+  if(typeof touch==="string") touch={name:touch, idx:this.frames.length-1};
+  this.steps.push({
+    line, note, touch, out:this.out, ran:new Set(this.ran),
+    frames:this.frames.map(f=>({fn:f.fn, vars:f.vars.map(v=>{
+      const o={name:v.name,type:v.type,value:v.value,addr:v.addr};
+      if(isPtr(v.type)&&v.value!==null){
+        const t=M.byAddr(v.value);
+        o.points = t ? {name:t.v.name, fn:t.frame.fn, idx:t.idx} : null;
+      }
+      return o;
+    })}))
+  });
+};
+Machine.prototype.declare=function(name,type,value,line,note){
+  const f=this.top();
+  const addr=this.nextAddr; this.nextAddr-=4;
+  f.vars.push({name,type,value:(value===undefined?null:value),addr});
+  this.ran.add(line);
+  if(note) this.snap(line,note,name);
+};
+Machine.prototype.evalExpr=function(src,line){
+  const resolved=this.resolveCalls(src,line);
+  return evalAst(xparse(xtok(resolved)),this.ctx());
+};
+Machine.prototype.resolveCalls=function(src,line){
+  let s=src, guard=0;
+  while(guard++<40){
+    const call=findCall(s,this.fns);
+    if(!call) break;
+    const argSrcs = call.args.trim()==="" ? [] : splitTop(call.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),line));
+    const ret=this.callFunction(call.name,argVals,line);
+    s = s.slice(0,call.start) + literalOf(ret) + s.slice(call.end);
+  }
+  return s;
+};
+Machine.prototype.callFunction=function(name,argVals,callLine){
+  const fn=this.fns[name];
+  if(!fn) throw new Error("Unknown function: "+name);
+  if(argVals.length!==fn.params.length)
+    throw new Error(name+" expects "+fn.params.length+" value(s)");
+  if(this.frames.length>=MAX_DEPTH) throw new Error("Too many calls at once");
+
+  const argText=argVals.map(a=>showVal(a.type,a.v)).join(", ");
+  this.snap(callLine,`<code>${name}(${esc(argText)})</code> is called. The values in the brackets are worked out <strong>first</strong>, then control moves into the function.`);
+
+  this.frames.push({fn:name, vars:[], ret:undefined});
+  fn.params.forEach((p,i)=>{
+    const a=argVals[i];
+    const stored = isPtr(p.type) ? a.v : fitToType(p.type,a.v);
+    this.top().vars.push({name:p.name,type:p.type,value:stored,addr:this.nextAddr});
+    this.nextAddr-=4;
+  });
+  this.ran.add(fn.line);
+  const plist=fn.params.length
+    ? "Its parameters are set up as <strong>new variables at new addresses</strong>: "+
+      fn.params.map(p=>`<code>${p.name}</code>`).join(", ")+
+      (fn.params.some(p=>isPtr(p.type))
+        ? ". The ones with a <code>*</code> hold addresses, so they lead back to the caller's variables."
+        : ". They are <strong>copies</strong> of the values that were passed in.")
+    : "It takes no parameters.";
+  this.snap(fn.line,`A new stack frame for <code>${name}</code> is created on top of the stack. ${plist}`);
+
+  const saved=this.returning; this.returning=false;
+  this.runBlock(fn.body);
+  const frame=this.frames[this.frames.length-1];
+  const ret = frame.ret!==undefined ? frame.ret : {v:0,type:"void"};
+  this.returning=saved;
+
+  const names=frame.vars.map(v=>v.name);
+  this.frames.pop();
+  this.snap(callLine,
+    `<code>${name}</code> has finished. Its frame is thrown away, so ${
+      names.length?names.map(n=>`<code>${n}</code>`).join(", ")+" stop existing":"nothing is left behind"}. ${
+      ret.type==="void" ? "It returns no value." : `The value <strong>${showVal(ret.type,ret.v)}</strong> is handed back to the caller.`}`);
+  return ret;
+};
+Machine.prototype.runBlock=function(block){
+  for(const s of block){
+    this.runStatement(s);
+    if(this.returning) return;
+  }
+};
+Machine.prototype.runStatement=function(s){
+  if(s.kind==="decl"){
+    if(s.init===null){
+      this.declare(s.name,s.type,null,s.line,
+        `<code>${s.name}</code> is created in this frame, but it has no value yet.`);
+    }else{
+      const r=this.evalExpr(s.init,s.line);
+      const val = isPtr(s.type) ? r.v : fitToType(s.type,r.v);
+      this.declare(s.name,s.type,val,s.line,
+        isPtr(s.type)
+          ? `<code>${s.name}</code> is a <strong>pointer</strong>. It now holds the address ${showVal(s.type,val)}.`
+          : `<code>${s.name}</code> now holds ${showVal(s.type,val)}.`);
+    }
+  }else if(s.kind==="assign"){
+    const v=this.find(s.name);
+    if(!v) throw new Error("Unknown variable: "+s.name);
+    const r=this.evalExpr(s.expr,s.line);
+    const old=v.value;
+    v.value = isPtr(v.type) ? r.v : fitToType(v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line, isPtr(v.type)
+      ? `<code>${s.name}</code> is pointed somewhere else: it now holds ${showVal(v.type,v.value)}.`
+      : `<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(v.type,old)+" to"} ${showVal(v.type,v.value)}.`,
+      s.name);
+  }else if(s.kind==="storeVia"){
+    const p=this.find(s.ptr);
+    if(!p) throw new Error("Unknown variable: "+s.ptr);
+    if(!isPtr(p.type)) throw new Error(s.ptr+" is not a pointer, so *"+s.ptr+" has no meaning");
+    const t=this.byAddr(p.value);
+    if(!t) throw new Error(s.ptr+" does not point at a live variable");
+    const r=this.evalExpr(s.expr,s.line);
+    const old=t.v.value;
+    t.v.value=fitToType(t.v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line,
+      `<code>*${s.ptr} = …</code> writes through the pointer. <strong>${t.v.name}</strong> in <code>${t.frame.fn}</code> changes from ${showVal(t.v.type,old)} to ${showVal(t.v.type,t.v.value)} — follow the arrow to see which box just changed.`,
+      {name:t.v.name, idx:t.idx});
+  }else if(s.kind==="printf"){
+    const vals=s.args.map(a=>this.evalExpr(a,s.line));
+    this.out+=formatPrintf(s.fmt,vals);
+    this.ran.add(s.line);
+    this.snap(s.line,"This line writes to the screen.");
+  }else if(s.kind==="callStmt"){
+    const argSrcs = s.args.trim()==="" ? [] : splitTop(s.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),s.line));
+    this.ran.add(s.line);
+    const ret=this.callFunction(s.name,argVals,s.line);
+    if(ret.type!=="void")
+      this.snap(s.line,`The value <strong>${showVal(ret.type,ret.v)}</strong> came back, but nothing was done with it, so it is <strong>thrown away</strong>. To keep it you would have to store it, as in <code>n = ${s.name}(…);</code>`);
+  }else if(s.kind==="return"){
+    const f=this.top();
+    if(s.expr===null){ f.ret={v:0,type:"void"}; }
+    else{
+      const r=this.evalExpr(s.expr,s.line);
+      const fn=this.fns[f.fn];
+      f.ret = isPtr(fn.retType) ? r : {v:fitToType(fn.retType,r.v), type:fn.retType};
+    }
+    this.ran.add(s.line);
+    this.returning=true;
+    this.snap(s.line, s.expr===null
+      ? "<code>return;</code> ends the function here."
+      : `<code>return</code> hands back ${showVal(f.ret.type,f.ret.v)} and ends the function immediately.`);
+  }else if(s.kind==="if"){
+    let done=false;
+    for(const br of s.branches){
+      const r=this.evalExpr(br.cond,br.line);
+      if(r.v){
+        this.ran.add(br.line);
+        this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>true</strong>, so this block runs.`);
+        this.runBlock(br.body); done=true; break;
+      }
+      this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>false</strong>, so this block is skipped.`);
+      if(this.returning) return;
+    }
+    if(!done&&s.else){
+      this.ran.add(s.else.line);
+      this.snap(s.else.line,"None of the conditions were true, so the <code>else</code> block runs.");
+      this.runBlock(s.else.body);
+    }
+  }
+};
+function literalOf(r){
+  if(!r||r.type==="void") return "0";
+  if(r.type==="char") return "'"+String.fromCharCode(r.v)+"'";
+  if(r.type==="float"){ const s=String(r.v); return (s.includes(".")||s.includes("e"))?s:s+".0"; }
+  return String(r.v);
+}
+function findCall(s,fns){
+  const re=/([A-Za-z_]\w*)\s*\(/g;
+  let m;
+  while((m=re.exec(s))){
+    if(!(m[1] in fns)) continue;
+    const open=m.index+m[0].length-1;
+    let d=0;
+    for(let j=open;j<s.length;j++){
+      if(s[j]==="(") d++;
+      else if(s[j]===")"){ d--; if(d===0) return {name:m[1],args:s.slice(open+1,j),start:m.index,end:j+1}; }
+    }
+    throw new Error("A closing bracket is missing in a function call");
+  }
+  return null;
+}
+/* ============================================================
+   SHORTHAND
+   i++, ++i, i--, --i and x += 3 are written out into the long form, one line
+   for one line, so nothing about the numbering or the picture changes.
+   ============================================================ */
+const SH_STEP=/^\s*(?:(\+\+|--)\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)|((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*(\+\+|--))\s*$/;
+const SH_COMP=/^\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*([-+*\/%])=\s*(.+)$/;
+/* one expression written out in full, or null when there is no shorthand in it */
+function expandShorthand(src){
+  const s=String(src).trim();
+  if(s==="") return null;
+  let m=s.match(SH_STEP);
+  if(m){
+    const tgt=(m[2]!==undefined?m[2]:m[3]).trim();
+    const op=((m[1]!==undefined?m[1]:m[4])==="++") ? "+" : "-";
+    return tgt+" = "+tgt+" "+op+" 1";
+  }
+  m=s.match(SH_COMP);
+  if(m) return m[1].trim()+" = "+m[1].trim()+" "+m[2]+" ("+m[3].trim()+")";
+  return null;
+}
+function expandLine(line){
+  const raw=String(line);
+  const code=raw.replace(/\/\*.*?\*\//g,"");
+  const ind=raw.match(/^\s*/)[0];
+  /* a for header: the first and third parts may carry shorthand */
+  let m=code.match(/^\s*for\s*\((.*)\)\s*(\{?)\s*$/);
+  if(m){
+    const parts=m[1].split(";");
+    if(parts.length===3){
+      let changed=false;
+      [0,2].forEach(k=>{
+        const ex=expandShorthand(parts[k]);
+        if(ex!==null){ parts[k]=" "+ex; changed=true; }
+      });
+      if(changed) return ind+"for ("+parts.join(";")+")"+(m[2]?" {":"");
+    }
+    return raw;
+  }
+  m=code.match(/^\s*(.*?)\s*;\s*$/);
+  if(m){
+    const ex=expandShorthand(m[1]);
+    if(ex!==null) return ind+ex+";";
+  }
+  return raw;
+}
+/* Comments and string bodies are blanked before anything is looked for, so that
+   a dash in a comment is never mistaken for an operator. Line count is kept, and
+   only the parser sees this version -- the page still shows what was written. */
+function shStrip(lines){
+  let block=false;
+  return (lines||[]).map(src=>{
+    const s=String(src); let out="", i=0;
+    while(i<s.length){
+      if(block){
+        if(s.substr(i,2)==="*/"){ block=false; out+="  "; i+=2; }
+        else { out+=" "; i++; }
+        continue;
+      }
+      if(s.substr(i,2)==="/*"){ block=true; out+="  "; i+=2; continue; }
+      if(s.substr(i,2)==="//"){ while(i<s.length){ out+=" "; i++; } continue; }
+      if(s[i]==='"'||s[i]==="'"){
+        const q=s[i]; out+=s[i]; i++;
+        while(i<s.length){
+          if(s[i]==="\\"&&i+1<s.length){ out+=s[i]+s[i+1]; i+=2; continue; }
+          out+=s[i]; if(s[i]===q){ i++; break; }
+          i++;
+        }
+        continue;
+      }
+      out+=s[i]; i++;
+    }
+    return out;
+  });
+}
+/* ++ and -- have no other meaning in C, so anything left really is in an expression */
+const SH_LEFT=t=>/(\+\+|--)/.test(String(t).replace(/"[^"]*"/g,'""').replace(/'[^']*'/g,"''"));
+function expandProgram(lines){
+  return shStrip(lines).map(l=>{
+    const out=expandLine(l);
+    if(SH_LEFT(out)) throw new Error("SHORTHAND_INSIDE");
+    return out;
+  });
+}
+function runProgram(lines){
+  try{ lines=expandProgram(lines); }
+  catch(x){
+    if(String(x.message)!=="SHORTHAND_INSIDE") throw x;
+    return [{line:0, out:"\n[the program stopped here]", ran:new Set(), touch:null,
+      note:"<strong>The program cannot continue.</strong> This page follows <code>i++</code>, "+
+        "<code>++i</code>, <code>i--</code> and <code>x += 3</code> when each one is a statement "+
+        "on its own, or the first or last part of a <code>for</code> header. Inside a larger "+
+        "expression &mdash; <code>a[i++]</code>, or <code>printf(\"%d\", n++)</code> &mdash; the "+
+        "order in which C does the parts catches out experienced programmers too, so this page "+
+        "asks you to put it on a line of its own instead.",
+      calls:0, deepest:1, depth:1, trace:[], loops:[], frames:[], crashed:true}];
+  }
+  const M=new Machine(lines);
+  const mainFn=M.fns.main;
+  M.frames.push({fn:"main",vars:[],ret:undefined});
+  M.ran.add(mainFn.line);
+  M.snap(mainFn.line,"The program starts in <code>main</code>. A stack frame is created for it.");
+  try{
+    M.runBlock(mainFn.body);
+    M.snap(mainFn.endLine,"<code>main</code> finishes and the program ends.");
+  }catch(err){
+    const msg=String(err&&err.message||"");
+    const why = /Division by zero/.test(msg)
+      ? "A whole number cannot be divided by zero. In C this stops the program with an error."
+      : /Modulus by zero/.test(msg)
+      ? "<code>%</code> cannot be used with zero on the right."
+      : /no value yet/.test(msg)
+      ? "A variable was used before it was given a value."
+      : esc(msg)+".";
+    M.out += "\n[the program stopped here]";
+    const last=M.steps.length?M.steps[M.steps.length-1].line:0;
+    M.steps.push({line:last,
+      note:`<strong>The program cannot continue.</strong> ${why} Change the values at the top and run it again.`,
+      touch:null,out:M.out,ran:new Set(M.ran),
+      frames:M.frames.map(f=>({fn:f.fn,vars:f.vars.map(v=>({...v}))})),
+      crashed:true});
+  }
+  return M.steps;
+}
+function finalOutput(lines){
+  const st=runProgram(lines);
+  const last=st[st.length-1];
+  return last.crashed ? "" : last.out;
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const MAIN=b=>["int main() {"].concat(b,["    return 0;","}"]);
+const PROG=(...parts)=>["#include <stdio.h>",""].concat(...parts);
+
+const CONCEPTS=[
+{id:"decomp", name:"Functions and decomposition", programs:[
+  {t:"A first function", code:PROG(
+    ["int square(int x) {","    return x * x;","}",""],
+    MAIN([
+    "    int n = 6;",
+    "    int s = square(n);",
+    '    printf("%d", s);']))},
+
+  {t:"Calling a function more than once", code:PROG(
+    ["int square(int x) {","    return x * x;","}",""],
+    MAIN([
+    "    int a = 3, b = 5;",
+    '    printf("%d ", square(a));',
+    '    printf("%d ", square(b));',
+    '    printf("%d", square(2));']))},
+
+  {t:"A function that gives nothing back", noQuiz:true, code:PROG(
+    ["void printLine(void) {",'    printf("------\\n");',"}",""],
+    MAIN([
+    "    printLine();",
+    '    printf("Report\\n");',
+    "    printLine();"]))},
+
+  {t:"Student scorecard, broken into three jobs", code:PROG(
+    ["int calculateTotal(int a, int b, int c) {","    return a + b + c;","}",""],
+    ["float calculateAverage(int total, int n) {","    return (float) total / n;","}",""],
+    ["char findGrade(float avg) {",
+     "    if (avg >= 90) {","        return 'A';",
+     "    } else if (avg >= 75) {","        return 'B';",
+     "    } else if (avg >= 60) {","        return 'C';",
+     "    } else {","        return 'F';","    }","}",""],
+    MAIN([
+    "    int m1 = 78, m2 = 85, m3 = 64;",
+    "    int total = calculateTotal(m1, m2, m3);",
+    "    float avg = calculateAverage(total, 3);",
+    "    char g = findGrade(avg);",
+    '    printf("Total %d  Average %.2f  Grade %c", total, avg, g);']))},
+
+  {t:"Sum of the first n even numbers", code:PROG(
+    ["int nthEven(int k) {","    return 2 * k;","}",""],
+    ["int sumFirstEven(int n) {","    return n * (n + 1);","}",""],
+    MAIN([
+    "    int n = 5;",
+    '    printf("Even number %d is %d\\n", n, nthEven(n));',
+    '    printf("The first %d even numbers add up to %d", n, sumFirstEven(n));']))}
+]},
+
+{id:"byvalue", name:"Pass by value", programs:[
+  {t:"A parameter is only a copy", code:PROG(
+    ["void change(int n) {","    n = n + 100;",'    printf("inside the function n is %d\\n", n);',"}",""],
+    MAIN([
+    "    int n = 10;",
+    "    change(n);",
+    '    printf("back in main n is %d", n);']))},
+
+  {t:"The swap that does not work", code:PROG(
+    ["void swap(int x, int y) {","    int t = x;","    x = y;","    y = t;","}",""],
+    MAIN([
+    "    int a = 5, b = 9;",
+    "    swap(a, b);",
+    '    printf("a = %d, b = %d", a, b);']))},
+
+  {t:"Two variables with the same name", code:PROG(
+    ["int addTen(int value) {","    int result = value + 10;","    return result;","}",""],
+    MAIN([
+    "    int value = 3;",
+    "    int result = addTen(value);",
+    '    printf("value = %d, result = %d", value, result);']))},
+
+  {t:"Returning the answer instead", code:PROG(
+    ["int addHundred(int n) {","    return n + 100;","}",""],
+    MAIN([
+    "    int n = 10;",
+    "    n = addHundred(n);",
+    '    printf("n is %d", n);']))},
+
+  {t:"Forgetting to store what came back", code:PROG(
+    ["int addHundred(int n) {","    return n + 100;","}",""],
+    MAIN([
+    "    int n = 10;",
+    "    addHundred(n);",
+    '    printf("n is %d", n);']))},
+
+  {t:"A helper that answers a question", code:PROG(
+    ["int isEven(int n) {","    return n % 2 == 0;","}",""],
+    MAIN([
+    "    int n = 14;",
+    "    if (isEven(n)) {",
+    '        printf("%d is even", n);',
+    "    } else {",
+    '        printf("%d is odd", n);',
+    "    }"]))}
+]},
+
+{id:"pointers", name:"Addresses and pointers", programs:[
+  {t:"A pointer holds an address", code:PROG(
+    MAIN([
+    "    int a = 5;",
+    "    int *p = &a;",
+    '    printf("a is %d\\n", a);',
+    '    printf("the value p points to is %d", *p);']))},
+
+  {t:"Changing a variable through a pointer", code:PROG(
+    MAIN([
+    "    int a = 5;",
+    "    int *p = &a;",
+    '    printf("a starts as %d\\n", a);',
+    "    *p = a + 37;",
+    '    printf("a is now %d", a);']))},
+
+  {t:"Pointing somewhere else", code:PROG(
+    MAIN([
+    "    int a = 5, b = 9;",
+    "    int *p = &a;",
+    "    *p = *p + 100;",
+    "    p = &b;",
+    "    *p = *p + 200;",
+    '    printf("a = %d, b = %d", a, b);']))},
+
+  {t:"Reading through a pointer", code:PROG(
+    MAIN([
+    "    int score = 75;",
+    "    int *p = &score;",
+    "    int doubled = *p * 2;",
+    '    printf("score %d doubled is %d", score, doubled);']))}
+]},
+
+{id:"byref", name:"Pass by reference", programs:[
+  {t:"The swap that works", code:PROG(
+    ["void swap(int *x, int *y) {","    int t = *x;","    *x = *y;","    *y = t;","}",""],
+    MAIN([
+    "    int a = 5, b = 9;",
+    "    swap(&a, &b);",
+    '    printf("a = %d, b = %d", a, b);']))},
+
+  {t:"Changing a value from inside a function", code:PROG(
+    ["void addHundred(int *n) {","    *n = *n + 100;","}",""],
+    MAIN([
+    "    int n = 10;",
+    "    addHundred(&n);",
+    '    printf("n is %d", n);']))},
+
+  {t:"The same helper written both ways", code:PROG(
+    ["int doubleByValue(int n) {","    n = n * 2;","    return n;","}",""],
+    ["void doubleByReference(int *n) {","    *n = *n * 2;","}",""],
+    MAIN([
+    "    int a = 7, b = 7;",
+    "    int answer = doubleByValue(a);",
+    "    doubleByReference(&b);",
+    '    printf("a is still %d, and the call gave back %d\\n", a, answer);',
+    '    printf("b was changed to %d", b);']))},
+
+  {t:"Two answers from one call", code:PROG(
+    ["void divide(int a, int b, int *q, int *r) {","    *q = a / b;","    *r = a % b;","}",""],
+    MAIN([
+    "    int a = 17, b = 5;",
+    "    int quotient, remainder;",
+    "    divide(a, b, &quotient, &remainder);",
+    '    printf("%d remainder %d", quotient, remainder);']))},
+
+  {t:"Adding a bonus to a student's marks", code:PROG(
+    ["void addBonus(int *marks, int bonus) {","    *marks = *marks + bonus;","}",""],
+    MAIN([
+    "    int marks = 68;",
+    "    addBonus(&marks, 5);",
+    '    printf("Marks after the bonus: %d", marks);']))}
+]}
+];
+
+/* editable values */
+function editablesOf(lines){
+  const out=[];
+  lines.forEach((l,idx)=>{
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      if(part.startsWith("*")) return;
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1],kind:"num"});
+      else if(/^'.'$/.test(init)) out.push({name,init:init[1],line:idx,type:m[1],kind:"char"});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    let v=vals[e.name];
+    if(v===undefined||v===null||v==="") return;
+    if(e.kind==="char"){
+      v=String(v).charAt(0); if(v==="'") return;
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*'.'"), e.name+" = '"+v+"'");
+    }else{
+      const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".0"):String(v);
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+    }
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit,ran){
+  mount.innerHTML=lines.map((l,i)=>{
+    let cls="ln";
+    if(ran&&ran.has(i)) cls+=" ran";
+    if(i===hit) cls+=" hit";
+    return `<div class="${cls}"><span class="n">${i+1}</span><span>${esc(l)}</span></div>`;
+  }).join("");
+  const el=mount.querySelector(".ln.hit");
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+/* ---- memory inspector: boxes for variables, arrows for pointers ---- */
+function cellHtml(v,fi,flash){
+  const ptr=isPtr(v.type);
+  const cls="cell "+(ptr?"ptr":"var")+(v.value===null?" unset":"")+(flash?" flash":"");
+  const val = v.value===null ? "?" : (ptr ? "&rarr; "+hexAddr(v.value) : esc(showVal(v.type,v.value)));
+  return `<div class="${cls}" id="c${fi}-${v.name}">
+      <div class="cell-name">${esc(v.name)} <em>${esc(v.type)}</em></div>
+      <div class="cell-val">${val}</div>
+      <div class="cell-addr">${hexAddr(v.addr)}</div>
+    </div>`;
+}
+function laneHtml(label,vars,fi,touch){
+  if(!vars.length) return "";
+  return `<div class="lane"><div class="lane-label">${label}</div><div class="lane-row">`+
+    vars.map(v=>cellHtml(v,fi,touch&&touch.idx===fi&&touch.name===v.name)).join("")+
+    `</div></div>`;
+}
+function renderMemory(mount,frames,touch,entered){
+  if(!frames||!frames.length){ mount.innerHTML='<div class="empty">Nothing in memory yet.</div>'; return; }
+  const arrows=[];
+  const blocks=frames.map((f,fi)=>({f,fi})).reverse().map(({f,fi})=>{
+    const ptrs=f.vars.filter(v=>isPtr(v.type));
+    const vars=f.vars.filter(v=>!isPtr(v.type));
+    ptrs.forEach(v=>{
+      if(v.points) arrows.push({from:`c${fi}-${v.name}`, to:`c${v.points.idx}-${v.points.name}`});
+    });
+    const running = fi===frames.length-1;
+    const cls="block"+(fi>0?" callee":"")+((running&&entered&&fi>0)?" enter":"");
+    return `<div class="${cls}">
+      <div class="block-label">${f.fn}()
+        <span class="tag">${running?"running now":"waiting"}</span></div>
+      ${laneHtml("Pointers",ptrs,fi,touch)}
+      ${laneHtml("Variables",vars,fi,touch)}
+      ${f.vars.length?"":'<div class="empty">no variables yet</div>'}
+    </div>`;
+  }).join("");
+  mount.innerHTML=blocks;
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","arrows");
+  mount.appendChild(svg);
+  requestAnimationFrame(()=>drawArrows(mount,svg,arrows));
+  mount._arrows=arrows; mount._svg=svg;
+}
+function drawArrows(container,svg,arrows){
+  const cr=container.getBoundingClientRect();
+  const ox=cr.left-container.scrollLeft, oy=cr.top-container.scrollTop;
+  svg.setAttribute("width",container.scrollWidth);
+  svg.setAttribute("height",container.scrollHeight);
+  let lines="";
+  arrows.forEach(a=>{
+    const A=container.querySelector('[id="'+a.from+'"]'), B=container.querySelector('[id="'+a.to+'"]');
+    if(!A||!B||A===B) return;
+    const ra=A.getBoundingClientRect(), rb=B.getBoundingClientRect();
+    const ax=ra.left+ra.width/2-ox, ay=ra.top+ra.height/2-oy;
+    const bx=rb.left+rb.width/2-ox, by=rb.top+rb.height/2-oy;
+    const dx=bx-ax, dy=by-ay;
+    let sx,sy,tx,ty;
+    if(Math.abs(dx)>Math.abs(dy)){
+      sx=ax+(dx>=0?1:-1)*(ra.width/2); sy=ay;
+      tx=bx-(dx>=0?1:-1)*(rb.width/2+6); ty=by;
+    }else{
+      sx=ax; sy=ay+(dy>=0?1:-1)*(ra.height/2);
+      tx=bx; ty=by-(dy>=0?1:-1)*(rb.height/2+6);
+    }
+    const mx=(sx+tx)/2, my=(sy+ty)/2;
+    const d = Math.abs(dx)>Math.abs(dy)
+      ? `M${sx},${sy} C${mx},${sy} ${mx},${ty} ${tx},${ty}`
+      : `M${sx},${sy} C${sx},${my} ${tx},${my} ${tx},${ty}`;
+    lines+=`<path class="arrow-line" d="${d}" marker-end="url(#ah-${container.id})"/>`;
+  });
+  svg.innerHTML=`<defs><marker id="ah-${container.id}" markerWidth="9" markerHeight="9"
+      refX="6.5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" class="arrow-head"/></marker></defs>`+lines;
+}
+function redrawArrows(mount){
+  if(mount&&mount._svg&&mount._arrows) drawArrows(mount,mount._svg,mount._arrows);
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dStack=document.getElementById("d-stack"),
+      dOut=document.getElementById("d-out"), dObs=document.getElementById("d-obs"),
+      dIn=document.getElementById("d-inputs"), dDepth=document.getElementById("d-depth");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=loadProgram;
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  dIn.innerHTML = eds.length
+    ? eds.map(e=> e.kind==="char"
+        ? `<label>${e.name}<input type="text" maxlength="1" data-ed="${e.name}" value="${e.init}"></label>`
+        : `<label>${e.name}<input type="number" step="${e.type==="float"?"0.1":"1"}" data-ed="${e.name}" value="${e.init}"></label>`
+      ).join("")+`<span class="note">Change a value and the program runs again.</span>`
+    : `<span class="note">This program has no values to change.</span>`;
+  dIn.querySelectorAll("[data-ed]").forEach(el=>el.onchange=build);
+  build();
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1,null); renderMemory(dStack,[]);
+  dDepth.textContent="";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin.";
+}
+function paint(){
+  const s=steps[idx];
+  const prev = idx>0 ? steps[idx-1] : null;
+  const entered = !prev || s.frames.length>prev.frames.length;
+  renderCode(dCode,lines,s.line,s.ran);
+  renderMemory(dStack,s.frames,s.touch,entered);
+  dDepth.textContent = s.frames.length ? `${s.frames.length} frame${s.frames.length>1?"s":""} on the stack` : "";
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+window.addEventListener("resize",()=>{ redrawArrows(dStack); redrawArrows(document.getElementById("pg-mem")); });
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1,null); renderMemory(dStack,[]);
+    dDepth.textContent=""; dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+fillPrograms(); loadProgram();
+
+/* ============================================================
+   PLAYGROUND — free play with pointers and calls
+   ============================================================ */
+const PG_A=0x7FF0, PG_B=0x7FEC, PG_P=0x7FE8, PG_X=0x7FD0;
+let PG=null, pgBusy=false;
+const pgMem=document.getElementById("pg-mem"),
+      pgLog=document.getElementById("pg-log"),
+      pgObs=document.getElementById("pg-obs");
+
+function pgReset(){
+  PG={ a:{value:5}, b:{value:9}, p:null, frame:null, log:[] };
+  document.getElementById("pg-av").value=5;
+  document.getElementById("pg-bv").value=9;
+  document.getElementById("pg-wv").value=99;
+  pgObs.innerHTML="Press a button to begin. Nothing has happened yet.";
+  pgPaint(null,false);
+}
+function pgPointsTo(addr){
+  if(addr===PG_A) return {name:"a", fn:"main", idx:0};
+  if(addr===PG_B) return {name:"b", fn:"main", idx:0};
+  return null;
+}
+function pgFrames(){
+  const main={fn:"main", vars:[
+    {name:"a", type:"int", value:PG.a.value, addr:PG_A},
+    {name:"b", type:"int", value:PG.b.value, addr:PG_B}
+  ]};
+  if(PG.p) main.vars.push({name:"p", type:"int *", value:PG.p.value, addr:PG_P,
+    points: PG.p.value===null?null:pgPointsTo(PG.p.value)});
+  return PG.frame ? [main, PG.frame] : [main];
+}
+function pgSay(line){
+  PG.log.push(line);
+  if(PG.log.length>40) PG.log.shift();
+  pgLog.innerHTML='<span class="lbl">Statements you have run</span>'+
+    PG.log.map(l=>esc(l)).join("\n");
+  pgLog.scrollTop=pgLog.scrollHeight;
+}
+function pgPaint(touch,entered){
+  renderMemory(pgMem,pgFrames(),touch,entered);
+  if(!PG.log.length) pgLog.innerHTML='<span class="lbl">Statements you have run</span>';
+  pgButtons();
+}
+function pgButtons(){
+  const on=(id,v)=>{document.getElementById(id).disabled=!v;};
+  const hasP=!!PG.p, aimed=hasP&&PG.p.value!==null;
+  on("pg-decl", !hasP && !pgBusy);
+  on("pg-pa", hasP && !pgBusy);
+  on("pg-pb", hasP && !pgBusy);
+  on("pg-read", aimed && !pgBusy);
+  on("pg-write", aimed && !pgBusy);
+  on("pg-seta", !pgBusy); on("pg-setb", !pgBusy);
+  on("pg-byval", !pgBusy); on("pg-byref", !pgBusy);
+  on("pg-reset", !pgBusy);
+}
+/* play a short scripted animation */
+function pgSeq(steps){
+  pgBusy=true; pgButtons();
+  let i=0;
+  const tick=()=>{
+    if(i>=steps.length){ pgBusy=false; pgButtons(); return; }
+    const s=steps[i++];
+    s.run();
+    pgPaint(s.touch||null, !!s.entered);
+    pgObs.innerHTML=s.note;
+    setTimeout(tick,1250);
+  };
+  tick();
+}
+
+document.getElementById("pg-seta").onclick=()=>{
+  const v=Math.trunc(Number(document.getElementById("pg-av").value)||0);
+  PG.a.value=v; pgSay("a = "+v+";");
+  pgObs.innerHTML=`<code>a</code> was changed <strong>directly</strong>, by using its own name.`;
+  pgPaint({name:"a",idx:0},false);
+};
+document.getElementById("pg-setb").onclick=()=>{
+  const v=Math.trunc(Number(document.getElementById("pg-bv").value)||0);
+  PG.b.value=v; pgSay("b = "+v+";");
+  pgObs.innerHTML=`<code>b</code> was changed <strong>directly</strong>, by using its own name.`;
+  pgPaint({name:"b",idx:0},false);
+};
+document.getElementById("pg-decl").onclick=()=>{
+  PG.p={value:null}; pgSay("int *p;");
+  pgObs.innerHTML=`<code>p</code> now exists and has its own address, but it holds <strong>no address yet</strong> — the dashed box with a question mark. Using <code>*p</code> now would be unsafe.`;
+  pgPaint({name:"p",idx:0},false);
+};
+document.getElementById("pg-pa").onclick=()=>{
+  PG.p.value=PG_A; pgSay("p = &a;");
+  pgObs.innerHTML=`<code>&amp;a</code> is the address of <code>a</code>, and that address is now stored inside <code>p</code>. The arrow shows where <code>p</code> points.`;
+  pgPaint({name:"p",idx:0},false);
+};
+document.getElementById("pg-pb").onclick=()=>{
+  PG.p.value=PG_B; pgSay("p = &b;");
+  pgObs.innerHTML=`The same pointer now holds a different address, so the arrow has moved to <code>b</code>. Nothing about <code>a</code> or <code>b</code> changed — only where <code>p</code> is aiming.`;
+  pgPaint({name:"p",idx:0},false);
+};
+document.getElementById("pg-read").onclick=()=>{
+  const t=pgPointsTo(PG.p.value);
+  const val=PG[t.name].value;
+  pgSay("printf(\"%d\", *p);   /* prints "+val+" */");
+  pgObs.innerHTML=`<code>*p</code> means "go to the address in <code>p</code> and read what is there". That is <strong>${val}</strong> — the value in <code>${t.name}</code>. Note that reading changes nothing.`;
+  pgPaint({name:t.name,idx:0},false);
+};
+document.getElementById("pg-write").onclick=()=>{
+  const v=Math.trunc(Number(document.getElementById("pg-wv").value)||0);
+  const t=pgPointsTo(PG.p.value);
+  const old=PG[t.name].value;
+  PG[t.name].value=v;
+  pgSay("*p = "+v+";");
+  pgObs.innerHTML=`<code>*p = ${v};</code> did <strong>not</strong> change <code>p</code> — it still holds the same address. It followed the arrow and overwrote the value in <code>${t.name}</code>, which went from ${old} to ${v}. The name <code>${t.name}</code> never appeared in that statement.`;
+  pgPaint({name:t.name,idx:0},false);
+};
+document.getElementById("pg-byval").onclick=()=>{
+  const start=PG.a.value;
+  pgSay("byValue(a);        /* void byValue(int x) { x = x + 100; } */");
+  pgSeq([
+    {run:()=>{ PG.frame={fn:"byValue", vars:[{name:"x",type:"int",value:start,addr:PG_X}]}; },
+     entered:true, touch:{name:"x",idx:1},
+     note:`A frame for <code>byValue</code> appears. The parameter <code>x</code> is a <strong>brand new box</strong> at its own address, holding a <strong>copy</strong> of a's value (${start}). There is no arrow, because no address was passed.`},
+    {run:()=>{ PG.frame.vars[0].value=start+100; }, touch:{name:"x",idx:1},
+     note:`<code>x = x + 100;</code> changes the copy to ${start+100}. Look at <code>a</code> in main — it has not moved.`},
+    {run:()=>{ PG.frame=null; },
+     note:`<code>byValue</code> returns and its frame is thrown away, taking <code>x</code> and its ${start+100} with it. <code>a</code> is still <strong>${start}</strong>. Nothing was achieved.`}
+  ]);
+};
+document.getElementById("pg-byref").onclick=()=>{
+  const start=PG.a.value;
+  pgSay("byRef(&a);         /* void byRef(int *x) { *x = *x + 100; } */");
+  pgSeq([
+    {run:()=>{ PG.frame={fn:"byRef", vars:[{name:"x",type:"int *",value:PG_A,addr:PG_X,
+        points:{name:"a",fn:"main",idx:0}}]}; },
+     entered:true, touch:{name:"x",idx:1},
+     note:`A frame for <code>byRef</code> appears. This time <code>x</code> holds the <strong>address</strong> of <code>a</code> — follow the arrow down into main. The pointer itself is still a copy, but a copy of an address still leads back to the original box.`},
+    {run:()=>{ PG.a.value=start+100; }, touch:{name:"a",idx:0},
+     note:`<code>*x = *x + 100;</code> writes <strong>through the arrow</strong>. The box that flashed is <code>a</code> in main, now ${start+100} — changed from inside another function.`},
+    {run:()=>{ PG.frame=null; },
+     note:`<code>byRef</code> returns and its frame is thrown away — but the change was made in main's frame, so it <strong>survives</strong>. <code>a</code> is now <strong>${start+100}</strong>.`}
+  ]);
+};
+document.getElementById("pg-reset").onclick=pgReset;
+pgReset();
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display=b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-change").style.display=b.dataset.mode==="change"?"block":"none";
+  };
+});
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+CONCEPTS.forEach(c=>{
+  const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; ppSel.appendChild(o);
+});
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+let ppLines=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+function randomiseProgram(code){
+  const es=editablesOf(code), vals={};
+  es.forEach(e=>{
+    if(e.kind==="char"){ vals[e.name]=pick("ABCF".split("")); return; }
+    const base=Math.abs(Number(e.init));
+    if(base>=60) vals[e.name]=R(60)+40;        /* marks-like */
+    else if(base<=12) vals[e.name]=R(11)+1;
+    else vals[e.name]=R(25)+2;
+  });
+  return applyEdits(code,es,vals);
+}
+function ppNew(){
+  /* programs whose output never changes make a pointless question */
+  const pool = (ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.id===ppSel.value).programs).filter(p=>!p.noQuiz);
+  for(let k=0;k<80;k++){
+    const p=pick(pool);
+    const code = Math.random()<0.8 ? randomiseProgram(p.code) : p.code;
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    const opts=new Set([out]);
+    try{ const base=finalOutput(p.code); if(base) opts.add(base); }catch(e){}
+    for(let a=0;a<40&&opts.size<4;a++){
+      try{ const alt=finalOutput(randomiseProgram(p.code)); if(alt) opts.add(alt); }catch(e){}
+    }
+    if(opts.size<2) continue;
+    ppLines=code; ppAns=out;
+    renderCode(document.getElementById("pp-code"),code,-1,null);
+    const list=[...opts].sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${esc(o).replace(/\n/g," &#9166; ")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> For each call, ask
+      three questions: what values go in, does the function change a copy or write through an address,
+      and is the returned value stored anywhere?`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  const st=runProgram(ppLines);
+  const keep=st.filter(s=>/is called|frame is created|frame is thrown away|writes through|thrown away|hands back/.test(s.note));
+  document.getElementById("pp-obs").innerHTML=
+    keep.slice(0,8).map(s=>`<div style="padding:3px 0;font-size:15px">${s.note}</div>`).join("")+
+    `<div style="padding:5px 0"><strong>prints</strong> <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code></div>`;
+};
+
+/* ---------- MODE B: does main's variable change? ---------- */
+let pcLines=null, pcAns=false, pcKind="", pcRight=0, pcTries=0, pcStreak=0;
+const PC_FORMS=[
+  k=>({kind:"value-change",  fn:["void f(int x) {","    x = x + "+k+";","}"],      call:"    f(n);"}),
+  k=>({kind:"value-change",  fn:["void f(int x) {","    x = x * 2;","}"],          call:"    f(n);"}),
+  k=>({kind:"ref-change",    fn:["void f(int *x) {","    *x = *x + "+k+";","}"],   call:"    f(&n);"}),
+  k=>({kind:"ref-change",    fn:["void f(int *x) {","    *x = "+k+";","}"],        call:"    f(&n);"}),
+  k=>({kind:"return-stored", fn:["int f(int x) {","    return x + "+k+";","}"],    call:"    n = f(n);"}),
+  k=>({kind:"return-lost",   fn:["int f(int x) {","    return x + "+k+";","}"],    call:"    f(n);"}),
+  k=>({kind:"value-change",  fn:["void f(int x, int y) {","    x = y;","}"],       call:"    f(n, "+k+");"}),
+  k=>({kind:"ref-change",    fn:["void f(int *x, int y) {","    *x = y;","}"],     call:"    f(&n, "+k+");"})
+];
+function pcNew(){
+  for(let t=0;t<30;t++){
+    const k=R(20)+2, v=R(20)+2;
+    const form=pick(PC_FORMS)(k);
+    const code=["#include <stdio.h>",""].concat(form.fn,[""],
+      ["int main() {","    int n = "+v+";",form.call,'    printf("%d", n);',"    return 0;","}"]);
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    const changed = out !== String(v);
+    /* skip the rare coincidence where the new value happens to equal the old one,
+       which would leave the explanation saying the opposite of the answer */
+    const shouldChange = (form.kind==="ref-change"||form.kind==="return-stored");
+    if(changed!==shouldChange) continue;
+    pcLines=code; pcAns=changed; pcKind=form.kind;
+    renderCode(document.getElementById("pc-code"),code,-1,null);
+    document.getElementById("pc-obs").innerHTML="Click YES or NO to answer.";
+    return;
+  }
+}
+document.querySelectorAll(".yn button").forEach(b=>{
+  b.onclick=()=>{
+    if(!pcLines) return;
+    pcTries++;
+    const given=b.dataset.ans==="1";
+    const obs=document.getElementById("pc-obs");
+    const why={
+      "value-change":"The parameter is a <strong>copy</strong>. Changing it changes only the copy, and the copy is thrown away when the function returns.",
+      "ref-change":"The function was given the <strong>address</strong> of <code>n</code>, and <code>*x = …</code> writes through that address straight into <code>n</code> itself.",
+      "return-stored":"The function only changes its own copy — but the answer is <strong>returned and stored back</strong> with <code>n = f(n);</code>, and that assignment is what changes <code>n</code>.",
+      "return-lost":"The function returns a new value, but nobody catches it. A returned value that is not stored is <strong>thrown away</strong>. Writing <code>n = f(n);</code> would have changed it."
+    }[pcKind];
+    const out=finalOutput(pcLines);
+    if(given===pcAns){
+      pcRight++; pcStreak++;
+      obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct — ${pcAns?"it changes":"it stays the same"}.</span>
+        ${why} The program prints <code>${out}</code>.`;
+    }else{
+      pcStreak=0;
+      obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not quite — ${pcAns?"it does change":"it stays the same"}.</span>
+        ${why} The program prints <code>${out}</code>.`;
+    }
+    document.getElementById("pc-right").textContent=pcRight;
+    document.getElementById("pc-tries").textContent=pcTries;
+    document.getElementById("pc-streak").textContent=pcStreak;
+  };
+});
+document.getElementById("pc-new").onclick=pcNew;
+ppNew(); pcNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"What is created in memory when a function is called?",
+     o:["A new program","A stack frame","A pointer","Nothing"], a:1},
+    {q:"In C, how are arguments passed to a function by default?",
+     o:["By reference","By name","By address","By value"], a:3},
+    {q:"What does the & operator give you?",
+     o:["The address of a variable","The value of a variable","A logical AND","A copy"], a:0},
+    {q:"What happens to a local variable when its function returns?",
+     o:["It keeps its value","It becomes zero","It stops existing","It moves to main"], a:2},
+    {q:"What does void mean as the type of a function?",
+     o:["It takes nothing in","It gives nothing back","It is empty","It is an error"], a:1}
+  ],
+  post:[
+    {q:"void swap(int x, int y) is called as swap(a, b). Afterwards a and b are:",
+     o:["Exchanged","Unchanged","Both equal to a","Undefined"], a:1},
+    {q:"Why does the pointer version of swap work?",
+     o:["Pointers are faster","It uses a temporary variable","C copies pointers differently","The addresses lead back to the caller's own variables"], a:3},
+    {q:"int a = 5; int *p = &a; *p = 9; now a holds:", o:["5","9","The address of a","Nothing"], a:1},
+    {q:"How many frames are on the stack while a helper called from main is running?",
+     o:["2","1","3","0"], a:0},
+    {q:"A variable called n in main and a parameter called n in a function are:",
+     o:["The same variable","An error","Two separate variables at different addresses","Linked together"], a:2},
+    {q:"int f(int x){return x+1;} with int n=5; f(n); then printf(\"%d\", n) prints:",
+     o:["6","5","0","An error"], a:1},
+    {q:"In the declaration int *p; the * means:",
+     o:["Multiply","Dereference p now","p is an array","p is a pointer to an int"], a:3},
+    {q:"When must you use a pointer parameter instead of a return value?",
+     o:["Always, for speed","Only with float","When the function must change the caller's variable or give back more than one answer","Never"], a:2},
+    {q:"Breaking a problem into functions mainly helps because:",
+     o:["Each small job can be understood, tested and reused on its own","The program runs faster","C requires it","It uses less memory"], a:0}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${esc(it.q)}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${esc(o)}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>

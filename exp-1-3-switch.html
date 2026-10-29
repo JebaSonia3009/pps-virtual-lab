@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 1.3 — switch and Menu-Driven Programs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:17px; align-items:start}
+
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:440px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.ran{background:#eef7f2; box-shadow:inset 3px 0 0 var(--ok)}
+  .code .ln.hit.ran{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.pickable{cursor:pointer}
+  .code .ln.pickable:hover{background:#fdf4e0}
+
+  .mem{padding:11px; display:flex; flex-direction:column; gap:8px; min-height:100px}
+  .var{border:1px solid var(--line); border-radius:var(--radius); padding:7px 10px; background:#fff}
+  .var.flash{border-color:var(--gold); background:#fffaf0}
+  .var .top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .var .nm{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+  .var .ty{font-size:10.5px; color:var(--teal); font-weight:700; letter-spacing:.04em; text-transform:uppercase}
+  .var .val{font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:600; margin-top:1px}
+
+  .sel{text-align:center; font-family:"IBM Plex Mono",monospace; font-size:19px;
+    padding:14px 10px 4px; border-bottom:1px solid var(--line)}
+  .sel small{display:block; font-family:"Source Sans 3",sans-serif; font-size:12px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px}
+  .labels{padding:10px 12px; display:flex; flex-direction:column; gap:5px}
+  .lab{display:flex; align-items:center; gap:9px; justify-content:space-between;
+    font-family:"IBM Plex Mono",monospace; font-size:14px; padding:5px 8px;
+    border:1px solid var(--line); border-radius:4px; background:#fff}
+  .lab.matched{border-color:var(--ok); background:#e4f4ec}
+  .lab.fell{border-color:var(--gold); background:#fdf4e0}
+  .lab.nomatch{opacity:.5}
+  .badge{display:inline-block; font-family:"Source Sans 3",sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase; padding:3px 8px; border-radius:3px; white-space:nowrap}
+  .badge.t{color:var(--ok); background:#e4f4ec}
+  .badge.f{color:var(--no); background:#fbe9e9}
+  .badge.g{color:var(--gold); background:#fdf4e0}
+  .badge.n{color:var(--ink-soft); background:var(--wash)}
+
+  .path{padding:10px 12px; font-size:15px; max-height:170px; overflow:auto}
+  .path div{padding:5px 0; border-bottom:1px dotted var(--line); display:flex; gap:9px;
+    align-items:center; justify-content:space-between}
+  .path .c{font-family:"IBM Plex Mono",monospace; font-size:13.5px}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:46px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .out .caret{background:#e8f3f1; color:#16232b}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+  .inputs .typed{color:var(--gold); font-weight:700}
+
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 1 &rsaquo; Experiment 1.3</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>switch and Menu-Driven Programs</h1>
+    <div class="sub">Unit 1 · Decision Making · 17 programs to explore · Estimated time: 60 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand how a <code>switch</code> statement chooses between a fixed set of options, why
+      <code>break</code> is needed, how to read a choice from the user, and when to prefer
+      <code>switch</code> over an <code>if…else if</code> ladder.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Write a <code>switch</code> statement with <code>case</code> labels and a
+        <code>default</code>.</li>
+        <li>Explain what <code>break</code> does and predict what happens when it is left out.</li>
+        <li>Use several labels together on purpose so that they share one action.</li>
+        <li>Read a value from the user with <code>scanf</code> and act on it.</li>
+        <li>Write a menu-driven program such as a bank menu.</li>
+        <li>Say which problems suit a <code>switch</code> and which need an
+        <code>if…else if</code> ladder instead.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>Experiment 1.2 — decision making with <code>if…else</code>.</p>
+
+      <h3>How to use this experiment</h3>
+      <p>The Demo has four concepts. In the programs that use <code>scanf</code>, the box at the top is
+      what the user types — change it and run the program again.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>Some problems offer a fixed list of choices: a menu with four options, a grade letter, a day
+      number. You can write these with an <code>if…else if</code> ladder, but C gives you a statement
+      made for exactly this job — the <code>switch</code>.</p>
+
+      <h2>The shape of a switch</h2>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">switch (choice) {
+    case 1:
+        printf("Deposit");
+        break;
+    case 2:
+        printf("Withdraw");
+        break;
+    default:
+        printf("Invalid choice");
+}</pre>
+      </div>
+      <p>The value in the brackets is worked out once. C then looks for a <code>case</code> label with
+      <strong>exactly</strong> that value and jumps straight to it. If no label matches, it jumps to
+      <code>default</code>. If there is no <code>default</code> either, the whole switch is skipped and
+      nothing happens.</p>
+
+      <h2>What switch can and cannot test</h2>
+      <table>
+        <tr><th>Allowed</th><th>Not allowed</th></tr>
+        <tr>
+          <td>A whole number: <code>case 3:</code></td>
+          <td>A range: <code>case marks &gt;= 75:</code></td>
+        </tr>
+        <tr>
+          <td>A character: <code>case 'A':</code></td>
+          <td>A <code>float</code> value</td>
+        </tr>
+        <tr>
+          <td>A fixed constant known when the program is written</td>
+          <td>A variable as a label: <code>case n:</code></td>
+        </tr>
+      </table>
+      <p>Two labels in the same switch can never have the same value, and the controlling value must be
+      a whole number or a character — never a <code>float</code> and never a string.</p>
+
+      <h2>break, and what happens without it</h2>
+      <p>This is the part that surprises everyone the first time. A <code>case</code> label is a
+      <strong>place to jump to</strong>, not a box with walls around it. Once C has jumped to a label it
+      keeps running straight down the lines below it — through the next label, and the next — until it
+      meets a <code>break</code> or reaches the end of the switch.</p>
+      <p>So leaving out <code>break</code> in a bank menu means choosing "Withdraw" also runs "Check
+      Balance", "Exit" and the <code>default</code>. Running straight on like this is called
+      <strong>fall-through</strong>.</p>
+
+      <h2>Using fall-through on purpose</h2>
+      <p>Fall-through is occasionally exactly what you want. Stacking labels with nothing between them
+      lets several values share one action:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">case 'a':
+case 'e':
+case 'i':
+case 'o':
+case 'u':
+    printf("Vowel");
+    break;</pre>
+      </div>
+      <p>Any of those five letters lands on the same <code>printf</code>. This is normal, readable C.
+      The mistake is forgetting a <code>break</code> where you meant to have one.</p>
+
+      <h2>Reading a value from the user</h2>
+      <p>A menu is only useful if the user can choose. <code>printf</code> writes to the screen and
+      <code>scanf</code> reads what the user types:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">int choice;
+printf("Enter your choice: ");
+scanf("%d", &amp;choice);</pre>
+      </div>
+      <p>The <code>&amp;</code> before the variable name is required. It gives <code>scanf</code> the
+      <em>address</em> of the variable, so it knows where to put what the user typed. Leaving it out is
+      one of the most common beginner's mistakes.</p>
+      <p>The specifier must match the type: <code>%d</code> for an <code>int</code>, <code>%c</code> for
+      a <code>char</code>, <code>%f</code> for a <code>float</code>.</p>
+
+      <h2>switch or if…else if?</h2>
+      <table>
+        <tr><th></th><th>switch</th><th>if…else if</th></tr>
+        <tr><td>Tests</td><td>Is it equal to this exact value?</td><td>Any condition at all</td></tr>
+        <tr><td>Ranges</td><td>Cannot do them</td><td>Yes: <code>marks &gt;= 75</code></td></tr>
+        <tr><td>Types</td><td>Whole numbers and characters</td><td>Anything, including <code>float</code></td></tr>
+        <tr><td>How it chooses</td><td>Jumps straight to the matching label</td><td>Tests each condition in turn</td></tr>
+        <tr><td>Best for</td><td>Menus and fixed lists of choices</td><td>Ranges, bands, combined conditions</td></tr>
+      </table>
+      <p>A four-option menu reads more clearly as a <code>switch</code>. A grade band such as
+      <code>marks &gt;= 75</code> cannot be written as a <code>switch</code> at all, because a label has
+      to be one exact value.</p>
+      <p>When both will work, they give the same answer. Choose the one that makes your intention
+      clearer to the next person reading the program.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score before continuing.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo on <em>How switch works</em>. Step through <em>A simple switch</em> and watch the
+      Switch panel: the labels that do not match fade, and the matching one turns green.</p>
+      <h3>Step 3</h3>
+      <p>Change the day number to 9 and run it again. Confirm that <code>default</code> runs when
+      nothing matches.</p>
+      <h3>Step 4</h3>
+      <p>Move to <em>break and fall-through</em>. Run <em>What break does</em> with n = 2, then run
+      <em>The same switch with break removed</em> with the same n = 2. Compare the two outputs and
+      explain the difference in your own words.</p>
+      <h3>Step 5</h3>
+      <p>Move to <em>Menu-driven programs</em> and run the <em>Bank menu</em>. Change what the user
+      types at the top and run it for every choice from 1 to 5.</p>
+      <h3>Step 6</h3>
+      <p>Move to <em>switch or if…else if?</em> and run the triangle program both ways with the same
+      three sides. Then read <em>Something switch cannot do</em> and say why.</p>
+      <h3>Step 7</h3>
+      <p>In Practice, answer at least six questions in <em>Predict the output</em> and at least eight in
+      <em>Which case runs?</em>.</p>
+      <h3>Step 8</h3>
+      <p>Attempt the Posttest and compare your score with the Pretest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores appear immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program. Change the values at the top — in the programs
+      that use <code>scanf</code>, that box is what the user types.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="1000" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div>
+          <div class="card">
+            <h4>Memory</h4>
+            <div class="mem" id="d-mem"></div>
+          </div>
+          <div class="card" id="swcard" style="margin-top:14px; display:none">
+            <h4>Switch</h4>
+            <div class="sel" id="d-sel"></div>
+            <div class="labels" id="d-labels"></div>
+          </div>
+          <div class="card" id="pathcard" style="margin-top:14px; display:none">
+            <h4>Conditions checked</h4>
+            <div class="path" id="d-path"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="jump">Which case runs?</button>
+      </div>
+
+      <!-- MODE A -->
+      <div id="mode-predict">
+        <p>Read the program, work out what it prints, and write your answer down before choosing.</p>
+        <div class="controls">
+          <label class="note">Concept
+            <select id="pp-concept"><option value="all">All concepts</option></select>
+          </label>
+          <button class="btn" id="pp-new">New program</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h4>Program</h4>
+            <pre class="code" id="pp-code"></pre>
+          </div>
+          <div class="card">
+            <h4>What will it print?</h4>
+            <div style="padding:13px">
+              <div class="opts" id="pp-opts"></div>
+              <div class="controls" style="margin-bottom:0">
+                <button class="btn" id="pp-check">Check</button>
+                <button class="btn ghost" id="pp-show" disabled>Show what happened</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pp-right">0</b></span>
+          <span>Attempts <b id="pp-tries">0</b></span>
+          <span>Streak <b id="pp-streak">0</b></span>
+        </div>
+      </div>
+
+      <!-- MODE B -->
+      <div id="mode-jump" style="display:none">
+        <p>Click the line that C jumps to for the value shown. Then read what runs after it.</p>
+        <div class="controls">
+          <button class="btn" id="pj-new">New switch</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h4>Click the label C jumps to</h4>
+            <pre class="code" id="pj-code"></pre>
+          </div>
+          <div class="card">
+            <h4>The value being switched on</h4>
+            <div class="sel" id="pj-sel" style="border-bottom:0; padding:22px 10px"></div>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pj-obs">Click a <code>case</code> or <code>default</code> line.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pj-right">0</b></span>
+          <span>Attempts <b id="pj-tries">0</b></span>
+          <span>Streak <b id="pj-streak">0</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 3, Section 3.4 (Switch), Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapter 5 (Decision Making and
+        Branching), McGraw Hill Education.</li>
+        <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapter 6, McGraw Hill.</li>
+        <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.8.4.2 (The switch statement).</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and development</td>
+            <td>Department of Data Science and Business Systems,<br>School of Computing,
+                SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", practice:"Practice", posttest:"Posttest", references:"References",
+  contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   VALUES AND TYPES
+   ============================================================ */
+const SIZES={int:4,float:4,char:1};
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  dv.setFloat32(0,v,true); return dv.getFloat32(0,true);
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function showVal(type,v){
+  if(v===null) return null;
+  if(type==="char"){ const p=v>=32&&v<=126; return p?`'${String.fromCharCode(v)}'`:String(v); }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+function shownOperand(x){
+  if(x.bool) return x.v?'<span class="badge t">true</span>':'<span class="badge f">false</span>';
+  if(x.type==="char"&&x.v>=32&&x.v<=126) return "'"+String.fromCharCode(x.v)+"'";
+  if(x.type==="float") return trimF(x.v);
+  return String(x.v);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ============================================================
+   EXPRESSION / CONDITION ENGINE
+   ============================================================ */
+const LEVEL={"||":1,"&&":2,"==":3,"!=":3,"<":4,">":4,"<=":4,">=":4,
+             "+":5,"-":5,"*":6,"/":6,"%":6};
+function ctok(src){
+  const t=[]; let i=0;
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const two=src.substr(i,2);
+    if(["==","!=","<=",">=","&&","||"].includes(two)){t.push({k:"op",v:two}); i+=2; continue;}
+    if("<>+-*/%".includes(c)){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="!"){t.push({k:"not"}); i++; continue;}
+    if(c==="("||c===")"){t.push({k:"paren",v:c}); i++; continue;}
+    if(c==="'"){
+      const ch=src[i+1];
+      if(src[i+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"lit",type:"char",v:ch.charCodeAt(0),txt:"'"+ch+"'"}); i+=3; continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i; while(j<src.length&&/[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      t.push({k:"lit",type:lit.includes(".")?"float":"int",v:parseFloat(lit),txt:lit});
+      i=j; continue;
+    }
+    if(/[a-zA-Z_]/.test(c)){
+      let j=i; while(j<src.length&&/[a-zA-Z0-9_]/.test(src[j])) j++;
+      t.push({k:"id",name:src.slice(i,j)}); i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty expression");
+  return t;
+}
+function cparse(t){
+  let p=0;
+  function primary(){
+    const x=t[p];
+    if(!x) throw new Error("Unexpected end of expression");
+    if(x.k==="not"){p++; return {op:"!",a:primary()};}
+    if(x.k==="op"&&x.v==="-"){p++; return {op:"neg",a:primary()};}
+    if(x.k==="paren"&&x.v==="("){
+      p++; const e=expr(1);
+      if(!t[p]||t[p].v!==")") throw new Error("Missing )");
+      p++; return {op:"()",a:e};
+    }
+    p++;
+    if(x.k==="lit") return {lit:x};
+    if(x.k==="id") return {id:x.name};
+    throw new Error("Unexpected token");
+  }
+  function expr(min){
+    let left=primary();
+    while(t[p]&&t[p].k==="op"&&LEVEL[t[p].v]>=min){
+      const o=t[p].v; p++;
+      left={op:o,a:left,b:expr(LEVEL[o]+1)};
+    }
+    return left;
+  }
+  const e=expr(1);
+  if(p!==t.length) throw new Error("Malformed expression");
+  return e;
+}
+function nodeText(n,val,skipped){
+  if(skipped.has(n)) return `<span style="opacity:.38;text-decoration:line-through">${rawText(n)}</span>`;
+  if(val.has(n)) return shownOperand(val.get(n));
+  if(n.lit) return n.lit.txt;
+  if(n.id!==undefined) return n.id;
+  if(n.op==="()") return "( "+nodeText(n.a,val,skipped)+" )";
+  if(n.op==="!") return "!"+nodeText(n.a,val,skipped);
+  if(n.op==="neg") return "-"+nodeText(n.a,val,skipped);
+  return nodeText(n.a,val,skipped)+" "+esc(n.op)+" "+nodeText(n.b,val,skipped);
+}
+function rawText(n){
+  if(n.lit) return n.lit.txt;
+  if(n.id!==undefined) return n.id;
+  if(n.op==="()") return "( "+rawText(n.a)+" )";
+  if(n.op==="!") return "!"+rawText(n.a);
+  if(n.op==="neg") return "-"+rawText(n.a);
+  return rawText(n.a)+" "+esc(n.op)+" "+rawText(n.b);
+}
+function evalCond(src,vars){
+  const root=cparse(ctok(src));
+  const val=new Map(), skipped=new Set(), frames=[];
+  const snap=note=>frames.push({html:nodeText(root,val,skipped), note});
+  let anyId=false;
+  (function sub(n){
+    if(n.id!==undefined){
+      const v=vars[n.id];
+      if(!v) throw new Error("Unknown variable: "+n.id);
+      if(v.value===null) throw new Error(n.id+" has no value yet");
+      val.set(n,{v:v.value,type:v.type}); anyId=true; return;
+    }
+    if(n.a) sub(n.a); if(n.b) sub(n.b);
+  })(root);
+  if(root.op!==undefined){
+    snap("The expression as it is written.");
+    if(anyId) snap("Each variable is replaced by the value it holds right now.");
+  }
+  function ev(n){
+    if(n.lit){const r={v:n.lit.v,type:n.lit.type}; val.set(n,r); return r;}
+    if(n.id!==undefined) return val.get(n);
+    if(n.op==="()"){const r=ev(n.a); val.set(n,r); return r;}
+    if(n.op==="neg"){const a=ev(n.a); const r={v:-a.v,type:a.type}; val.set(n,r); snap("The minus sign is applied."); return r;}
+    if(n.op==="!"){
+      const a=ev(n.a); const r={v:a.v?0:1,type:"int",bool:true}; val.set(n,r);
+      snap(`<code>!</code> turns ${a.v?"a non-zero value (true)":"zero (false)"} into ${r.v?"true":"false"}.`);
+      return r;
+    }
+    if(n.op==="&&"||n.op==="||"){
+      const a=ev(n.a);
+      const decisive = n.op==="&&" ? !a.v : !!a.v;
+      if(decisive){
+        skipped.add(n.b);
+        const r={v:n.op==="&&"?0:1,type:"int",bool:true}; val.set(n,r);
+        snap(n.op==="&&"
+          ? `The left side is <strong>false</strong>, so <code>&amp;&amp;</code> is already false and the right side is never worked out.`
+          : `The left side is <strong>true</strong>, so <code>||</code> is already true and the right side is never worked out.`);
+        return r;
+      }
+      const b=ev(n.b);
+      const r={v:(n.op==="&&"?(a.v&&b.v):(a.v||b.v))?1:0,type:"int",bool:true};
+      val.set(n,r);
+      snap(`<code>${esc(n.op)}</code> gives ${r.v?"true":"false"}.`);
+      return r;
+    }
+    const a=ev(n.a), b=ev(n.b);
+    const bothInt=a.type!=="float"&&b.type!=="float";
+    let v,type=bothInt?"int":"float",bool=false,extra="";
+    switch(n.op){
+      case "+": v=a.v+b.v; break;
+      case "-": v=a.v-b.v; break;
+      case "*": v=a.v*b.v; break;
+      case "/":
+        if(b.v===0) throw new Error("Division by zero");
+        v=bothInt?Math.trunc(a.v/b.v):a.v/b.v;
+        if(bothInt) extra=" Both are whole numbers, so any fraction is dropped.";
+        break;
+      case "%":
+        if(!bothInt) throw new Error("% needs whole numbers");
+        if(b.v===0) throw new Error("Modulus by zero");
+        v=a.v%b.v; extra=" <code>%</code> gives the remainder.";
+        break;
+      case "==": v=a.v===b.v?1:0; type="int"; bool=true; break;
+      case "!=": v=a.v!==b.v?1:0; type="int"; bool=true; break;
+      case "<":  v=a.v<b.v?1:0;  type="int"; bool=true; break;
+      case ">":  v=a.v>b.v?1:0;  type="int"; bool=true; break;
+      case "<=": v=a.v<=b.v?1:0; type="int"; bool=true; break;
+      case ">=": v=a.v>=b.v?1:0; type="int"; bool=true; break;
+      default: throw new Error("Unknown operator "+n.op);
+    }
+    const r={v,type,bool}; val.set(n,r);
+    const sa=shownOperand(a), sb=shownOperand(b);
+    snap(bool
+      ? `Is ${sa} ${esc(n.op)} ${sb}? ${v?"Yes":"No"} — so this gives <strong>${v?"true":"false"}</strong>, which C stores as ${v}.`
+      : `${sa} ${esc(n.op)} ${sb} gives ${type==="float"?trimF(v):v}.${extra}`);
+    return r;
+  }
+  const res=ev(root);
+  return {value:!!res.v, raw:res, frames, finalHtml:nodeText(root,val,skipped)};
+}
+
+/* ============================================================
+   MINI C INTERPRETER  (decl, assign, printf, scanf, if/else, switch)
+   ============================================================ */
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){
+      if(c==="(") d++; if(c===")") d--;
+      if(c===","&&d===0){out.push(cur); cur=""; continue;}
+    }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+/* index of the line holding the "}" that closes the block opened on `start`.
+   On the start line only "{" counts, because "} else {" begins by closing
+   the previous block. Braces inside strings are ignored. */
+function matchBrace(lines,start,end){
+  let depth=0;
+  for(let i=start;i<end;i++){
+    let q=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ q=!q; continue; }
+      if(q) continue;
+      if(ch==="{") depth++;
+      else if(ch==="}" && i>start){ depth--; if(depth===0) return i; }
+    }
+  }
+  return end-1;
+}
+function parseSimple(s,i,out){
+  let m;
+  if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+    const type=m[1];
+    splitTop(m[2]).forEach(part=>{
+      const eq=part.indexOf("=");
+      if(eq<0) out.push({kind:"decl",line:i,type,name:part.trim(),init:null});
+      else out.push({kind:"decl",line:i,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+    });
+    return true;
+  }
+  if((m=s.match(/^scanf\((.*)\);$/))){
+    const args=splitTop(m[1]);
+    out.push({kind:"scanf",line:i,
+      spec:args[0].trim().replace(/^"|"$/g,""),
+      name:(args[1]||"").trim().replace(/^&/,"")});
+    return true;
+  }
+  if((m=s.match(/^printf\((.*)\);$/))){
+    const args=splitTop(m[1]);
+    out.push({kind:"printf",line:i,fmt:args[0].trim().replace(/^"|"$/g,""),
+              args:args.slice(1).map(a=>a.trim())});
+    return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"assign",line:i,name:m[1],expr:m[2].trim()});
+    return true;
+  }
+  return false;
+}
+function parseSwitchBody(lines,i,end){
+  const items=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s==="}"){i++; continue;}
+    let m=s.match(/^case\s+(.+?)\s*:$/);
+    if(m){ items.push({kind:"case",line:i,val:m[1].trim()}); i++; continue; }
+    if(/^default\s*:$/.test(s)){ items.push({kind:"default",line:i}); i++; continue; }
+    if(/^break\s*;$/.test(s)){ items.push({kind:"break",line:i}); i++; continue; }
+    if(!parseSimple(s,i,items)) throw new Error("Cannot parse line "+(i+1)+": "+s);
+    i++;
+  }
+  return items;
+}
+function parseBlock(lines,i,end){
+  const out=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")||s==="int main() {"||s.startsWith("return")||s==="}"){i++; continue;}
+    let m=s.match(/^switch\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      out.push({kind:"switch",line:i,sel:m[1],items:parseSwitchBody(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    m=s.match(/^if\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      const node={kind:"if",line:i,
+        branches:[{line:i,cond:m[1],body:parseBlock(lines,i+1,close)}], else:null};
+      let j=close;
+      while(j<end){
+        const t=lines[j].replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^\}\s*else\s+if\s*\((.+)\)\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.branches.push({line:j,cond:em[1],body:parseBlock(lines,j+1,c2)});
+          j=c2; continue;
+        }
+        em=t.match(/^\}\s*else\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.else={line:j,body:parseBlock(lines,j+1,c2)};
+          j=c2;
+        }
+        break;
+      }
+      out.push(node); i=j+1; continue;
+    }
+    if(!parseSimple(s,i,out)) throw new Error("Cannot parse line "+(i+1)+": "+s);
+    i++;
+  }
+  return out;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(\.\d+)?([dfc%])/);
+      if(m){
+        if(m[2]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        if(m[2]==="d") out+=String(Math.trunc(v.v));
+        else if(m[2]==="c") out+=String.fromCharCode(v.v);
+        else out+=Number(v.v).toFixed(m[1]?parseInt(m[1].slice(1)):6);
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+function runProgram(lines,inputs){
+  inputs=inputs||{};
+  const tree=parseBlock(lines,0,lines.length);
+  const vars={}, order=[], ran=new Set(), path=[];
+  let out="", steps=[], sw=null;
+  const snap=(line,note,touch,swState)=>steps.push({
+    line,note,touch,out,
+    ran:new Set(ran), path:path.slice(),
+    sw: swState!==undefined ? swState : (sw?{sel:sw.sel,labels:sw.labels.map(l=>({...l}))}:null),
+    mem:order.map(n=>({name:n,type:vars[n].type,value:vars[n].value}))
+  });
+  const mainLine=lines.findIndex(l=>l.includes("int main"));
+  snap(mainLine<0?0:mainLine,"The program starts here. No variables exist yet.");
+
+  function runStatement(s){
+    if(s.kind==="decl"){
+      vars[s.name]={type:s.type,value:null}; order.push(s.name); ran.add(s.line);
+      if(s.init===null){
+        snap(s.line,`<code>${s.name}</code> is created, but it has no value yet.`,s.name);
+      }else{
+        const r=evalCond(s.init,vars);
+        vars[s.name].value=fitToType(s.type,r.raw.v);
+        snap(s.line,`<code>${s.name}</code> now holds ${showVal(s.type,vars[s.name].value)}.`,s.name);
+      }
+    }else if(s.kind==="assign"){
+      const r=evalCond(s.expr,vars);
+      const old=vars[s.name].value;
+      vars[s.name].value=fitToType(vars[s.name].type,r.raw.v); ran.add(s.line);
+      snap(s.line,`<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(vars[s.name].type,old)+" to"} ${showVal(vars[s.name].type,vars[s.name].value)}.`,s.name);
+    }else if(s.kind==="scanf"){
+      const v=vars[s.name];
+      if(!v) throw new Error("Unknown variable: "+s.name);
+      const isChar=s.spec.includes("%c");
+      let raw=inputs[s.name];
+      if(raw===undefined||raw==="") raw = isChar?"a":0;
+      let num = isChar ? String(raw).charCodeAt(0) : Number(raw);
+      if(isNaN(num)) num=0;
+      v.value=fitToType(v.type,num); ran.add(s.line);
+      snap(s.line,`The program stops and waits. The user types <strong>${isChar?String(raw).charAt(0):num}</strong> and presses Enter, so <code>${s.name}</code> now holds ${showVal(v.type,v.value)}. The <code>&amp;</code> told <code>scanf</code> where to put it.`,s.name);
+    }else if(s.kind==="printf"){
+      const vals=s.args.map(a=>evalCond(a,vars).raw);
+      out+=formatPrintf(s.fmt,vals); ran.add(s.line);
+      snap(s.line,"This line writes to the screen.");
+    }else if(s.kind==="if"){
+      let done=false;
+      for(let bi=0;bi<s.branches.length;bi++){
+        const br=s.branches[bi];
+        const r=evalCond(br.cond,vars);
+        path.push({text:br.cond,value:r.value});
+        if(r.value){
+          ran.add(br.line);
+          snap(br.line,`<code>${esc(br.cond)}</code> is <strong>true</strong>, so this block runs and the rest of the ladder is skipped.`);
+          runBlock(br.body); done=true; break;
+        }
+        snap(br.line,`<code>${esc(br.cond)}</code> is <strong>false</strong>, so this block is skipped.`);
+      }
+      if(!done){
+        if(s.else){
+          path.push({text:"else",value:true}); ran.add(s.else.line);
+          snap(s.else.line,"None of the conditions were true, so the <code>else</code> block runs.");
+          runBlock(s.else.body);
+        }else{
+          snap(s.branches[s.branches.length-1].line,"No condition was true and there is no <code>else</code>, so nothing here runs.");
+        }
+      }
+    }else if(s.kind==="switch"){
+      const r=evalCond(s.sel,vars);
+      const selVal=r.raw;
+      const labelItems=s.items.filter(x=>x.kind==="case"||x.kind==="default");
+      const labels=labelItems.map(x=>({
+        text: x.kind==="default" ? "default" : "case "+x.val,
+        state:"waiting", line:x.line
+      }));
+      const labelOf=new Map(); labelItems.forEach((x,k)=>labelOf.set(x,labels[k]));
+      sw={sel:`${esc(s.sel)} is ${showVal(selVal.type,selVal.v)}`, labels};
+      ran.add(s.line);
+      snap(s.line,`The value in the brackets is worked out once: <code>${esc(s.sel)}</code> is <strong>${showVal(selVal.type,selVal.v)}</strong>. C now looks for a <code>case</code> label with exactly that value.`,null);
+
+      let hit=-1;
+      for(let k=0;k<s.items.length;k++){
+        const it=s.items[k];
+        if(it.kind!=="case") continue;
+        const cv=evalCond(it.val,vars).raw;
+        if(cv.v===selVal.v){ hit=k; labelOf.get(it).state="matched"; break; }
+        labelOf.get(it).state="nomatch";
+      }
+      const defIdx=s.items.findIndex(x=>x.kind==="default");
+      let start=hit;
+      if(hit>=0){
+        snap(s.items[hit].line,`<code>case ${esc(s.items[hit].val)}</code> matches, so C jumps straight here. The labels above it were not a match.`,null);
+      }else{
+        labels.forEach(l=>{ if(l.state==="waiting"&&l.text!=="default") l.state="nomatch"; });
+        if(defIdx>=0){
+          start=defIdx; labelOf.get(s.items[defIdx]).state="matched";
+          snap(s.items[defIdx].line,"No label matched the value, so C jumps to <code>default</code>.",null);
+        }else{
+          snap(s.endLine,"No label matched and there is no <code>default</code>, so nothing inside the switch runs. The program simply carries on after it.",null);
+        }
+      }
+      if(start>=0){
+        ran.add(s.items[start].line);
+        for(let k=start;k<s.items.length;k++){
+          const it=s.items[k];
+          if(it.kind==="break"){
+            ran.add(it.line);
+            snap(it.line,"<code>break</code> jumps straight out of the switch. Nothing below it is run.",null);
+            break;
+          }
+          if(it.kind==="case"||it.kind==="default"){
+            if(k>start){
+              const lab=labelOf.get(it);
+              const empty = s.items[k-1].kind==="case"||s.items[k-1].kind==="default";
+              lab.state="fell"; ran.add(it.line);
+              snap(it.line, empty
+                ? "This label sits directly under the one above with nothing in between, so both land on the same statements. This stacking is done <strong>on purpose</strong>."
+                : "There was no <code>break</code>, so execution carried straight on into this label as well. This is <strong>fall-through</strong>.",null);
+            }
+            continue;
+          }
+          runStatement(it);
+        }
+      }
+    }
+  }
+  function runBlock(block){ for(const s of block) runStatement(s); }
+
+  try{
+    runBlock(tree);
+    snap(lines.length-2,"The program ends here.");
+  }catch(err){
+    /* a real C program would stop here too — explain it instead of breaking */
+    const msg=String(err && err.message || "");
+    const lastLine = steps.length ? steps[steps.length-1].line : 0;
+    const why = /Division by zero/.test(msg)
+      ? "A whole number cannot be divided by zero. In C this does not give an answer — the program stops with an error."
+      : /Modulus by zero/.test(msg)
+      ? "<code>%</code> cannot be used with zero on the right, because it is a division underneath."
+      : /no value yet/.test(msg)
+      ? "A variable was used before it was given a value."
+      : esc(msg)+".";
+    out += "\n[the program stopped here]";
+    steps.push({line:lastLine, note:`<strong>The program cannot continue.</strong> ${why} Change the values at the top and run it again.`,
+      touch:null, out, ran:new Set(ran), path:path.slice(),
+      sw: sw?{sel:sw.sel,labels:sw.labels.map(l=>({...l}))}:null,
+      mem:order.map(n=>({name:n,type:vars[n].type,value:vars[n].value})),
+      crashed:true});
+  }
+  return steps;
+}
+function finalOutput(lines,inputs){
+  const st=runProgram(lines,inputs);
+  const last=st[st.length-1];
+  return last.crashed ? "" : last.out;   /* a crashed run is never used as a question */
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const H=["#include <stdio.h>","","int main() {"], F=["    return 0;","}"];
+const P=(...body)=>H.concat(body,F);
+
+const CONCEPTS=[
+{id:"basics", name:"How switch works", programs:[
+  {t:"A simple switch", code:P(
+    "    int day = 3;",
+    "    switch (day) {",
+    "        case 1:",
+    '            printf("Sunday");',
+    "            break;",
+    "        case 2:",
+    '            printf("Monday");',
+    "            break;",
+    "        case 3:",
+    '            printf("Tuesday");',
+    "            break;",
+    "        default:",
+    '            printf("Not a valid day");',
+    "    }")},
+  {t:"A switch on a character", code:P(
+    "    char grade = 'B';",
+    "    switch (grade) {",
+    "        case 'A':",
+    '            printf("Excellent");',
+    "            break;",
+    "        case 'B':",
+    '            printf("Good");',
+    "            break;",
+    "        case 'C':",
+    '            printf("Average");',
+    "            break;",
+    "        default:",
+    '            printf("Unknown grade");',
+    "    }")},
+  {t:"When there is no default", code:P(
+    "    int n = 5;",
+    "    switch (n) {",
+    "        case 1:",
+    '            printf("one\\n");',
+    "            break;",
+    "        case 2:",
+    '            printf("two\\n");',
+    "            break;",
+    "    }",
+    '    printf("done");')},
+  {t:"Several labels sharing one action", code:P(
+    "    char ch = 'e';",
+    "    switch (ch) {",
+    "        case 'a':",
+    "        case 'e':",
+    "        case 'i':",
+    "        case 'o':",
+    "        case 'u':",
+    '            printf("Vowel");',
+    "            break;",
+    "        default:",
+    '            printf("Consonant");',
+    "    }")},
+  {t:"Reading the choice from the user", code:P(
+    "    int n;",
+    '    printf("Enter a number from 1 to 3: ");',
+    '    scanf("%d", &n);',
+    "    switch (n) {",
+    "        case 1:",
+    '            printf("You chose one");',
+    "            break;",
+    "        case 2:",
+    '            printf("You chose two");',
+    "            break;",
+    "        case 3:",
+    '            printf("You chose three");',
+    "            break;",
+    "        default:",
+    '            printf("That is not 1, 2 or 3");',
+    "    }"), reads:[{n:"n",def:2}]}
+]},
+{id:"break", name:"break and fall-through", programs:[
+  {t:"What break does", code:P(
+    "    int n = 2;",
+    "    switch (n) {",
+    "        case 1:",
+    '            printf("one ");',
+    "            break;",
+    "        case 2:",
+    '            printf("two ");',
+    "            break;",
+    "        case 3:",
+    '            printf("three ");',
+    "            break;",
+    "    }",
+    '    printf("end");')},
+  {t:"The same switch with break removed", code:P(
+    "    int n = 2;",
+    "    switch (n) {",
+    "        case 1:",
+    '            printf("one ");',
+    "        case 2:",
+    '            printf("two ");',
+    "        case 3:",
+    '            printf("three ");',
+    "    }",
+    '    printf("end");')},
+  {t:"Falling into default as well", code:P(
+    "    int n = 3;",
+    "    switch (n) {",
+    "        case 1:",
+    '            printf("one ");',
+    "        case 2:",
+    '            printf("two ");',
+    "        case 3:",
+    '            printf("three ");',
+    "        default:",
+    '            printf("other ");',
+    "    }",
+    '    printf("end");')},
+  {t:"Days in a month, using stacked labels", code:P(
+    "    int month = 4;",
+    "    switch (month) {",
+    "        case 1:",
+    "        case 3:",
+    "        case 5:",
+    "        case 7:",
+    "        case 8:",
+    "        case 10:",
+    "        case 12:",
+    '            printf("31 days");',
+    "            break;",
+    "        case 4:",
+    "        case 6:",
+    "        case 9:",
+    "        case 11:",
+    '            printf("30 days");',
+    "            break;",
+    "        case 2:",
+    '            printf("28 or 29 days");',
+    "            break;",
+    "        default:",
+    '            printf("Not a valid month");',
+    "    }")}
+]},
+{id:"menu", name:"Menu-driven programs", programs:[
+  {t:"Bank menu", code:P(
+    "    int choice;",
+    "    float balance = 5000.00;",
+    '    printf("1 Deposit  2 Withdraw  3 Balance  4 Exit\\n");',
+    '    printf("Enter your choice: ");',
+    '    scanf("%d", &choice);',
+    "    switch (choice) {",
+    "        case 1:",
+    "            balance = balance + 1000;",
+    '            printf("Deposited 1000. Balance %.2f", balance);',
+    "            break;",
+    "        case 2:",
+    "            balance = balance - 500;",
+    '            printf("Withdrew 500. Balance %.2f", balance);',
+    "            break;",
+    "        case 3:",
+    '            printf("Balance is %.2f", balance);',
+    "            break;",
+    "        case 4:",
+    '            printf("Thank you, goodbye");',
+    "            break;",
+    "        default:",
+    '            printf("Invalid choice");',
+    "    }"), reads:[{n:"choice",def:2}]},
+  {t:"The bank menu with the breaks forgotten", code:P(
+    "    int choice;",
+    '    printf("Enter your choice: ");',
+    '    scanf("%d", &choice);',
+    "    switch (choice) {",
+    "        case 1:",
+    '            printf("Deposit ");',
+    "        case 2:",
+    '            printf("Withdraw ");',
+    "        case 3:",
+    '            printf("Balance ");',
+    "        case 4:",
+    '            printf("Exit ");',
+    "        default:",
+    '            printf("Invalid ");',
+    "    }"), reads:[{n:"choice",def:2}]},
+  {t:"A simple calculator menu", code:P(
+    "    int choice;",
+    "    int a = 12, b = 4;",
+    '    printf("1 Add  2 Subtract  3 Multiply  4 Divide\\n");',
+    '    scanf("%d", &choice);',
+    "    switch (choice) {",
+    "        case 1:",
+    '            printf("%d", a + b);',
+    "            break;",
+    "        case 2:",
+    '            printf("%d", a - b);',
+    "            break;",
+    "        case 3:",
+    '            printf("%d", a * b);',
+    "            break;",
+    "        case 4:",
+    '            printf("%d", a / b);',
+    "            break;",
+    "        default:",
+    '            printf("Invalid choice");',
+    "    }"), reads:[{n:"choice",def:1}]},
+  {t:"A menu that uses letters", code:P(
+    "    char op;",
+    '    printf("Enter d to deposit or w to withdraw: ");',
+    '    scanf("%c", &op);',
+    "    switch (op) {",
+    "        case 'd':",
+    '            printf("Deposit chosen");',
+    "            break;",
+    "        case 'w':",
+    '            printf("Withdraw chosen");',
+    "            break;",
+    "        default:",
+    '            printf("Unknown option");',
+    "    }"), reads:[{n:"op",def:"d",char:true}]}
+]},
+{id:"compare", name:"switch or if…else if?", programs:[
+  {t:"Triangle type using switch", code:P(
+    "    int a = 5, b = 5, c = 8;",
+    "    int equal = (a == b) + (b == c) + (a == c);",
+    "    switch (equal) {",
+    "        case 3:",
+    '            printf("Equilateral");',
+    "            break;",
+    "        case 1:",
+    '            printf("Isosceles");',
+    "            break;",
+    "        case 0:",
+    '            printf("Scalene");',
+    "            break;",
+    "        default:",
+    '            printf("Not possible");',
+    "    }")},
+  {t:"The same triangle using if…else if", code:P(
+    "    int a = 5, b = 5, c = 8;",
+    "    if (a == b && b == c) {",
+    '        printf("Equilateral");',
+    "    } else if (a == b || b == c || a == c) {",
+    '        printf("Isosceles");',
+    "    } else {",
+    '        printf("Scalene");',
+    "    }")},
+  {t:"The same menu written both ways", code:P(
+    "    int day = 3;",
+    '    printf("switch says: ");',
+    "    switch (day) {",
+    "        case 1:",
+    '            printf("Sunday");',
+    "            break;",
+    "        case 2:",
+    '            printf("Monday");',
+    "            break;",
+    "        case 3:",
+    '            printf("Tuesday");',
+    "            break;",
+    "        default:",
+    '            printf("Other");',
+    "    }",
+    '    printf("\\nif-else says: ");',
+    "    if (day == 1) {",
+    '        printf("Sunday");',
+    "    } else if (day == 2) {",
+    '        printf("Monday");',
+    "    } else if (day == 3) {",
+    '        printf("Tuesday");',
+    "    } else {",
+    '        printf("Other");',
+    "    }")},
+  {t:"Something switch cannot do", code:P(
+    "    int marks = 82;",
+    "    if (marks >= 90) {",
+    '        printf("Grade A");',
+    "    } else if (marks >= 75) {",
+    '        printf("Grade B");',
+    "    } else if (marks >= 60) {",
+    '        printf("Grade C");',
+    "    } else {",
+    '        printf("Fail");',
+    "    }")}
+]}
+];
+
+/* editable values */
+function editablesOf(lines){
+  const out=[];
+  lines.forEach((l,idx)=>{
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    splitTop(m[2]).forEach(part=>{
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1],kind:"num"});
+      else if(/^'.'$/.test(init)) out.push({name,init:init[1],line:idx,type:m[1],kind:"char"});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    let v=vals[e.name];
+    if(v===undefined||v===null||v==="") return;
+    if(e.kind==="char"){
+      v=String(v).charAt(0); if(v==="'") return;
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*'.'"), e.name+" = '"+v+"'");
+    }else{
+      const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".00"):String(v);
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+    }
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit,ran){
+  mount.innerHTML=lines.map((l,i)=>{
+    let cls="ln";
+    if(ran&&ran.has(i)) cls+=" ran";
+    if(i===hit) cls+=" hit";
+    return `<div class="${cls}"><span class="n">${i+1}</span><span>${esc(l)}</span></div>`;
+  }).join("");
+}
+function renderMem(mount,mem,touch){
+  if(!mem||!mem.length){mount.innerHTML='<div class="note">No variables yet.</div>'; return;}
+  mount.innerHTML=mem.map(v=>`
+    <div class="var${touch===v.name?" flash":""}">
+      <div class="top"><span class="nm">${v.name}</span><span class="ty">${v.type}</span></div>
+      <div class="val">${v.value===null?"<span style='color:#a63232'>no value yet</span>":showVal(v.type,v.value)}</div>
+    </div>`).join("");
+}
+const LABEL_BADGE={
+  waiting:'<span class="badge n">not checked</span>',
+  nomatch:'<span class="badge f">no match</span>',
+  matched:'<span class="badge t">matched &mdash; jump here</span>',
+  fell:'<span class="badge g">fell through</span>'
+};
+function renderSwitch(selMount,labMount,sw){
+  if(!sw){ return; }
+  selMount.innerHTML=`<small>value being switched on</small>${sw.sel}`;
+  labMount.innerHTML=sw.labels.map(l=>
+    `<div class="lab ${l.state}"><span>${esc(l.text)}</span>${LABEL_BADGE[l.state]}</div>`).join("");
+}
+function renderPath(mount,path){
+  if(!path||!path.length){mount.innerHTML='<div class="note">No condition checked yet.</div>'; return;}
+  mount.innerHTML=path.map(p=>
+    `<div><span class="c">${esc(p.text)}</span>
+      ${p.value?'<span class="badge t">true</span>':'<span class="badge f">false</span>'}</div>`).join("");
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dMem=document.getElementById("d-mem"),
+      dSel=document.getElementById("d-sel"), dLabels=document.getElementById("d-labels"),
+      dPath=document.getElementById("d-path"), dOut=document.getElementById("d-out"),
+      dObs=document.getElementById("d-obs"), dIn=document.getElementById("d-inputs"),
+      swCard=document.getElementById("swcard"), pathCard=document.getElementById("pathcard");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=loadProgram;
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  const readBoxes=(prog.reads||[]).map(r=> r.char
+    ? `<label><span class="typed">${r.n}</span> (user types)<input type="text" maxlength="1" data-read="${r.n}" value="${r.def}"></label>`
+    : `<label><span class="typed">${r.n}</span> (user types)<input type="number" data-read="${r.n}" value="${r.def}"></label>`).join("");
+  const edBoxes=eds.map(e=> e.kind==="char"
+    ? `<label>${e.name}<input type="text" maxlength="1" data-ed="${e.name}" value="${e.init}"></label>`
+    : `<label>${e.name}<input type="number" step="${e.type==="float"?"0.01":"1"}" data-ed="${e.name}" value="${e.init}"></label>`).join("");
+  dIn.innerHTML = (readBoxes+edBoxes) || `<span class="note">This program has no values to change.</span>`;
+  if(readBoxes+edBoxes) dIn.innerHTML += `<span class="note">Change a value and the program runs again.</span>`;
+  dIn.querySelectorAll("[data-ed],[data-read]").forEach(el=>el.onchange=build);
+  build();
+}
+function currentInputs(){
+  const o={};
+  dIn.querySelectorAll("[data-read]").forEach(el=>{o[el.dataset.read]=el.value;});
+  return o;
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines,currentInputs()); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1,null); renderMem(dMem,[],null);
+  swCard.style.display="none"; pathCard.style.display="none";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin.";
+}
+function paint(){
+  const s=steps[idx];
+  renderCode(dCode,lines,s.line,s.ran);
+  renderMem(dMem,s.mem,s.touch);
+  if(s.sw){ swCard.style.display="block"; renderSwitch(dSel,dLabels,s.sw); }
+  if(s.path&&s.path.length){ pathCard.style.display="block"; renderPath(dPath,s.path); }
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1,null); renderMem(dMem,[],null);
+    swCard.style.display="none"; pathCard.style.display="none";
+    dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+fillPrograms(); loadProgram();
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display=b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-jump").style.display=b.dataset.mode==="jump"?"block":"none";
+  };
+});
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+CONCEPTS.forEach(c=>{
+  const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; ppSel.appendChild(o);
+});
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+let ppLines=null, ppIn=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+function randomCase(p){
+  /* fresh values for the declarations AND for whatever the user types */
+  const es=editablesOf(p.code), vals={}, ins={};
+  es.forEach(e=>{
+    if(e.kind==="char"){ vals[e.name]=pick("aeiouABbCdw".split("")); return; }
+    const base=Math.abs(Number(e.init));
+    if(base>=1000) vals[e.name]=(R(9)+1)*1000;
+    else if(base<=15) vals[e.name]=R(14);
+    else vals[e.name]=R(120);
+  });
+  (p.reads||[]).forEach(r=>{ ins[r.n]= r.char ? pick("dwxq".split("")) : R(6); });
+  return {code:applyEdits(p.code,es,vals), inputs:ins};
+}
+function ppNew(){
+  const pool = ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.id===ppSel.value).programs;
+  for(let k=0;k<80;k++){
+    const p=pick(pool);
+    const c = Math.random()<0.8 ? randomCase(p) : {code:p.code, inputs:Object.fromEntries((p.reads||[]).map(r=>[r.n,r.def]))};
+    let out;
+    try{ out=finalOutput(c.code,c.inputs); }catch(e){ continue; }
+    if(!out) continue;
+    const opts=new Set([out]);
+    try{
+      const base=finalOutput(p.code,Object.fromEntries((p.reads||[]).map(r=>[r.n,r.def])));
+      if(base) opts.add(base);
+    }catch(e){}
+    for(let a=0;a<40&&opts.size<4;a++){
+      try{ const o2=randomCase(p); const alt=finalOutput(o2.code,o2.inputs); if(alt) opts.add(alt); }catch(e){}
+    }
+    if(opts.size<2) continue;
+    ppLines=c.code; ppIn=c.inputs; ppAns=out;
+    renderCode(document.getElementById("pp-code"),c.code,-1,null);
+    const typed=Object.keys(c.inputs).length
+      ? `<p class="note" style="margin:0 0 7px">The user types
+         <strong>${Object.values(c.inputs).join(", ")}</strong>.</p>` : "";
+    const list=[...opts].sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=typed+list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${esc(o).replace(/\n/g," &#9166; ")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Find the label that
+      matches the value exactly, then read downwards from it — and check carefully whether there is a
+      <code>break</code> to stop you.`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  const st=runProgram(ppLines,ppIn);
+  const last=st[st.length-1];
+  let html="";
+  if(last.sw){
+    html+=last.sw.labels.map(l=>
+      `<div style="padding:3px 0"><code>${esc(l.text)}</code> ${LABEL_BADGE[l.state]}</div>`).join("");
+  }
+  if(last.path&&last.path.length){
+    html+=last.path.map(p=>`<div style="padding:3px 0"><code>${esc(p.text)}</code>
+      ${p.value?'<span class="badge t">true</span>':'<span class="badge f">false</span>'}</div>`).join("");
+  }
+  document.getElementById("pp-obs").innerHTML=html+
+    `<div style="padding:5px 0"><strong>prints</strong> <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code></div>`;
+};
+
+/* ---------- MODE B: which case runs? ---------- */
+let pjSpec=null, pjRight=0, pjTries=0, pjStreak=0;
+function pjNew(){
+  const labels=[];
+  const used=new Set();
+  const n=R(2)+3;                                  /* 3 or 4 case labels */
+  while(labels.length<n){
+    const v=R(6)+1;
+    if(used.has(v)) continue;
+    used.add(v); labels.push(v);
+  }
+  labels.sort((a,b)=>a-b);
+  const hasBreak=Math.random()<0.6;
+  const selector = Math.random()<0.75 ? pick(labels) : R(9)+1;
+  const words=["alpha","bravo","delta","echo","foxtrot","golf"];
+  const texts=labels.map((_,i)=>words[i]);
+  const code=["switch (n) {"];
+  const lineOf=[];
+  labels.forEach((v,i)=>{
+    lineOf.push({line:code.length, kind:"case", val:v});
+    code.push("    case "+v+":");
+    code.push('        printf("'+texts[i]+' ");');
+    if(hasBreak) code.push("        break;");
+  });
+  lineOf.push({line:code.length, kind:"default"});
+  code.push("    default:");
+  code.push('        printf("other ");');
+  code.push("}");
+
+  /* work out what really happens */
+  let startIdx=lineOf.findIndex(l=>l.kind==="case"&&l.val===selector);
+  if(startIdx<0) startIdx=lineOf.findIndex(l=>l.kind==="default");
+  let out="";
+  for(let i=startIdx;i<lineOf.length;i++){
+    out += (lineOf[i].kind==="default" ? "other " : texts[labels.indexOf(lineOf[i].val)]+" ");
+    if(hasBreak && lineOf[i].kind!=="default") break;
+  }
+  pjSpec={code,lineOf,selector,hasBreak,answer:lineOf[startIdx],out,labels,texts};
+  document.getElementById("pj-sel").innerHTML=
+    `<small>the value of n</small><span style="font-size:30px">${selector}</span>`;
+  paintPj(-1);
+  document.getElementById("pj-obs").innerHTML="Click the <code>case</code> or <code>default</code> line you think C jumps to.";
+}
+function paintPj(chosen){
+  const mount=document.getElementById("pj-code");
+  const pickable=new Set(pjSpec.lineOf.map(l=>l.line));
+  mount.innerHTML=pjSpec.code.map((l,i)=>{
+    let cls="ln";
+    if(pickable.has(i)) cls+=" pickable";
+    if(i===chosen) cls+=" hit";
+    return `<div class="${cls}" data-i="${i}"><span class="n">${i+1}</span><span>${esc(l)}</span></div>`;
+  }).join("");
+  mount.querySelectorAll(".pickable").forEach(el=>{
+    el.onclick=()=>pjAnswer(+el.dataset.i);
+  });
+}
+function pjAnswer(lineIdx){
+  if(!pjSpec) return;
+  pjTries++;
+  const obs=document.getElementById("pj-obs");
+  const correct=pjSpec.answer.line;
+  paintPj(lineIdx);
+  if(lineIdx===correct){
+    pjRight++; pjStreak++;
+    const where = pjSpec.answer.kind==="default"
+      ? `No label has the value ${pjSpec.selector}, so C jumps to <code>default</code>.`
+      : `<code>case ${pjSpec.answer.val}</code> is exactly ${pjSpec.selector}, so C jumps there.`;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> ${where}
+      ${pjSpec.hasBreak
+        ? `Each case ends with <code>break</code>, so only that one runs.`
+        : `<strong>There is no <code>break</code> anywhere</strong>, so execution carries on through every label below it.`}
+      <br>The program prints <code>${esc(pjSpec.out)}</code>.`;
+  }else{
+    pjStreak=0;
+    const clicked=pjSpec.lineOf.find(l=>l.line===lineIdx);
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not that one.</span> `+
+      (clicked && clicked.kind==="case"
+        ? `<code>case ${clicked.val}</code> is not ${pjSpec.selector}, and a label must match <strong>exactly</strong>.`
+        : `<code>default</code> is used only when no label matches, and here ${pjSpec.selector} does match one.`)+
+      ` C jumps to <code>${pjSpec.answer.kind==="default"?"default":"case "+pjSpec.answer.val}</code>,
+        and the program prints <code>${esc(pjSpec.out)}</code>.`;
+  }
+  document.getElementById("pj-right").textContent=pjRight;
+  document.getElementById("pj-tries").textContent=pjTries;
+  document.getElementById("pj-streak").textContent=pjStreak;
+}
+document.getElementById("pj-new").onclick=pjNew;
+ppNew(); pjNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"What does a switch statement compare its value against?",
+     o:["Any condition","Exact case label values","A range of values","Only characters"], a:1},
+    {q:"What does break do inside a switch?",
+     o:["Ends the program","Skips to the next case","Nothing","Leaves the switch immediately"], a:3},
+    {q:"When does the default label run?",
+     o:["Only when no case matches","Always","Never","Before the cases"], a:0},
+    {q:"Which symbol must come before the variable name in scanf?",
+     o:["*","%","&","#"], a:2},
+    {q:"Which of these can a switch NOT test?",
+     o:["An int","A range such as marks >= 75","A char","The number 0"], a:1}
+  ],
+  post:[
+    {q:"int n = 2; switch(n){case 1: printf(\"one \"); break; case 2: printf(\"two \"); break;} prints:",
+     o:["one","two","one two","nothing"], a:1},
+    {q:"The same switch with every break removed, still with n = 2, prints:",
+     o:["two","one two","nothing","two three"], a:3},
+    {q:"Why does fall-through happen?",
+     o:["A case label is a place to jump to, not a closed block","A bug in C","Because of default","Because switch is slow"], a:0},
+    {q:"Stacking case 'a': case 'e': with nothing between them means:",
+     o:["It is an error","Only 'a' works","Both letters run the same statements","Only 'e' works"], a:2},
+    {q:"If no case matches and there is no default, the switch:",
+     o:["Runs the first case","Runs nothing and the program carries on","Stops the program","Runs the last case"], a:1},
+    {q:"In scanf(\"%d\", &choice); the & is needed because:",
+     o:["It makes it faster","It marks the end","It is optional","scanf needs the address so it knows where to store the value"], a:3},
+    {q:"Which problem is better written as an if…else if ladder than a switch?",
+     o:["A four-option menu","Day number to day name","Grade bands such as marks >= 75","Choosing by a single letter"], a:2},
+    {q:"A switch and an if…else if ladder that both test for equality will:",
+     o:["Give the same answer","Give different answers","Only work for int","Need a default"], a:0}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${esc(it.q)}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${esc(o)}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>

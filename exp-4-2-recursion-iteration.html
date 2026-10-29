@@ -1,0 +1,3711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 4.2 — Recursion against Iteration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase; display:flex; gap:10px}
+  .card h4 .r{margin-left:auto; font-weight:400; color:#9fb8b4; text-transform:none; letter-spacing:0}
+  .grid2{display:grid; grid-template-columns:1.02fr .98fr; gap:17px; align-items:start}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:450px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.ran{background:#eef7f2; box-shadow:inset 3px 0 0 var(--ok)}
+  .code .ln.hit.ran{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  /* ---- memory inspector: frames, cells and arrows ---- */
+  .memwrap{position:relative; padding:14px; min-height:200px; max-height:470px; overflow:auto;
+    display:flex; flex-direction:column; gap:12px}
+  .block{position:relative; border:1px dashed var(--line); border-radius:12px;
+    padding:10px 12px 12px; background:var(--paper)}
+  .block.callee{border-color:var(--gold); background:#fffdf6}
+  .block.enter{animation:slideUp .34s ease-out}
+  @keyframes slideUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+  .block-label{display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600; color:var(--ink-soft)}
+  .block.callee .block-label{color:var(--gold)}
+  .block-label .tag{margin-left:auto; font-family:"Source Sans 3",sans-serif; font-size:10px;
+    letter-spacing:.07em; text-transform:uppercase; font-weight:700}
+  .lane{margin-top:9px}
+  .lane:first-of-type{margin-top:0}
+  .lane-label{font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:#9aa9ae; margin-bottom:5px}
+  .lane-row{display:flex; flex-wrap:wrap; gap:9px}
+  .cell{position:relative; z-index:2; min-width:98px; background:#fff; border:1.5px solid var(--line);
+    border-radius:9px; padding:7px 9px 6px; text-align:center}
+  .cell.var{border-color:var(--teal)}
+  .cell.ptr{border-color:var(--gold); background:#fdf4e0}
+  .cell.unset{opacity:.6; border-style:dashed}
+  .cell-name{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-soft)}
+  .cell-name em{font-style:normal; opacity:.65; font-size:10.5px}
+  .cell-val{font-family:"IBM Plex Mono",monospace; font-size:16px; font-weight:700; margin:2px 0 1px;
+    font-variant-numeric:tabular-nums}
+  .cell.var .cell-val{color:var(--teal)}
+  .cell.ptr .cell-val{color:var(--gold)}
+  .cell-addr{font-family:"IBM Plex Mono",monospace; font-size:10px; color:#9aa9ae}
+  .cell.flash{animation:flashRing .95s ease-out}
+  @keyframes flashRing{
+    0%{box-shadow:0 0 0 5px rgba(232,180,41,.85)}
+    100%{box-shadow:0 0 0 0 rgba(232,180,41,0)}
+  }
+  .arrows{position:absolute; top:0; left:0; pointer-events:none; z-index:1}
+  .arrow-line{stroke:var(--gold); stroke-width:2.2; fill:none}
+  .arrow-head{fill:var(--gold)}
+  .empty{color:var(--ink-soft); font-size:14px; padding:4px 2px}
+  @media (prefers-reduced-motion:reduce){
+    .cell.flash,.block.enter{animation:none}
+  }
+
+  /* ---- the p versus *p reader ---- */
+  .reader{border-top:1px solid var(--line); background:var(--wash); padding:0}
+  .reader:empty{display:none}
+  .reader .trfoot{border-top:1px solid var(--line); padding:7px 10px; font-size:13px; color:var(--ink-soft)}
+  .reader tr.tr-open td{color:var(--ink-soft)}
+  .reader tr.tr-done td{color:var(--ink)}
+  .reader tr.tr-done .tr-mark{color:var(--ok)}
+  .reader tr.tr-open .tr-mark{color:var(--gold)}
+  .reader .tr-mark{display:inline-block; width:14px; font-weight:700}
+  .reader table{max-height:none}
+  .reader table.itab th{font-weight:600; color:var(--ink-soft); font-size:12px; text-align:left;
+    padding:4px 8px; border-bottom:1px solid var(--line); white-space:nowrap}
+  .reader table.itab td{padding:3px 8px; font-size:13px; white-space:nowrap}
+  .reader table.itab tr.lastrow td{background:var(--wash); color:var(--ink-soft)}
+  .reader table.costtab th{text-align:left; font-weight:400; color:var(--ink-soft); white-space:normal}
+  .reader table.costtab td{white-space:normal}
+  .reader table.costtab b{font-size:15px}
+  .reader .vt{color:var(--ok); font-weight:600}
+  .reader .vf{color:var(--no); font-weight:600}
+  .reader .arrw{color:var(--ink-soft)}
+  .reader{overflow-x:auto}
+  .arr{margin:0 0 11px}
+  .arr-head{font-size:13px; color:var(--ink-soft); margin-bottom:5px}
+  .arr-head code{font-size:14px; color:var(--ink); font-weight:600}
+  .arr-head em{font-style:normal; color:var(--teal); font-size:12.5px}
+  .arr-head .arr-note{display:inline-block; margin-left:4px}
+  .arr-head .astr{color:var(--teal); font-weight:600}
+  .arow{display:flex; flex-wrap:wrap; align-items:stretch}
+  .abox{border:1px solid var(--line); border-left-width:0; min-width:46px; text-align:center;
+    background:var(--paper)}
+  .abox:first-child{border-left-width:1px; border-radius:var(--radius) 0 0 var(--radius)}
+  .abox:last-child{border-radius:0 var(--radius) var(--radius) 0}
+  .abox .aidx{font-size:11px; color:var(--ink-soft); border-bottom:1px dotted var(--line); padding:1px 4px}
+  .abox .aval{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; padding:4px 5px}
+  .abox .aaddr{font-size:10px; color:var(--ink-soft); padding:1px 4px; border-top:1px dotted var(--line)}
+  .abox.unset .aval{color:var(--ink-soft)}
+  .abox.term{background:var(--teal-soft)} .abox.term .aval{color:var(--teal)}
+  .abox.past{background:var(--wash)} .abox.past .aval{color:#9aa8ae}
+  .abox.flash{background:var(--gold); border-color:var(--gold)}
+  .abox.flash .aval{color:#fff}
+  .arr.flash .arow{outline:2px solid var(--gold); outline-offset:2px; border-radius:var(--radius)}
+  .cell .at{font-size:11px; color:var(--teal); font-weight:600}
+  .block.globals{border-style:dashed; border-color:var(--gold); margin-top:12px}
+  .block.globals .block-label{background:#fdf6e6; color:var(--gold)}
+  .mat{margin:0 0 11px}
+  table.mgrid{border-collapse:collapse; font-family:"IBM Plex Mono",monospace; margin-top:4px}
+  table.mgrid th{font-size:11px; font-weight:600; color:var(--ink-soft); padding:2px 7px;
+    background:var(--wash); border:1px solid var(--line); text-align:center; min-width:26px}
+  table.mgrid th.mcorner{background:var(--paper); border-color:transparent}
+  table.mgrid td{border:1px solid var(--line); padding:5px 10px; text-align:right; font-size:14px;
+    font-weight:600; min-width:34px; background:var(--paper)}
+  table.mgrid td.mhot{background:var(--gold); border-color:var(--gold); color:#fff}
+  .mat.flash table.mgrid{outline:2px solid var(--gold); outline-offset:2px}
+  @media (max-width:860px){ table.mgrid td{padding:4px 7px; font-size:13px; min-width:26px} }
+  @media (max-width:860px){ .abox{min-width:40px} .abox .aval{font-size:14px} .abox .aaddr{display:none} }
+  .xframe{border:1px solid var(--line); border-radius:var(--radius); margin:0 0 9px; overflow:hidden}
+  .xframe .xhead{display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:6px 10px; background:var(--wash); border-bottom:1px solid var(--line); font-size:14px}
+  .xframe .xlvl{font-size:12px; color:var(--ink-soft)}
+  .xframe .xbody{padding:7px 10px; font-size:13.5px}
+  .xframe .xfoot{padding:5px 10px; border-top:1px dashed var(--line); font-size:13px}
+  .xframe.x-open{border-color:var(--gold)}
+  .xframe.x-base{border-color:var(--teal); background:var(--teal-soft)}
+  .xframe.x-done{border-color:var(--ok)}
+  .xframe.x-done .xfoot{color:var(--ok)}
+  .reader .rhead{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; padding:8px 12px 4px}
+  .reader table{margin:0; font-size:13.5px; border:0}
+  .reader td{border:0; border-top:1px solid var(--line); padding:6px 12px;
+    font-family:"IBM Plex Mono",monospace}
+  .reader td:first-child{width:52px; font-weight:700; color:var(--gold)}
+  .reader td.what{color:var(--ink-soft); font-family:"Source Sans 3",sans-serif; font-size:13px}
+  .reader tr.deref td:first-child{color:var(--teal)}
+
+  /* ---- playground ---- */
+  .pgbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px}
+  .pggroup{display:flex; flex-wrap:wrap; align-items:center; gap:7px; min-width:0;
+    padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .pggroup .gl{font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; margin-right:2px}
+  .pggroup input{width:68px; max-width:100%; padding:5px 7px; font-size:13.5px}
+  .pgbtn{font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; padding:6px 11px;
+    border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:5px;
+    font-family:"IBM Plex Mono",monospace}
+  .pgbtn:hover:not(:disabled){border-color:var(--teal); color:var(--teal)}
+  .pgbtn:disabled{opacity:.38; cursor:not-allowed}
+  .pgbtn.go{background:var(--teal); border-color:var(--teal); color:#fff;
+    font-family:"Source Sans 3",sans-serif}
+  .pgbtn.go:hover:not(:disabled){filter:brightness(1.08); color:#fff}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:46px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+  .yn{display:flex; gap:12px; justify-content:center; padding:8px 0 16px}
+  .yn button{font:inherit; font-weight:700; font-size:16px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; padding:10px 28px; border-radius:var(--radius)}
+  .yn button.y:hover{border-color:var(--ok); background:#e4f4ec; color:var(--ok)}
+  .yn button.n:hover{border-color:var(--no); background:#fbe9e9; color:var(--no)}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 4 &rsaquo; Experiment 4.2</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Recursion against Iteration: Stack, Calls and Cost</h1>
+    <div class="sub">Unit 4 · Structured Iterations · 26 programs to explore · Estimated time: 80 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To solve the same problem both recursively and iteratively, and to measure what each one costs
+      &mdash; frames on the stack, function calls, loop passes and bytes of memory &mdash; rather than
+      arguing about which is better in the abstract.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Write a recursive and an iterative version of the same function and show that they give the
+        same answer.</li>
+        <li>Explain what a <strong>stack frame</strong> costs: its own copy of every parameter and local
+        variable, kept alive until the call returns.</li>
+        <li>Say why a recursive solution's memory grows with <code>n</code> while an iterative one's does
+        not.</li>
+        <li>Describe <strong>function call overhead</strong> &mdash; the work of making a call, beyond
+        the memory it uses.</li>
+        <li>Compare the memory behaviour of recursive and iterative factorial and Fibonacci, and explain
+        why recursive Fibonacci is in a different class of bad from recursive factorial.</li>
+        <li>Implement <strong>binary search</strong> both ways, count the recursive calls and the loop
+        passes, and explain why the counts are the same.</li>
+        <li>Choose between the two forms for a given problem and defend the choice.</li>
+      </ol>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+
+      <h3>The same answer, different cost</h3>
+      <p>Anything that can be written recursively can be written as a loop, and the other way round. They
+      are equally powerful. So the question is never "which one works" &mdash; it is <em>what each one
+      costs</em>, and that is something you can measure.</p>
+      <pre class="code">int fact(int n) {                        int factIter(int n) {
+    if (n == 0) return 1;                    int i, f = 1;
+    return n * fact(n - 1);                  for (i = 1; i &lt;= n; i = i + 1)
+}                                                f = f * i;
+                                             return f;
+                                         }</pre>
+
+      <h3>What a stack frame costs</h3>
+      <p>Every function call gets a <strong>stack frame</strong>: its own private space holding its
+      parameters, its local variables, and a note of where to go back to when it finishes. That frame
+      cannot be released while the call is still waiting for an answer.</p>
+      <p>So in <code>fact(6)</code>, at the deepest moment, seven frames exist at once &mdash; one for
+      each of 6, 5, 4, 3, 2, 1, 0 &mdash; plus <code>main</code>. The loop version keeps
+      <strong>one</strong> frame, however large <code>n</code> is.</p>
+      <table>
+        <tr><th>n</th><th>Recursive: frames at once</th><th>Iterative: frames at once</th></tr>
+        <tr><td>4</td><td>6</td><td>2</td></tr>
+        <tr><td>8</td><td>10</td><td>2</td></tr>
+        <tr><td>12</td><td>14</td><td>2</td></tr>
+        <tr><td>16</td><td>18</td><td>2</td></tr>
+      </table>
+      <p>That is the whole memory story in one table: one column grows with <code>n</code>, the other
+      does not. The Demo shows the live byte count beside every program, so this is measured rather than
+      asserted.</p>
+      <p class="note">Real stacks are finite &mdash; typically a few megabytes. A recursion a few
+      thousand levels deep will exhaust it and the program will be killed, an error called a
+      <em>stack overflow</em>. A loop cannot fail that way. This lab stops at 60 frames so you can see
+      the limit arrive safely.</p>
+
+      <h3>Function call overhead</h3>
+      <p>Memory is not the only cost. Making a call also takes <em>work</em>, every single time:</p>
+      <ul>
+        <li>the arguments are worked out and copied into the new frame,</li>
+        <li>the return address is saved,</li>
+        <li>control jumps to the function and later jumps back,</li>
+        <li>the frame is set up and then thrown away.</li>
+      </ul>
+      <p>A loop pass does almost none of that &mdash; it tests a condition and changes a counter. That is
+      what <strong>call overhead</strong> means: not that calls are slow in some mysterious way, but that
+      each one carries this small fixed bundle of work that a loop pass does not. The Demo counts calls
+      and loop passes separately so the two can be compared directly.</p>
+
+      <h3>Factorial: linear recursion</h3>
+      <p>Recursive factorial makes exactly <code>n + 1</code> calls and goes <code>n + 1</code> levels
+      deep. It is wasteful of memory compared with a loop, but only mildly so, and the recursive version
+      reads almost exactly like the mathematical definition. For small <code>n</code> it is a perfectly
+      reasonable choice.</p>
+
+      <h3>Fibonacci: a different kind of bad</h3>
+      <p>Recursive Fibonacci is <em>not</em> merely wasteful. Each call makes <strong>two</strong>
+      further calls, so the number of calls grows explosively, and the same small problems are solved
+      again and again:</p>
+      <table>
+        <tr><th>n</th><th>Recursive calls</th><th>Loop passes</th></tr>
+        <tr><td>5</td><td>15</td><td>4</td></tr>
+        <tr><td>10</td><td>177</td><td>9</td></tr>
+        <tr><td>15</td><td>1,973</td><td>14</td></tr>
+        <tr><td>20</td><td>21,891</td><td>19</td></tr>
+      </table>
+      <p>Note the difference from factorial. Recursive factorial uses more <em>memory</em> than the loop
+      but does the same amount of <em>work</em>. Recursive Fibonacci does an enormously greater amount of
+      work &mdash; <code>fib(20)</code> makes over twenty thousand calls where a loop makes nineteen
+      passes. Its stack depth, interestingly, stays modest at about <code>n</code>; it is the
+      <strong>number of calls</strong> that explodes, not the depth.</p>
+      <p class="note">So "recursion is slower" is too blunt a statement. Recursive factorial is slower
+      than its loop by a small constant factor. Recursive Fibonacci is slower by a factor that grows
+      without limit. The reason is not recursion itself but <strong>repeated work</strong>: the same
+      <code>fib(3)</code> is computed over and over because nothing remembers the answer.</p>
+
+      <h3>Binary search: the fair comparison</h3>
+      <p>Binary search is the honest case, where recursion and iteration cost almost the same. Each step
+      halves the range, so both versions take about log&#8322;n steps:</p>
+      <pre class="code">recursive                                iterative
+if (low &gt; high) return -1;               while (low &lt;= high) {
+mid = (low + high) / 2;                      mid = (low + high) / 2;
+if (a[mid] == key) return mid;               if (a[mid] == key) return mid;
+if (a[mid] &lt; key)                            if (a[mid] &lt; key) low = mid + 1;
+    return search(a, mid+1, high, key);      else high = mid - 1;
+return search(a, low, mid-1, key);       }
+                                         return -1;</pre>
+      <table>
+        <tr><th>Array size</th><th>Steps needed, at worst</th></tr>
+        <tr><td>9</td><td>4</td></tr>
+        <tr><td>100</td><td>7</td></tr>
+        <tr><td>1,000</td><td>10</td></tr>
+        <tr><td>1,000,000</td><td>20</td></tr>
+      </table>
+      <p>Because the depth stays so small &mdash; twenty frames to search a million items &mdash; the
+      recursive version's memory cost is negligible here. This is the case where you may reasonably
+      choose recursion for readability. The Demo prints both counts so you can confirm they match.</p>
+      <p class="note">One small asymmetry worth noticing. When the key is <strong>not</strong> present,
+      the recursive version makes one <em>extra</em> call: the call that discovers <code>low &gt;
+      high</code> and returns &minus;1. The iterative version simply finds its condition false and never
+      enters the body again. The Demo shows both counts side by side so students can spot this
+      themselves rather than being told.</p>
+
+      <h3>Counting with a global</h3>
+      <p>To print how many calls were made, the count has to survive across all of them. A variable
+      declared <strong>outside every function</strong> does exactly that &mdash; it is created before
+      <code>main</code> starts, lives until the program ends, and every function can see it:</p>
+      <pre class="code">int calls = 0;        /* outside every function, so every function shares it */
+
+int fact(int n) {
+    calls = calls + 1;
+    ...
+}</pre>
+      <p>The Demo draws these in a separate dashed block, apart from the stack, because that is exactly
+      what they are: not part of any frame, and not thrown away when a function returns.</p>
+      <p class="note">Globals are used sparingly in real programs, because anything can change them and
+      it becomes hard to see who did. For counting calls in a teaching program they are the clearest
+      tool; for passing data between functions, parameters and return values are better.</p>
+
+      <h3>Choosing between them</h3>
+      <table>
+        <tr><th>Prefer recursion when</th><th>Prefer a loop when</th></tr>
+        <tr><td>The problem is defined on a smaller version of itself</td><td>The work is plain repetition</td></tr>
+        <tr><td>The depth stays small (binary search, tree work)</td><td>The depth would grow with the data</td></tr>
+        <tr><td>The recursive version is markedly clearer</td><td>Memory or speed actually matters</td></tr>
+      </table>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <ol>
+        <li>Read the Theory, especially the table of frames at once for each <code>n</code>.</li>
+        <li>Attempt the <strong>Pretest</strong> before looking anything up.</li>
+        <li>Open the <strong>Demo</strong> at <em>Factorial, both ways</em>. Run the recursive version
+        and watch the frames pile up in the memory panel, then the iterative one and watch that it never
+        goes past two. The panel beside it counts frames, calls, loop passes and bytes.</li>
+        <li>Raise <code>n</code> and watch the recursive byte count rise while the iterative one does
+        not move. Note the exact numbers at n = 4, 8 and 12.</li>
+        <li>Move to <em>Fibonacci, both ways</em>. Run the recursive version at n = 5, then 8, then 12,
+        and watch the <strong>call count</strong> rather than the depth. Compare with the loop.</li>
+        <li>In <em>Binary search</em>, search for a key that is present and note that both counts agree.
+        Then search for one that is absent and find the extra recursive call.</li>
+        <li>In <em>Palindrome and power</em>, work through both versions of each.</li>
+        <li>Run <em>A recursion too deep</em> and read what happens when the stack runs out.</li>
+        <li>Use the <strong>Explorer</strong> to set <code>n</code> and see the two costs side by side in
+        one table, for each of the four problems.</li>
+        <li>Work through the <strong>Practice</strong> section in both modes.</li>
+        <li>Attempt the <strong>Posttest</strong> and compare it with your pretest score.</li>
+      </ol>
+      <p class="note">Everything runs inside this page. Nothing is installed and nothing is sent
+      anywhere.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p>Five questions before you begin.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <span class="score" id="pre-score"></span>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program. Change the values at the top and the program
+      runs again with your numbers. The panel under Memory counts what the program is costing as it
+      runs: frames, calls, loop passes and bytes of stack. Global variables are drawn in a dashed block,
+      apart from the stack.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-end">Skip to the end</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="950" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div class="card">
+          <h4>Memory <span class="r" id="d-depth"></span></h4>
+          <div class="memwrap" id="d-stack"></div>
+          <div class="reader" id="d-reader"></div>
+        </div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin.</div>
+      </div>
+    </section>
+
+    <!-- EXPLORER -->
+    <section id="playground">
+      <h2>Explorer</h2>
+      <p>Pick a problem and a size, and see what each approach costs, measured by actually running both.
+      Nothing here is estimated.</p>
+
+      <div class="controls">
+        <label class="note">Problem <select id="x-fn">
+          <option value="fact">factorial(n)</option>
+          <option value="fib">fibonacci(n)</option>
+          <option value="power">power(2, n)</option>
+          <option value="search">binary search in n sorted values</option>
+        </select></label>
+        <label class="note">n <input type="number" id="x-n" value="8" min="0" max="18" style="width:72px"></label>
+        <button class="btn" id="x-run">Measure both</button>
+        <button class="btn ghost" id="x-reset">Clear</button>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Side by side</h4>
+          <div class="reader" id="x-table"></div>
+        </div>
+        <div class="card">
+          <h4>How it grows</h4>
+          <div class="reader" id="x-grow"></div>
+        </div>
+      </div>
+
+      <div class="obs">
+        <h4>What this means</h4>
+        <div class="obsbody" id="x-obs">Choose a problem and a size, then press Measure both.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+      <p>Two kinds of question, with fresh values every time. The answers are worked out by running the
+      program, so they are always right.</p>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="change">Count the cost</button>
+      </div>
+
+      <div id="mode-predict">
+        <div class="card">
+          <h4>Predict the output</h4>
+          <div class="controls">
+            <label class="note">Concept <select id="pp-concept"></select></label>
+            <button class="btn" id="pp-new">New question</button>
+          </div>
+          <pre class="code" id="pp-code"></pre>
+          <div class="opts" id="pp-opts"></div>
+          <div class="controls">
+            <button class="btn" id="pp-check">Check</button>
+            <button class="btn ghost" id="pp-show" disabled>Show me the cost</button>
+          </div>
+          <div class="obs"><h4>Result</h4><div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div></div>
+          <p class="note">Right <span class="score" id="pp-right">0</span> of
+          <span class="score" id="pp-tries">0</span> · streak <span class="score" id="pp-streak">0</span></p>
+        </div>
+      </div>
+
+      <div id="mode-change" style="display:none">
+        <div class="card">
+          <h4>Count the cost</h4>
+          <div class="controls">
+            <button class="btn" id="pc-new">New question</button>
+          </div>
+          <pre class="code" id="pc-code"></pre>
+          <p id="pc-q"></p>
+          <div class="opts" id="pc-opts"></div>
+          <div class="controls">
+            <button class="btn" id="pc-check">Check</button>
+          </div>
+          <div class="obs"><h4>Result</h4><div class="obsbody" id="pc-obs">Choose an answer and press Check.</div></div>
+          <p class="note">Right <span class="score" id="pc-right">0</span> of
+          <span class="score" id="pc-tries">0</span> · streak <span class="score" id="pc-streak">0</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <p>Ten questions. Attempt these after finishing the Demo, the Explorer and the Practice section.</p>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <span class="score" id="post-score"></span>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M. <em>The C Programming Language</em>, 2nd edition.
+        Prentice Hall, 1988. Section 4.10 on recursion and Section 4.11 on scope and storage.</li>
+        <li>Balagurusamy, E. <em>Programming in ANSI C</em>, 8th edition. McGraw Hill Education, 2019.
+        Chapter 9, Functions, and Chapter 7 on searching.</li>
+        <li>Gottfried, B. S. <em>Schaum's Outline of Programming with C</em>, 3rd edition. McGraw Hill,
+        2018. Chapters 7 and 8.</li>
+        <li>Reema Thareja. <em>Programming in C</em>, 2nd edition. Oxford University Press, 2016.
+        Chapter 10, including the comparison of recursion with iteration.</li>
+        <li>ISO/IEC 9899:2018, <em>Information technology &mdash; Programming languages &mdash; C</em>,
+        clause 6.2.4 on storage durations, which defines the automatic storage of a function's locals
+        and the static storage of variables declared outside every function.</li>
+      </ol>
+      <p class="note">The step-by-step execution in this page is produced by a C interpreter written for
+      this lab. Each call is given its own frame holding its parameters and locals; the byte figures
+      count four bytes per <code>int</code> or <code>float</code> and one per <code>char</code>, summed
+      over the live frames. They are therefore a faithful measure of the variables a real program would
+      hold, though a real compiler also stores a return address and may align frames, so an actual frame
+      is somewhat larger than the figure shown.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Experiment design and content</th><td>Dr. Jeba Sonia J, Department of Computer Science
+        and Engineering, SRM Institute of Science and Technology, Kattankulathur</td></tr>
+        <tr><th>Course</th><td>26CSE1002J &mdash; Programming for Problem Solving</td></tr>
+        <tr><th>Unit</th><td>Unit 4 &mdash; Structured Iterations</td></tr>
+        <tr><th>Experiment</th><td>4.2 &mdash; Recursion against Iteration: Stack, Calls and Cost</td></tr>
+      </table>
+      <p class="note">Reviewers, student testers and co-developers are added here as the lab is used in
+      class.</p>
+    </section>
+  </main>
+</div>
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", playground:"Explorer", practice:"Practice", posttest:"Posttest",
+  references:"References", contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   VALUES AND TYPES
+   ============================================================ */
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  if(type==="float"){dv.setFloat32(0,v,true); return dv.getFloat32(0,true);}
+  return v;                                   /* pointers keep their address */
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function hexAddr(a){return "0x"+(a>>>0).toString(16).toUpperCase();}
+function isPtr(t){return typeof t==="string" && t.indexOf("*")>=0;}
+function isArrType(t){return typeof t==="string" && /\[\d*\]$/.test(t);}
+function elemOf(t){const m=String(t).match(/^([A-Za-z]+)\s*\[/); return m?m[1]:String(t).replace(/\s*\*$/,"");}
+function sizeOf(t){return elemOf(t)==="char"?1:4;}
+function strAt(readAddr,addr,esize){
+  let s="", a=addr;
+  for(let k=0;k<4096;k++){
+    const c=readAddr(a);
+    if(!c) break;
+    if(Number(c.value)===0) return s;
+    s+=String.fromCharCode(Number(c.value));
+    a+=esize;
+  }
+  return s;
+}
+function showVal(type,v){
+  if(v===null||v===undefined) return null;
+  if(isPtr(type)) return hexAddr(v);
+  if(type==="char"){ const p=v>=32&&v<=126; return p?`'${String.fromCharCode(v)}'`:String(v); }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ============================================================
+   EXPRESSION ENGINE
+   Arithmetic, comparisons, logic, casts, & (address of) and * (value at)
+   ============================================================ */
+const LEVEL={"||":1,"&&":2,"==":3,"!=":3,"<":4,">":4,"<=":4,">=":4,
+             "+":5,"-":5,"*":6,"/":6,"%":6};
+const TYPES=["int","float","char"];
+
+const ESCAPES={"0":"\u0000","n":"\n","t":"\t","\\":"\\","'":"'",'"':'"'};
+function xtok(src){
+  const t=[]; let i=0;
+  const unaryHere=()=>{
+    const p=t[t.length-1];
+    return !p || p.k==="op" || p.k==="not" || p.k==="addr" || p.k==="deref" ||
+           p.k==="cast" || (p.k==="paren"&&p.v==="(");
+  };
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const two=src.substr(i,2);
+    if(["==","!=","<=",">=","&&","||"].includes(two)){t.push({k:"op",v:two}); i+=2; continue;}
+    if(c==="&"&&/[A-Za-z_]/.test(src[i+1]||"")&&unaryHere()){t.push({k:"addr"}); i++; continue;}
+    if(c==="*"&&unaryHere()){t.push({k:"deref"}); i++; continue;}
+    if("<>+-*/%".includes(c)){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="!"){t.push({k:"not"}); i++; continue;}
+    if(c==="?"||c===":"){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="("){
+      const m=src.slice(i).match(/^\(\s*(int|float|char)\s*\)/);
+      if(m){t.push({k:"cast",to:m[1]}); i+=m[0].length; continue;}
+      t.push({k:"paren",v:"("}); i++; continue;
+    }
+    if(c===")"){t.push({k:"paren",v:")"}); i++; continue;}
+    if(c==="["){t.push({k:"brk",v:"["}); i++; continue;}
+    if(c==="]"){t.push({k:"brk",v:"]"}); i++; continue;}
+    if(c==="@"){
+      const m=src.slice(i).match(/^@(-?\d+)@/);
+      if(!m) throw new Error("Bad internal address");
+      t.push({k:"lit",type:"char *",v:parseInt(m[1],10),txt:"address"}); i+=m[0].length; continue;
+    }
+    if(c==='"'){
+      let j=i+1, s="";
+      while(j<src.length && src[j]!=='"'){
+        if(src[j]==="\\"){ s+=ESCAPES[src[j+1]]!==undefined?ESCAPES[src[j+1]]:src[j+1]; j+=2; }
+        else { s+=src[j]; j++; }
+      }
+      if(src[j]!=='"') throw new Error("A string is missing its closing quote");
+      t.push({k:"str",v:s}); i=j+1; continue;
+    }
+    if(c==="'"){
+      if(src[i+1]==="\\"){
+        const e=src[i+2];
+        if(src[i+3]!=="'") throw new Error("Bad character literal");
+        const code=ESCAPES[e]!==undefined?ESCAPES[e].charCodeAt(0):e.charCodeAt(0);
+        t.push({k:"lit",type:"char",v:code,txt:"'\\"+e+"'"}); i+=4; continue;
+      }
+      const ch=src[i+1];
+      if(src[i+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"lit",type:"char",v:ch.charCodeAt(0),txt:"'"+ch+"'"}); i+=3; continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i; while(j<src.length&&/[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      t.push({k:"lit",type:lit.includes(".")?"float":"int",v:parseFloat(lit),txt:lit});
+      i=j; continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j])) j++;
+      t.push({k:"id",name:src.slice(i,j)}); i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty expression");
+  return t;
+}
+function xparse(t){
+  let p=0;
+  function primary(){
+    const x=t[p];
+    if(!x) throw new Error("Unexpected end of expression");
+    if(x.k==="not"){p++; return {op:"!",a:primary()};}
+    if(x.k==="addr"){p++; return {op:"addr",a:primary()};}
+    if(x.k==="deref"){p++; return {op:"deref",a:primary()};}
+    if(x.k==="cast"){p++; return {op:"cast",to:x.to,a:primary()};}
+    if(x.k==="op"&&x.v==="-"){p++; return {op:"neg",a:primary()};}
+    if(x.k==="paren"&&x.v==="("){
+      p++; const e=cond();
+      if(!t[p]||t[p].v!==")") throw new Error("Missing )");
+      p++; return e;
+    }
+    p++;
+    let base;
+    if(x.k==="lit") base={lit:x};
+    else if(x.k==="str") base={str:x.v};
+    else if(x.k==="id") base={id:x.name};
+    else throw new Error("Unexpected token in expression");
+    while(t[p]&&t[p].k==="brk"&&t[p].v==="["){
+      p++; const ix=cond();
+      if(!t[p]||t[p].v!=="]") throw new Error("Missing ] after an index");
+      p++; base={op:"index",a:base,i:ix};
+    }
+    return base;
+  }
+  function expr(min){
+    let left=primary();
+    while(t[p]&&t[p].k==="op"&&LEVEL[t[p].v]>=min){
+      const o=t[p].v; p++;
+      left={op:o,a:left,b:expr(LEVEL[o]+1)};
+    }
+    return left;
+  }
+  /* the conditional operator sits below every other level and groups to the right */
+  function cond(){
+    const c=expr(1);
+    if(t[p]&&t[p].k==="op"&&t[p].v==="?"){
+      p++; const a=cond();
+      if(!t[p]||!(t[p].k==="op"&&t[p].v===":"))
+        throw new Error("A ? needs a matching : in the same expression");
+      p++; const b=cond();
+      return {op:"?:",c:c,a:a,b:b};
+    }
+    return c;
+  }
+  const e=cond();
+  if(p!==t.length) throw new Error("Malformed expression");
+  return e;
+}
+/* ctx: {get(name), addrOf(name), readAddr(addr)} */
+function evalAst(n,ctx){
+  if(n.lit) return {v:n.lit.v,type:n.lit.type};
+  if(n.str!==undefined) return {v:n.str, type:"string literal"};
+  if(n.id!==undefined){
+    const v=ctx.get(n.id);
+    if(!v) throw new Error("Unknown variable: "+n.id);
+    if(isArrType(v.type)){                      /* an array name on its own is the address of a[0] */
+      if(v.dim===2) return {v:v.addr, type:elemOf(v.type)+" *", arrName:n.id,
+                            dim2:true, rows:v.rows, cols:v.cols, elem:v.elem};
+      return {v:v.addr, type:elemOf(v.type)+" *", arrName:n.id};
+    }
+    if(v.value===null||v.value===undefined) throw new Error(n.id+" has no value yet");
+    return {v:v.value,type:v.type};
+  }
+  if(n.op==="index"){
+    const base=evalAst(n.a,ctx);
+    const i=Math.trunc(evalAst(n.i,ctx).v);
+    if(!isPtr(base.type))
+      throw new Error("square brackets need an array or a pointer in front of them");
+    if(base.dim2){                              /* m[i] picks out row i of the matrix */
+      if(i<0||i>=base.rows) throw new Error("ROW:"+base.arrName+":"+i+":"+base.rows);
+      return {v: base.v + i*base.cols*sizeOf(base.elem), type: base.elem+" *",
+              rowOf:i, cols:base.cols, rowOwner:base.arrName, inRow:true};
+    }
+    if(base.inRow && (i<0||i>=base.cols))
+      throw new Error("COL:"+base.rowOwner+":"+base.rowOf+":"+i+":"+base.cols);
+    const et=elemOf(base.type), sz=sizeOf(et);
+    if(base.arrName){
+      const arr=ctx.get(base.arrName), len=arr.value.length;
+      if(i<0||i>=len)
+        throw new Error("INDEX:"+base.arrName+":"+i+":"+len);
+    }
+    const cell=ctx.readAddr(base.v+i*sz);
+    if(!cell) throw new Error("index "+i+" is outside the memory this program owns");
+    return {v:cell.value, type:cell.type};
+  }
+  if(n.op==="addr"){
+    if(n.a.op==="index"){
+      const base=evalAst(n.a.a,ctx);
+      const i=Math.trunc(evalAst(n.a.i,ctx).v);
+      if(!isPtr(base.type)) throw new Error("& needs a variable or an array element after it");
+      if(base.dim2) return {v:base.v+i*base.cols*sizeOf(base.elem), type:base.elem+" *"};
+      return {v:base.v+i*sizeOf(elemOf(base.type)), type:elemOf(base.type)+" *"};
+    }
+    if(n.a.id===undefined) throw new Error("& needs a variable name after it");
+    const av=ctx.get(n.a.id);
+    if(!av) throw new Error("Unknown variable: "+n.a.id);
+    return {v:ctx.addrOf(n.a.id), type:(isArrType(av.type)?elemOf(av.type):av.type)+" *"};
+  }
+  if(n.op==="deref"){
+    const a=evalAst(n.a,ctx);
+    if(!isPtr(a.type)) throw new Error("* can only be used on a pointer");
+    const cell=ctx.readAddr(a.v);
+    if(!cell) throw new Error("this pointer does not point at a live variable");
+    return {v:cell.value, type:cell.type};
+  }
+  if(n.op==="cast"){
+    const a=evalAst(n.a,ctx);
+    return {v:fitToType(n.to,a.v), type:n.to};
+  }
+  if(n.op==="neg"){const a=evalAst(n.a,ctx); return {v:-a.v,type:a.type};}
+  if(n.op==="!"){const a=evalAst(n.a,ctx); return {v:a.v?0:1,type:"int"};}
+  if(n.op==="?:"){
+    /* only the branch that is chosen is worked out at all */
+    return evalAst(n.c,ctx).v ? evalAst(n.a,ctx) : evalAst(n.b,ctx);
+  }
+  if(n.op==="&&"){const a=evalAst(n.a,ctx); if(!a.v) return {v:0,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  if(n.op==="||"){const a=evalAst(n.a,ctx); if(a.v) return {v:1,type:"int"};
+    return {v: evalAst(n.b,ctx).v?1:0, type:"int"};}
+  const a=evalAst(n.a,ctx), b=evalAst(n.b,ctx);
+  if((n.op==="+"||n.op==="-") && (isPtr(a.type)!==isPtr(b.type))){
+    const ptr=isPtr(a.type)?a:b, num=isPtr(a.type)?b:a;
+    if(n.op==="-"&&!isPtr(a.type)) throw new Error("a number minus a pointer has no meaning in C");
+    const step=sizeOf(elemOf(ptr.type))*Math.trunc(num.v);
+    return {v: n.op==="+" ? ptr.v+step : ptr.v-step, type:ptr.type, arrName:ptr.arrName};
+  }
+  if(n.op==="-" && isPtr(a.type) && isPtr(b.type))
+    return {v:(a.v-b.v)/sizeOf(elemOf(a.type)), type:"int"};
+  const bothInt = a.type!=="float" && b.type!=="float";
+  const type=bothInt?"int":"float";
+  switch(n.op){
+    case "+": return {v:a.v+b.v,type};
+    case "-": return {v:a.v-b.v,type};
+    case "*": return {v:a.v*b.v,type};
+    case "/":
+      if(b.v===0) throw new Error("Division by zero");
+      return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
+    case "%":
+      if(!bothInt) throw new Error("% needs whole numbers");
+      if(b.v===0) throw new Error("Modulus by zero");
+      return {v:a.v%b.v,type:"int"};
+    case "==": return {v:a.v===b.v?1:0,type:"int"};
+    case "!=": return {v:a.v!==b.v?1:0,type:"int"};
+    case "<":  return {v:a.v<b.v?1:0,type:"int"};
+    case ">":  return {v:a.v>b.v?1:0,type:"int"};
+    case "<=": return {v:a.v<=b.v?1:0,type:"int"};
+    case ">=": return {v:a.v>=b.v?1:0,type:"int"};
+  }
+  throw new Error("Unknown operator "+n.op);
+}
+
+/* ============================================================
+   PARSER
+   ============================================================ */
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){
+      if(c==="("||c==="["||c==="{") d++;
+      if(c===")"||c==="]"||c==="}") d--;
+      if(c===","&&d===0){out.push(cur); cur=""; continue;}
+    }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+function splitSemis(s){
+  const out=[]; let d=0,q=false,cur="";
+  for(const ch of s){
+    if(ch==='"'){ q=!q; cur+=ch; continue; }
+    if(!q){
+      if(ch==="(") d++;
+      else if(ch===")") d--;
+      else if(ch===";"&&d===0){ cur=cur.trim(); if(cur) out.push(cur+";"); cur=""; continue; }
+    }
+    cur+=ch;
+  }
+  if(cur.trim()) out.push(cur.trim());
+  return out;
+}
+function matchBrace(lines,start,end){
+  let depth=0;
+  for(let i=start;i<end;i++){
+    let q=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ q=!q; continue; }
+      if(q) continue;
+      if(ch==="{") depth++;
+      else if(ch==="}" && i>start){ depth--; if(depth===0) return i; }
+    }
+  }
+  return end-1;
+}
+function parseParams(s){
+  s=s.trim();
+  if(s===""||s==="void") return [];
+  return splitTop(s).map(p=>{
+    let q=p.trim();
+    const arr=q.match(/^(int|float|char)\s+([A-Za-z_]\w*)\s*\[\s*\]$/);
+    if(arr) return {type:arr[1]+" *", name:arr[2], asArray:true};
+    const m=q.match(/^(int|float|char)\s*(\*?)\s*([A-Za-z_]\w*)$/);
+    if(!m) throw new Error("Cannot understand the parameter: "+q);
+    return {type:m[1]+(m[2]?" *":""), name:m[3]};
+  });
+}
+function parseSimple(s,i,out){
+  let m;
+  if((m=s.match(/^break\s*;$/))){ out.push({kind:"break",line:i}); return true; }
+  if((m=s.match(/^continue\s*;$/))){ out.push({kind:"continue",line:i}); return true; }
+  if((m=s.match(/^return\s*;$/))){ out.push({kind:"return",line:i,expr:null}); return true; }
+  if((m=s.match(/^return\s+(.+);$/))){ out.push({kind:"return",line:i,expr:m[1].trim()}); return true; }
+  if((m=s.match(/^(int|float|char)\s+([A-Za-z_]\w*)\s*\[\s*(\d*)\s*\]\s*\[\s*(\d+)\s*\]\s*(=\s*(.+))?;$/))){
+    out.push({kind:"arr2decl",line:i,elem:m[1],name:m[2],
+              rows:m[3]===""?null:parseInt(m[3],10), cols:parseInt(m[4],10),
+              init:m[6]?m[6].trim():null});
+    return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*\[(.+?)\]\s*\[(.+?)\]\s*=\s*(.+);$/))){
+    out.push({kind:"store2",line:i,name:m[1],r:m[2].trim(),c:m[3].trim(),expr:m[4].trim()});
+    return true;
+  }
+  if((m=s.match(/^(int|float|char)\s+([A-Za-z_]\w*)\s*\[\s*(\d*)\s*\]\s*(=\s*(.+))?;$/))){
+    out.push({kind:"arrdecl",line:i,elem:m[1],name:m[2],
+              size:m[3]===""?null:parseInt(m[3],10), init:m[5]?m[5].trim():null});
+    return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*\[(.+)\]\s*=\s*(.+);$/))){
+    out.push({kind:"storeIdx",line:i,name:m[1],idx:m[2].trim(),expr:m[3].trim()}); return true;
+  }
+  if((m=s.match(/^\*\s*\(\s*([A-Za-z_]\w*)\s*\+\s*(.+?)\s*\)\s*=\s*(.+);$/))){
+    out.push({kind:"storeOffset",line:i,ptr:m[1],off:m[2].trim(),expr:m[3].trim()}); return true;
+  }
+  if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+    const base=m[1];
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      let ptr=false;
+      if(part.startsWith("*")){ ptr=true; part=part.slice(1).trim(); }
+      const eq=part.indexOf("=");
+      const type=base+(ptr?" *":"");
+      if(eq<0) out.push({kind:"decl",line:i,type,name:part.trim(),init:null});
+      else out.push({kind:"decl",line:i,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+    });
+    return true;
+  }
+  if((m=s.match(/^printf\((.*)\);$/))){
+    const args=splitTop(m[1]);
+    out.push({kind:"printf",line:i,fmt:args[0].trim().replace(/^"|"$/g,""),
+              args:args.slice(1).map(a=>a.trim())});
+    return true;
+  }
+  if((m=s.match(/^\*\s*([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"storeVia",line:i,ptr:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+    out.push({kind:"assign",line:i,name:m[1],expr:m[2].trim()}); return true;
+  }
+  if((m=s.match(/^([A-Za-z_]\w*)\s*\((.*)\)\s*;$/))){
+    out.push({kind:"callStmt",line:i,name:m[1],args:m[2]}); return true;
+  }
+  return false;
+}
+function parseBlock(lines,i,end){
+  const out=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")||s==="}"){i++; continue;}
+    let m=s.match(/^for\s*\((.+?)\)\s*\{\s*(.+;)\s*\}$/);
+    if(m){
+      const parts=m[1].split(";");
+      if(parts.length!==3) throw new Error("A for loop needs three parts: for (start; test; step)");
+      const inner=[];
+      splitSemis(m[2]).forEach(st=>{
+        if(!parseSimple(st,i,inner))
+          throw new Error("Cannot understand what is inside the braces on line "+(i+1));
+      });
+      out.push({kind:"for",line:i,init:parts[0].trim(),cond:parts[1].trim(),
+                update:parts[2].trim(),body:inner,endLine:i});
+      i++; continue;
+    }
+    m=s.match(/^while\s*\((.+?)\)\s*\{\s*(.+;)\s*\}$/);
+    if(m){
+      const inner=[];
+      splitSemis(m[2]).forEach(st=>{
+        if(!parseSimple(st,i,inner))
+          throw new Error("Cannot understand what is inside the braces on line "+(i+1));
+      });
+      out.push({kind:"while",line:i,cond:m[1].trim(),body:inner,endLine:i});
+      i++; continue;
+    }
+    m=s.match(/^for\s*\((.+)\)\s*\{$/);
+    if(m){
+      const parts=m[1].split(";");
+      if(parts.length!==3) throw new Error("A for loop needs three parts: for (start; test; step)");
+      const close=matchBrace(lines,i,end);
+      out.push({kind:"for",line:i,init:parts[0].trim(),cond:parts[1].trim(),
+                update:parts[2].trim(),body:parseBlock(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    if(s==="do {"||s==="do{"){
+      const close=matchBrace(lines,i,end);
+      const tail=lines[close].replace(/\/\*.*?\*\//g,"").trim();
+      const wm=tail.match(/^\}\s*while\s*\((.+)\)\s*;$/);
+      if(!wm) throw new Error("A do loop must finish with }  while (test);  on one line");
+      out.push({kind:"dowhile",line:i,cond:wm[1].trim(),
+                body:parseBlock(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    m=s.match(/^while\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      out.push({kind:"while",line:i,cond:m[1].trim(),
+                body:parseBlock(lines,i+1,close),endLine:close});
+      i=close+1; continue;
+    }
+    m=s.match(/^if\s*\((.+?)\)\s*\{\s*(.+?;)\s*\}\s*else\s*\{\s*(.+?;)\s*\}$/);
+    if(m){
+      const thenB=[], elseB=[];
+      splitSemis(m[2]).forEach(st=>{ if(!parseSimple(st,i,thenB))
+        throw new Error("Cannot understand what is inside the if braces on line "+(i+1)); });
+      splitSemis(m[3]).forEach(st=>{ if(!parseSimple(st,i,elseB))
+        throw new Error("Cannot understand what is inside the else braces on line "+(i+1)); });
+      out.push({kind:"if",line:i,branches:[{line:i,cond:m[1],body:thenB}],
+                else:{line:i,body:elseB}});
+      i++; continue;
+    }
+    m=s.match(/^if\s*\((.+?)\)\s*\{\s*(.+;)\s*\}$/);
+    if(m){
+      const inner=[];
+      splitSemis(m[2]).forEach(st=>{
+        if(!parseSimple(st,i,inner))
+          throw new Error("Cannot understand what is inside the braces on line "+(i+1));
+      });
+      out.push({kind:"if",line:i,branches:[{line:i,cond:m[1],body:inner}],else:null});
+      i++; continue;
+    }
+    /* an if written without braces: the statement sits on the same line or the
+       one below, and any else-if or else that follow are read the same way */
+    m=s.match(/^if\s*\((.+)\)\s*$/) || s.match(/^if\s*\((.+)\)\s*([^{].*;)\s*$/);
+    if(m){
+      const mixed=(ln)=>new Error("Line "+(ln+1)+" puts braces on one branch of this if and not "+
+        "on another. Put braces on every branch, or leave them off every branch.");
+      const readBody=(txt,ln)=>{
+        const body=[];
+        if(txt!==undefined && String(txt).trim()!==""){
+          splitSemis(String(txt).trim()).forEach(st=>{ if(!parseSimple(st,ln,body))
+            throw new Error("Cannot understand the statement on line "+(ln+1)); });
+          return {body:body, next:ln+1};
+        }
+        const nl=(lines[ln+1]||"").replace(/\/\*.*?\*\//g,"").trim();
+        if(nl===""||nl.charAt(0)==="{") throw mixed(ln+1);
+        if(!parseSimple(nl,ln+1,body))
+          throw new Error("Cannot understand the statement on line "+(ln+2));
+        return {body:body, next:ln+2};
+      };
+      const node={kind:"if",line:i,branches:[],else:null};
+      let r=readBody(m[2],i);
+      node.branches.push({line:i,cond:m[1],body:r.body});
+      let j=r.next;
+      while(j<end){
+        const t=(lines[j]||"").replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^else\s+if\s*\((.+)\)\s*$/) ||
+               t.match(/^else\s+if\s*\((.+)\)\s*([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[2],j);
+          node.branches.push({line:j,cond:em[1],body:r.body});
+          j=r.next; continue;
+        }
+        em=t.match(/^else\s*$/) || t.match(/^else\s+([^{].*;)\s*$/);
+        if(em){
+          r=readBody(em[1],j);
+          node.else={line:j,body:r.body};
+          j=r.next; break;
+        }
+        if(/^else\b/.test(t)) throw mixed(j);
+        break;
+      }
+      out.push(node); i=j; continue;
+    }
+    m=s.match(/^if\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      const node={kind:"if",line:i,
+        branches:[{line:i,cond:m[1],body:parseBlock(lines,i+1,close)}], else:null};
+      let j=close;
+      while(j<end){
+        const t=lines[j].replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^\}\s*else\s+if\s*\((.+)\)\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.branches.push({line:j,cond:em[1],body:parseBlock(lines,j+1,c2)});
+          j=c2; continue;
+        }
+        em=t.match(/^\}\s*else\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.else={line:j,body:parseBlock(lines,j+1,c2)};
+          j=c2;
+        }
+        break;
+      }
+      out.push(node); i=j+1; continue;
+    }
+    if(!parseSimple(s,i,out)) throw new Error("Cannot parse line "+(i+1)+": "+s);
+    i++;
+  }
+  return out;
+}
+/* blank out block comments, keeping one line per line so line numbers still match */
+function stripComments(lines){
+  const out=[]; let open=false;
+  for(const raw of lines){
+    let s="", i=0;
+    while(i<raw.length){
+      if(!open && raw[i]==="/" && raw[i+1]==="*"){ open=true; i+=2; continue; }
+      if(open && raw[i]==="*" && raw[i+1]==="/"){ open=false; i+=2; continue; }
+      s += open ? " " : raw[i];
+      i++;
+    }
+    out.push(open||s.trim()==="" ? (open?"":s) : s);
+  }
+  return out;
+}
+function parseFunctions(lines){
+  const fns={}; const globals=[]; let i=0;
+  while(i<lines.length){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")){i++; continue;}
+    const m=s.match(/^(int|float|char|void)\s*(\*?)\s*([A-Za-z_]\w*)\s*\((.*)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,lines.length);
+      fns[m[3]]={name:m[3], retType:m[1]+(m[2]?" *":""), params:parseParams(m[4]),
+                 body:parseBlock(lines,i+1,close), line:i, endLine:close};
+      i=close+1; continue;
+    }
+    /* anything else at this level is a global declaration */
+    const g=[];
+    if(parseSimple(s,i,g)){
+      g.forEach(st=>{ if(st.kind==="decl"||st.kind==="arrdecl"||st.kind==="arr2decl") globals.push(st);
+                      else throw new Error("Only declarations are allowed outside a function (line "+(i+1)+")"); });
+    }else throw new Error("Cannot understand line "+(i+1)+" outside any function: "+s);
+    i++;
+  }
+  if(!fns.main) throw new Error("This program has no main function");
+  fns.__globals=globals;
+  return fns;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="\\"&&fmt[i+1]==="t"){out+="    "; i++; continue;}
+    if(fmt[i]==="\\"&&fmt[i+1]==='"'){out+='"'; i++; continue;}
+    if(fmt[i]==="\\"&&fmt[i+1]==="\\"){out+="\\"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(-?)(\d+)?(\.\d+)?([dfcs%])/);
+      if(m){
+        if(m[4]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        let piece;
+        if(m[4]==="d") piece=String(Math.trunc(v.v));
+        else if(m[4]==="s") piece=(typeof v.v==="string"?v.v:(v.text!==undefined?v.text:""));
+        else if(m[4]==="c") piece=String.fromCharCode(((Math.trunc(v.v)%256)+256)%256); /* %c converts to unsigned char, so -56 writes byte 200 */
+        else piece=Number(v.v).toFixed(m[3]?parseInt(m[3].slice(1)):6);
+        const width=m[2]?parseInt(m[2],10):0;
+        if(width>piece.length) piece = m[1]==="-" ? piece+" ".repeat(width-piece.length)
+                                                 : " ".repeat(width-piece.length)+piece;
+        out+=piece;
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+
+/* ============================================================
+   MACHINE — frames, calls, pointers
+   ============================================================ */
+const GLOBAL_TOP=0x6010, STACK_TOP=0x7FF0, MAX_DEPTH=60, MAX_STEPS=6000, MAX_LOOPS=20000, MAX_PASSES=250;
+function Machine(lines){
+  this.lines=lines;                       /* kept as written, for showing the program */
+  this.fns=parseFunctions(stripComments(lines));
+  this.frames=[];
+  this.out="";
+  this.steps=[];
+  this.ran=new Set();
+  this.nextAddr=STACK_TOP;
+  this.returning=false;
+  this.breaking=false;    /* a break is travelling out of the loop */
+  this.continuing=false;  /* a continue is skipping to the next pass */
+  this.calls=0;          /* how many function calls have been made */
+  this.peakBytes=0;      /* the most stack ever in use at one moment */
+  this.loopPasses=0;     /* how many loop passes have run, over every loop */
+  this.deepest=1;        /* the most frames that have ever been on the stack */
+  this.trace=[];         /* the going-down / coming-back story, one line per event */
+  this.globals=null;     /* variables that live outside every frame */
+  this.loops={};         /* one iteration table per loop, keyed by its line */
+  this.loopOrder=[];
+}
+/* the plain variables of the frame running the loop, as a {name:shown} map */
+/* which array cells does this piece of source read? used to light them up */
+Machine.prototype.cellsIn=function(src,line){
+  const out={};
+  const re=/([A-Za-z_]\w*)\s*\[([^\[\]]+)\](?:\s*\[([^\[\]]+)\])?/g;
+  let m;
+  while((m=re.exec(src))){
+    const v=this.find(m[1]);
+    if(!v||!isArrType(v.type)) continue;
+    try{
+      const i=Math.trunc(this.evalExpr(m[2],line).v);
+      let k;
+      if(m[3]!==undefined && v.dim===2){
+        const j=Math.trunc(this.evalExpr(m[3],line).v);
+        if(i<0||i>=v.rows||j<0||j>=v.cols) continue;
+        k=i*v.cols+j;
+      }else{
+        if(i<0||i>=v.len) continue;
+        k=i;
+      }
+      (out[m[1]]=out[m[1]]||[]).push(k);
+    }catch(e){ /* an index we cannot work out is simply not highlighted */ }
+  }
+  const names=Object.keys(out);
+  if(!names.length) return undefined;
+  return {name:names[0], idx:this.frames.length-1, cells:[...new Set(out[names[0]])]};
+};
+/* how many bytes of stack the live frames are using right now */
+Machine.prototype.stackBytes=function(){
+  let n=0;
+  this.frames.forEach(f=>f.vars.forEach(v=>{
+    n += isArrType(v.type) ? v.len*sizeOf(v.elem) : 4;
+  }));
+  return n;
+};
+Machine.prototype.scalars=function(){
+  const f=this.top(); if(!f) return {};
+  const o={};
+  f.vars.forEach(v=>{
+    if(isArrType(v.type)||isPtr(v.type)) return;
+    o[v.name] = v.value===null ? "?" : showVal(v.type,v.value);
+  });
+  return o;
+};
+Machine.prototype.loopTable=function(line,kind,cond){
+  if(!this.loops[line]){
+    this.loops[line]={line,kind,test:cond,rows:[]};
+    this.loopOrder.push(line);
+  }
+  return this.loops[line];
+};
+Machine.prototype.ctx=function(){
+  const M=this;
+  return {
+    get:n=>M.find(n),
+    addrOf:n=>{const v=M.find(n); if(!v) throw new Error("Unknown variable: "+n); return v.addr;},
+    readAddr:a=>{const t=M.byAddr(a); return t?t.v:null;},
+    str:a=>strAt(x=>{const t=M.byAddr(x); return t?t.v:null;},a,1)
+  };
+};
+Machine.prototype.top=function(){return this.frames[this.frames.length-1];};
+Machine.prototype.find=function(name){
+  const f=this.top();
+  if(f){ const v=f.vars.find(x=>x.name===name); if(v) return v; }
+  if(this.globals){ const g=this.globals.vars.find(x=>x.name===name); if(g) return g; }
+  return null;
+};
+Machine.prototype.byAddr=function(addr){
+  if(this.globals){
+    const g=this.globals.vars.find(x=>x.addr===addr && !isArrType(x.type));
+    if(g) return {v:g, frame:this.globals, idx:-1};
+  }
+  for(let i=this.frames.length-1;i>=0;i--){
+    const v=this.frames[i].vars.find(x=>x.addr===addr && !isArrType(x.type));
+    if(v) return {v, frame:this.frames[i], idx:i};
+  }
+  /* an address may land inside an array, on element k */
+  const pools=this.frames.map((f,i)=>({f,i}));
+  if(this.globals) pools.push({f:this.globals,i:-1});
+  for(let q=pools.length-1;q>=0;q--){
+    const i=pools[q].i;
+    for(const a of pools[q].f.vars){
+      if(!isArrType(a.type)) continue;
+      const sz=sizeOf(a.elem), off=addr-a.addr;
+      if(off>=0 && off<a.len*sz && off%sz===0){
+        const k=off/sz;
+        const M=this;
+        return {v:{ name:a.name+"["+k+"]", type:a.elem, addr,
+                    get value(){return a.value[k];},
+                    set value(x){a.value[k]=fitToType(a.elem,x);} },
+                frame:pools[q].f, idx:i, arr:a, k};
+      }
+    }
+  }
+  return null;
+};
+Machine.prototype.writeAddr=function(addr,val){
+  const t=this.byAddr(addr);
+  if(!t) throw new Error("that address is not inside any variable this program owns");
+  t.v.value=fitToType(t.v.type,val);
+  return t;
+};
+Machine.prototype.snap=function(line,note,touch){
+  const M=this;
+  if(this.steps.length>=MAX_STEPS) throw new Error("TOO_MANY_STEPS");
+  if(typeof touch==="string") touch={name:touch, idx:this.frames.length-1};
+  const nowBytes=this.stackBytes();
+  if(nowBytes>this.peakBytes) this.peakBytes=nowBytes;
+  this.steps.push({
+    line, note, touch, out:this.out, ran:new Set(this.ran),
+    calls:this.calls, deepest:this.deepest, depth:this.frames.length,
+    bytes:nowBytes, peakBytes:this.peakBytes, loopPasses:this.loopPasses,
+    trace:this.trace.map(t=>({...t})),
+    loops:this.loopOrder.map(l=>({...this.loops[l], rows:this.loops[l].rows.map(r=>({...r}))})),
+    globals: this.globals ? {fn:"globals", isGlobal:true, vars:this.globals.vars.map(v=>{
+      const o={name:v.name,type:v.type,value:v.value,addr:v.addr};
+      if(isArrType(v.type)){ o.value=v.value.slice(); o.elem=v.elem; o.len=v.len;
+        if(v.dim===2){o.dim=2;o.rows=v.rows;o.cols=v.cols;} }
+      return o; })} : null,
+    frames:this.frames.map(f=>({fn:f.fn, vars:f.vars.map(v=>{
+      const o={name:v.name,type:v.type,value:v.value,addr:v.addr};
+      if(isArrType(v.type)){
+        o.value=v.value.slice(); o.elem=v.elem; o.len=v.len;
+        if(v.dim===2){ o.dim=2; o.rows=v.rows; o.cols=v.cols; }
+        o.str = v.elem==="char" ? strAt(a=>{const t=M.byAddr(a); return t?t.v:null;},v.addr,1) : null;
+      }
+      if(isPtr(v.type)&&v.value!==null){
+        const t=M.byAddr(v.value);
+        o.points = t ? {name:t.v.name, fn:t.frame.fn, idx:t.idx,
+                        arr:t.arr?t.arr.name:null, k:t.k===undefined?null:t.k} : null;
+      }
+      return o;
+    })}))
+  });
+};
+Machine.prototype.declareArray=function(name,elem,len,values,line,note){
+  const f=this.top(), sz=sizeOf(elem), bytes=len*sz;
+  const pad=(4-(bytes%4))%4;                 /* keep the next variable on a 4-byte boundary */
+  const addr=this.nextAddr-(bytes+pad)+4;    /* the block ends where a scalar would have sat */
+  this.nextAddr=addr-4;                      /* and the next variable goes below it */
+  const vals=[];
+  for(let i=0;i<len;i++) vals.push(values[i]===undefined?null:fitToType(elem,values[i]));
+  f.vars.push({name, type:elem+"["+len+"]", value:vals, addr, elem, len});
+  this.ran.add(line);
+  if(note) this.snap(line,note,name);
+};
+Machine.prototype.declareMatrix=function(name,elem,rows,cols,values,line,note){
+  const f=this.top(), sz=sizeOf(elem), bytes=rows*cols*sz;
+  const pad=(4-(bytes%4))%4;
+  const addr=this.nextAddr-(bytes+pad)+4;
+  this.nextAddr=addr-4;
+  const vals=[];
+  for(let k=0;k<rows*cols;k++) vals.push(values[k]===undefined?null:fitToType(elem,values[k]));
+  f.vars.push({name, type:elem+"["+rows+"]["+cols+"]", value:vals, addr, elem,
+               len:rows*cols, rows, cols, dim:2});
+  this.ran.add(line);
+  if(note) this.snap(line,note,name);
+};
+Machine.prototype.declare=function(name,type,value,line,note){
+  const f=this.top();
+  const addr=this.nextAddr; this.nextAddr-=4;
+  f.vars.push({name,type,value:(value===undefined?null:value),addr});
+  this.ran.add(line);
+  if(note) this.snap(line,note,name);
+};
+Machine.prototype.evalExpr=function(src,line){
+  const resolved=this.resolveCalls(src,line);
+  return evalAst(xparse(xtok(resolved)),this.ctx());
+};
+Machine.prototype.resolveCalls=function(src,line){
+  let s=src, guard=0;
+  while(guard++<40){
+    const call=findCall(s,this.fns);
+    if(!call) break;
+    const argSrcs = call.args.trim()==="" ? [] : splitTop(call.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),line));
+    const ret = STRFNS.indexOf(call.name)>=0
+      ? this.callStrFn(call.name,argSrcs.map(a=>a.trim()),argVals,line)
+      : this.callFunction(call.name,argVals,line);
+    s = s.slice(0,call.start) + literalOf(ret) + s.slice(call.end);
+  }
+  return s;
+};
+/* where does this argument live, and what text does it hold? */
+Machine.prototype.strArg=function(src,val){
+  const M=this, read=x=>{const t=M.byAddr(x); return t?t.v:null;};
+  if(val && typeof val.v==="string") return {addr:null, text:val.v, name:'"'+val.v+'"', literal:true};
+  const nm=String(src).trim();
+  if(/^[A-Za-z_]\w*$/.test(nm)){
+    const v=this.find(nm);
+    if(v&&isArrType(v.type)) return {addr:v.addr, text:strAt(read,v.addr,sizeOf(v.elem)), name:nm, arr:v};
+    if(v&&isPtr(v.type))     return {addr:v.value, text:strAt(read,v.value,1), name:nm};
+  }
+  if(val&&isPtr(val.type)) return {addr:val.v, text:strAt(read,val.v,1), name:nm};
+  throw new Error("that is not a string");
+};
+Machine.prototype.writeString=function(addr,text,who){
+  const codes=text.split("").map(c=>c.charCodeAt(0)).concat([0]);
+  const t0=this.byAddr(addr);
+  const room = t0&&t0.arr ? t0.arr.len-(t0.k||0) : codes.length;
+  if(codes.length>room)
+    throw new Error("OVERFLOW:"+(t0&&t0.arr?t0.arr.name:who)+":"+codes.length+":"+room);
+  codes.forEach((c,k)=>this.writeAddr(addr+k,c));
+  return codes.length;
+};
+Machine.prototype.callStrFn=function(name,argSrcs,argVals,line){
+  const A=i=>this.strArg(argSrcs[i],argVals[i]);
+  this.ran.add(line);
+  if(name==="strlen"){
+    const a=A(0);
+    this.snap(line,`<code>strlen(${esc(a.name)})</code> counts characters from the first one until it `+
+      `meets <code>'\\0'</code>. It finds <strong>${a.text.length}</strong>. The <code>'\\0'</code> `+
+      `itself is <strong>not</strong> counted, which is why a box count of `+
+      `${a.text.length+1} gives a length of ${a.text.length}.`, a.arr?a.name:undefined);
+    return {v:a.text.length, type:"int"};
+  }
+  if(name==="strcmp"){
+    const a=A(0), b=A(1);
+    const r = a.text<b.text ? -1 : (a.text>b.text ? 1 : 0);
+    let why;
+    if(r===0) why=`every character matches and both end at the same place, so it returns <strong>0</strong>`;
+    else{
+      let k=0; while(k<a.text.length&&k<b.text.length&&a.text[k]===b.text[k]) k++;
+      const ca=a.text[k], cb=b.text[k];
+      why = (ca===undefined||cb===undefined)
+        ? `one text runs out first, so the shorter one counts as smaller; it returns <strong>${r}</strong>`
+        : `the first difference is at position ${k}: <code>'${esc(ca)}'</code> is `+
+          `${ca<cb?"before":"after"} <code>'${esc(cb)}'</code>, so it returns <strong>${r}</strong>`;
+    }
+    this.snap(line,`<code>strcmp</code> walks both texts together. Here ${why}. `+
+      `Remember: <strong>0 means equal</strong> &mdash; not 1.`);
+    return {v:r, type:"int"};
+  }
+  if(name==="strcpy"){
+    const d=A(0), src=A(1);
+    if(d.addr===null) throw new Error("strcpy cannot copy into a piece of text in quotes");
+    const n=this.writeString(d.addr,src.text,d.name);
+    this.snap(line,`<code>strcpy</code> copies <code>"${esc(src.text)}"</code> into `+
+      `<code>${esc(d.name)}</code>, character by character, and writes <code>'\\0'</code> at the end `+
+      `&mdash; ${n} boxes in all. Whatever <code>${esc(d.name)}</code> held before is gone.`, d.arr?d.name:undefined);
+    return {v:d.addr, type:"char *"};
+  }
+  if(name==="strcat"){
+    const d=A(0), src=A(1);
+    if(d.addr===null) throw new Error("strcat cannot add to a piece of text in quotes");
+    const at=d.addr+d.text.length;
+    this.writeString(at,src.text,d.name);
+    this.snap(line,`<code>strcat</code> finds the <code>'\\0'</code> at the end of `+
+      `<code>"${esc(d.text)}"</code> and starts writing <code>"${esc(src.text)}"</code> `+
+      `<strong>from there</strong>, then puts a new <code>'\\0'</code> after it. `+
+      `<code>${esc(d.name)}</code> now holds <code>"${esc(d.text+src.text)}"</code>.`, d.arr?d.name:undefined);
+    return {v:d.addr, type:"char *"};
+  }
+  if(name==="strrev"){
+    const d=A(0);
+    if(d.addr===null) throw new Error("strrev cannot reverse a piece of text in quotes");
+    const rev=d.text.split("").reverse().join("");
+    this.writeString(d.addr,rev,d.name);
+    this.snap(line,`<code>strrev</code> turns <code>"${esc(d.text)}"</code> around in place, so `+
+      `<code>${esc(d.name)}</code> now holds <code>"${esc(rev)}"</code>. The same boxes are reused `+
+      `&mdash; no new memory is taken.`, d.arr?d.name:undefined);
+    return {v:d.addr, type:"char *"};
+  }
+  if(name==="strchr"){
+    const a=A(0), ch=String.fromCharCode(argVals[1].v);
+    const k=a.text.indexOf(ch);
+    this.snap(line,k<0
+      ? `<code>strchr</code> looks for <code>'${esc(ch)}'</code> in <code>"${esc(a.text)}"</code> and `+
+        `does not find it, so it returns <strong>NULL</strong> &mdash; the address 0, which means `+
+        `"nowhere".`
+      : `<code>strchr</code> finds <code>'${esc(ch)}'</code> at position <strong>${k}</strong> of `+
+        `<code>"${esc(a.text)}"</code>. It returns the <strong>address</strong> of that character, `+
+        `not the position, so reading from there gives <code>"${esc(a.text.slice(k))}"</code>.`);
+    return {v: k<0?0:a.addr+k, type:"char *"};
+  }
+  if(name==="strstr"){
+    const a=A(0), b=A(1);
+    const k=a.text.indexOf(b.text);
+    this.snap(line,k<0
+      ? `<code>strstr</code> looks for <code>"${esc(b.text)}"</code> inside `+
+        `<code>"${esc(a.text)}"</code> and does not find it, so it returns <strong>NULL</strong>.`
+      : `<code>strstr</code> finds <code>"${esc(b.text)}"</code> starting at position `+
+        `<strong>${k}</strong>, and returns the address of that spot. Reading from there gives `+
+        `<code>"${esc(a.text.slice(k))}"</code>.`);
+    return {v: k<0?0:a.addr+k, type:"char *"};
+  }
+  throw new Error("Unknown string function: "+name);
+};
+Machine.prototype.callFunction=function(name,argVals,callLine){
+  const fn=this.fns[name];
+  if(!fn) throw new Error("Unknown function: "+name);
+  if(argVals.length!==fn.params.length)
+    throw new Error(name+" expects "+fn.params.length+" value(s)");
+  if(this.frames.length>=MAX_DEPTH) throw new Error("RUNAWAY");
+
+  const argText=argVals.map(a=>showVal(a.type,a.v)).join(", ");
+  this.calls++;
+  const traceRow={depth:this.frames.length, call:name+"("+argText+")", gives:null, open:true};
+  this.trace.push(traceRow);
+  if(this.frames.length+1>this.deepest) this.deepest=this.frames.length+1;
+  this.snap(callLine,`<code>${name}(${esc(argText)})</code> is called. The values in the brackets are worked out <strong>first</strong>, then control moves into the function.`);
+
+  this.frames.push({fn:name, vars:[], ret:undefined});
+  fn.params.forEach((p,i)=>{
+    const a=argVals[i];
+    const stored = isPtr(p.type) ? a.v : fitToType(p.type,a.v);
+    this.top().vars.push({name:p.name,type:p.type,value:stored,addr:this.nextAddr});
+    this.nextAddr-=4;
+  });
+  this.ran.add(fn.line);
+  const plist=fn.params.length
+    ? "Its parameters are set up as <strong>new variables at new addresses</strong>: "+
+      fn.params.map(p=>`<code>${p.name}</code>`).join(", ")+
+      (fn.params.some(p=>isPtr(p.type))
+        ? ". The ones with a <code>*</code> hold addresses, so they lead back to the caller's variables."
+        : ". They are <strong>copies</strong> of the values that were passed in.")
+    : "It takes no parameters.";
+  this.snap(fn.line,`A new stack frame for <code>${name}</code> is created on top of the stack. ${plist}`);
+
+  const saved=this.returning; this.returning=false;
+  const savedB=this.breaking, savedC=this.continuing;
+  this.breaking=false; this.continuing=false;
+  this.runBlock(fn.body);
+  this.breaking=savedB; this.continuing=savedC;
+  const frame=this.frames[this.frames.length-1];
+  const ret = frame.ret!==undefined ? frame.ret : {v:0,type:"void"};
+  this.returning=saved;
+
+  const names=frame.vars.map(v=>v.name);
+  traceRow.gives = ret.type==="void" ? "nothing" : showVal(ret.type,ret.v);
+  traceRow.open=false;
+  this.frames.pop();
+  this.snap(callLine,
+    `<code>${name}</code> has finished. Its frame is thrown away, so ${
+      names.length?names.map(n=>`<code>${n}</code>`).join(", ")+" stop existing":"nothing is left behind"}. ${
+      ret.type==="void" ? "It returns no value." : `The value <strong>${showVal(ret.type,ret.v)}</strong> is handed back to the caller.`}`);
+  return ret;
+};
+/* the "i = 2" and "i = i + 1" parts of a for loop */
+Machine.prototype.miniAssign=function(src,line,prefix){
+  if(!src) return;
+  const m=src.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/);
+  if(!m) throw new Error("Cannot understand this part of the loop: "+src);
+  const v=this.find(m[1]);
+  if(!v) throw new Error("Unknown variable: "+m[1]);
+  const r=this.evalExpr(m[2],line);
+  const old=v.value;
+  v.value=fitToType(v.type,r.v);
+  this.ran.add(line);
+  this.snap(line, prefix+`<code>${m[1]}</code> ${old===null?"starts at":"goes from "+showVal(v.type,old)+" to"} ${showVal(v.type,v.value)}.`, m[1]);
+};
+Machine.prototype.runBlock=function(block){
+  for(const s of block){
+    this.runStatement(s);
+    if(this.returning||this.breaking||this.continuing) return;
+  }
+};
+Machine.prototype.runStatement=function(s){
+  if(s.kind==="arr2decl"){
+    let vals=[], rows=s.rows, note;
+    if(s.init===null){
+      if(rows===null) throw new Error("A matrix with no values must be given both sizes, as in "+
+        s.elem+" "+s.name+"[3][3];");
+      note=`<code>${s.name}</code> is created as a grid of <strong>${rows} row(s) of ${s.cols}</strong>, `+
+           `${rows*s.cols} boxes in all. Nothing has been put in them yet.`;
+    }else if(s.init.startsWith("{")){
+      const inner=s.init.replace(/^\{|\}$/g,"").trim();
+      const parts = inner==="" ? [] : splitTop(inner);
+      const rowLists=[];
+      let flat=[];
+      let braced=false;
+      parts.forEach(pt=>{
+        const t=pt.trim();
+        if(t.startsWith("{")){
+          braced=true;
+          const nums=t.replace(/^\{|\}$/g,"").trim();
+          const rv=(nums===""?[]:splitTop(nums)).map(x=>this.evalExpr(x.trim(),s.line).v);
+          if(rv.length>s.cols) throw new Error("a row was given "+rv.length+" values but the matrix has only "+s.cols+" column(s)");
+          while(rv.length<s.cols) rv.push(0);
+          rowLists.push(rv);
+        }else{
+          flat.push(this.evalExpr(t,s.line).v);
+        }
+      });
+      if(braced){
+        if(flat.length) throw new Error("write every row in its own braces, as in {{1, 2}, {3, 4}}");
+        if(rows===null) rows=rowLists.length;
+        if(rowLists.length>rows) throw new Error(rowLists.length+" rows were given but the matrix has only "+rows);
+        while(rowLists.length<rows) rowLists.push(Array(s.cols).fill(0));
+        vals=[].concat(...rowLists);
+      }else{
+        if(rows===null) rows=Math.ceil(flat.length/s.cols)||1;
+        if(flat.length>rows*s.cols) throw new Error(flat.length+" values were given but the matrix holds only "+(rows*s.cols));
+        vals=flat.slice();
+        while(vals.length<rows*s.cols) vals.push(0);
+      }
+      note=`<code>${s.name}</code> is created as a grid of <strong>${rows} row(s) of ${s.cols}</strong> `+
+           `and filled row by row. In memory it is <strong>one straight block</strong> of `+
+           `${rows*s.cols} boxes, not ${rows} separate ones.`;
+    }else{
+      throw new Error("a matrix is given its values in braces, as in {{1, 2, 3}, {4, 5, 6}}");
+    }
+    this.declareMatrix(s.name,s.elem,rows,s.cols,vals,s.line,note);
+    const v=this.find(s.name);
+    const sz=sizeOf(s.elem);
+    this.snap(s.line,
+      `Row 0 sits first, then row 1 straight after it, and so on &mdash; this is called `+
+      `<strong>row-major order</strong>. <code>${s.name}[0][0]</code> is at ${hexAddr(v.addr)}, `+
+      `<code>${s.name}[0][${s.cols-1}]</code> at ${hexAddr(v.addr+(s.cols-1)*sz)}, and `+
+      `<code>${s.name}[1][0]</code> at ${hexAddr(v.addr+s.cols*sz)} &mdash; the very next box after the `+
+      `end of row 0. The address of <code>${s.name}[i][j]</code> is start + (i &times; ${s.cols} + j) `+
+      `&times; ${sz}.`,s.name);
+  }else if(s.kind==="store2"){
+    const mv=this.find(s.name);
+    if(!mv) throw new Error("Unknown variable: "+s.name);
+    if(mv.dim!==2) throw new Error(s.name+" is not a matrix, so it takes one index, not two");
+    const r=Math.trunc(this.evalExpr(s.r,s.line).v);
+    const c=Math.trunc(this.evalExpr(s.c,s.line).v);
+    if(r<0||r>=mv.rows) throw new Error("ROW:"+s.name+":"+r+":"+mv.rows);
+    if(c<0||c>=mv.cols) throw new Error("COL:"+s.name+":"+r+":"+c+":"+mv.cols);
+    const rr=this.evalExpr(s.expr,s.line);
+    const k=r*mv.cols+c, old=mv.value[k];
+    mv.value[k]=fitToType(mv.elem,rr.v);
+    this.ran.add(s.line);
+    this.snap(s.line,
+      `<code>${s.name}[${r}][${c}]</code> is the box at `+
+      `${hexAddr(mv.addr+k*sizeOf(mv.elem))} &mdash; row ${r}, column ${c}, which is box number `+
+      `${r} &times; ${mv.cols} + ${c} = ${k} counting from the start. It changes from `+
+      `${old===null?"empty":showVal(mv.elem,old)} to <strong>${showVal(mv.elem,mv.value[k])}</strong>.`,
+      {name:s.name, idx:this.frames.length-1, cell:k});
+  }else if(s.kind==="break"){
+    this.breaking=true;
+    this.ran.add(s.line);
+    this.snap(s.line,"<code>break</code> leaves the loop <strong>at once</strong>. The rest of this "+
+      "pass is skipped, the test is not checked again, and the program carries on after the loop. "+
+      "This is how a search stops as soon as it has found what it was looking for.");
+    return;
+  }
+  if(s.kind==="continue"){
+    this.continuing=true;
+    this.ran.add(s.line);
+    this.snap(s.line,"<code>continue</code> skips the <strong>rest of this pass only</strong>. The "+
+      "loop itself carries on: in a <code>for</code> loop the step still runs, and the test is "+
+      "checked again as usual.");
+    return;
+  }
+  if(s.kind==="arrdecl"){
+    let vals=[], len=s.size, note;
+    if(s.init===null){
+      if(len===null) throw new Error("An array with no values must be given a size, as in "+s.elem+" "+s.name+"[10];");
+      note=`<code>${s.name}</code> is created as <strong>${len} boxes side by side</strong> in memory, `+
+           `each one holding a <code>${s.elem}</code>. Nothing has been put in them yet.`;
+    }else if(/^".*"$/.test(s.init) || s.init.startsWith('"')){
+      const txt=xtok(s.init)[0].v;
+      vals=txt.split("").map(c=>c.charCodeAt(0)).concat([0]);
+      if(len===null) len=vals.length;
+      if(vals.length>len) throw new Error("the text \""+txt+"\" needs "+vals.length+" boxes but only "+len+" were asked for");
+      const used=vals.length;
+      for(let k=used;k<len;k++) vals[k]=0;   /* C fills the rest of the array with zeros */
+      note=`<code>${s.name}</code> holds the text <code>"${esc(txt)}"</code>. That is `+
+           `${txt.length} character${txt.length===1?"":"s"} <strong>plus a hidden <code>'\\0'</code></strong> `+
+           `at the end, so C knows where the text stops &mdash; ${used} boxes used`+
+           (len>used?` out of the ${len} reserved. C fills the ${len-used} left over with zeros too, `+
+                     `so they show as <code>'\\0'</code> as well; only the first one matters, because `+
+                     `every string function stops at it`:"")+`.`;
+    }else if(s.init.startsWith("{")){
+      const inner=s.init.replace(/^\{|\}$/g,"").trim();
+      const parts=inner===""?[]:splitTop(inner);
+      vals=parts.map(p=>this.evalExpr(p.trim(),s.line).v);
+      if(len===null) len=vals.length;
+      if(vals.length>len) throw new Error(vals.length+" values were given but the array only has "+len+" boxes");
+      note=`<code>${s.name}</code> is created with ${vals.length} value${vals.length===1?"":"s"} `+
+           `in ${len} box${len===1?"":"es"}, stored <strong>one after another</strong> in memory`+
+           (len>vals.length?`. The boxes that were not given a value are set to 0`:"")+`.`;
+      if(len>vals.length) for(let k=vals.length;k<len;k++) vals[k]=0;
+    }else{
+      throw new Error("an array can be given values in braces, as in {1, 2, 3}, or text in quotes");
+    }
+    this.declareArray(s.name,s.elem,len,vals,s.line,note);
+    const v=this.find(s.name);
+    this.snap(s.line,
+      `The boxes sit at <strong>consecutive addresses</strong>: <code>${s.name}[0]</code> at `+
+      `${hexAddr(v.addr)}, <code>${s.name}[1]</code> at ${hexAddr(v.addr+sizeOf(s.elem))}, and so on, `+
+      `each ${sizeOf(s.elem)} byte${sizeOf(s.elem)===1?"":"s"} after the one before it. That is what `+
+      `<em>contiguous</em> means, and it is why <code>${s.name}[i]</code> can be found instantly.`,s.name);
+  }else if(s.kind==="storeIdx"){
+    const arr=this.find(s.name);
+    if(!arr) throw new Error("Unknown variable: "+s.name);
+    const i=Math.trunc(this.evalExpr(s.idx,s.line).v);
+    const r=this.evalExpr(s.expr,s.line);
+    if(isArrType(arr.type)){
+      if(i<0||i>=arr.len) throw new Error("INDEX:"+s.name+":"+i+":"+arr.len);
+      const old=arr.value[i];
+      arr.value[i]=fitToType(arr.elem,r.v);
+      this.ran.add(s.line);
+      this.snap(s.line,
+        `<code>${s.name}[${i}]</code> is the box at ${hexAddr(arr.addr+i*sizeOf(arr.elem))}. `+
+        `It changes from ${old===null?"empty":showVal(arr.elem,old)} to `+
+        `<strong>${showVal(arr.elem,arr.value[i])}</strong>. The other boxes are untouched.`,
+        {name:s.name, idx:this.frames.length-1, cell:i});
+    }else if(isPtr(arr.type)){
+      const addr=arr.value+i*sizeOf(elemOf(arr.type));
+      const t=this.writeAddr(addr,r.v);
+      this.ran.add(s.line);
+      this.snap(s.line,
+        `<code>${s.name}</code> is a pointer, so <code>${s.name}[${i}]</code> means `+
+        `<em>${i} element${i===1?"":"s"} along from where it points</em> &mdash; the box at ${hexAddr(addr)}. `+
+        `<strong>${t.v.name}</strong> becomes ${showVal(t.v.type,t.v.value)}.`,
+        t.arr?{name:t.arr.name, idx:t.idx, cell:t.k}:{name:t.v.name, idx:t.idx});
+    }else throw new Error(s.name+" is not an array or a pointer, so it cannot be indexed");
+  }else if(s.kind==="storeOffset"){
+    const p=this.find(s.ptr);
+    if(!p) throw new Error("Unknown variable: "+s.ptr);
+    const base=isArrType(p.type)?p.addr:p.value;
+    const et=isArrType(p.type)?p.elem:elemOf(p.type);
+    const off=Math.trunc(this.evalExpr(s.off,s.line).v);
+    const r=this.evalExpr(s.expr,s.line);
+    const addr=base+off*sizeOf(et);
+    const t=this.writeAddr(addr,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line,
+      `<code>*(${s.ptr} + ${off})</code> is another way of writing <code>${s.ptr}[${off}]</code>. `+
+      `Both mean the box ${off} element${off===1?"":"s"} along, at ${hexAddr(addr)}. `+
+      `<strong>${t.v.name}</strong> becomes ${showVal(t.v.type,t.v.value)}.`,
+      t.arr?{name:t.arr.name, idx:t.idx, cell:t.k}:{name:t.v.name, idx:t.idx});
+  }else if(s.kind==="decl"){
+    if(s.init===null){
+      this.declare(s.name,s.type,null,s.line,
+        `<code>${s.name}</code> is created in this frame, but it has no value yet.`);
+    }else{
+      const r=this.evalExpr(s.init,s.line);
+      const val = isPtr(s.type) ? r.v : fitToType(s.type,r.v);
+      this.declare(s.name,s.type,val,s.line,
+        isPtr(s.type)
+          ? `<code>${s.name}</code> is a <strong>pointer</strong>. It now holds the address ${showVal(s.type,val)}.`
+          : `<code>${s.name}</code> now holds ${showVal(s.type,val)}.`);
+    }
+  }else if(s.kind==="assign"){
+    const v=this.find(s.name);
+    if(!v) throw new Error("Unknown variable: "+s.name);
+    const r=this.evalExpr(s.expr,s.line);
+    const old=v.value;
+    v.value = isPtr(v.type) ? r.v : fitToType(v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line, isPtr(v.type)
+      ? `<code>${s.name}</code> is pointed somewhere else: it now holds ${showVal(v.type,v.value)}.`
+      : `<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(v.type,old)+" to"} ${showVal(v.type,v.value)}.`,
+      s.name);
+  }else if(s.kind==="storeVia"){
+    const p=this.find(s.ptr);
+    if(!p) throw new Error("Unknown variable: "+s.ptr);
+    if(!isPtr(p.type)) throw new Error(s.ptr+" is not a pointer, so *"+s.ptr+" has no meaning");
+    const t=this.byAddr(p.value);
+    if(!t) throw new Error(s.ptr+" does not point at a live variable");
+    const r=this.evalExpr(s.expr,s.line);
+    const old=t.v.value;
+    t.v.value=fitToType(t.v.type,r.v);
+    this.ran.add(s.line);
+    this.snap(s.line,
+      `<code>*${s.ptr} = …</code> writes through the pointer. <strong>${t.v.name}</strong> in <code>${t.frame.fn}</code> changes from ${showVal(t.v.type,old)} to ${showVal(t.v.type,t.v.value)} — follow the arrow to see which box just changed.`,
+      {name:t.v.name, idx:t.idx});
+  }else if(s.kind==="printf"){
+    const M=this;
+    const vals=s.args.map(a=>{
+      const r=this.evalExpr(a,s.line);
+      if(typeof r.v==="string") return r;
+      if(isPtr(r.type)&&elemOf(r.type)==="char")
+        return {...r, text:strAt(x=>{const t=M.byAddr(x); return t?t.v:null;},r.v,1)};
+      const nm=a.trim();
+      const av=/^[A-Za-z_]\w*$/.test(nm)?this.find(nm):null;
+      if(av&&isArrType(av.type)&&av.elem==="char")
+        return {...r, text:strAt(x=>{const t=M.byAddr(x); return t?t.v:null;},av.addr,1)};
+      return r;
+    });
+    this.out+=formatPrintf(s.fmt,vals);
+    this.ran.add(s.line);
+    this.snap(s.line,"This line writes to the screen.");
+  }else if(s.kind==="callStmt"){
+    const argSrcs = s.args.trim()==="" ? [] : splitTop(s.args);
+    const argVals = argSrcs.map(a=>this.evalExpr(a.trim(),s.line));
+    this.ran.add(s.line);
+    if(STRFNS.indexOf(s.name)>=0){
+      this.callStrFn(s.name,argSrcs.map(a=>a.trim()),argVals,s.line);
+      return;
+    }
+    const ret=this.callFunction(s.name,argVals,s.line);
+    if(ret.type!=="void")
+      this.snap(s.line,`The value <strong>${showVal(ret.type,ret.v)}</strong> came back, but nothing was done with it, so it is <strong>thrown away</strong>. To keep it you would have to store it, as in <code>n = ${s.name}(…);</code>`);
+  }else if(s.kind==="return"){
+    const f=this.top();
+    if(s.expr===null){ f.ret={v:0,type:"void"}; }
+    else{
+      const r=this.evalExpr(s.expr,s.line);
+      const fn=this.fns[f.fn];
+      f.ret = isPtr(fn.retType) ? r : {v:fitToType(fn.retType,r.v), type:fn.retType};
+    }
+    this.ran.add(s.line);
+    this.returning=true;
+    this.snap(s.line, s.expr===null
+      ? "<code>return;</code> ends the function here."
+      : `<code>return</code> hands back ${showVal(f.ret.type,f.ret.v)} and ends the function immediately.`);
+  }else if(s.kind==="for"){
+    this.ran.add(s.line);
+    this.miniAssign(s.init,s.line,"The loop sets up its counter with <code>"+esc(s.init)+"</code>, which happens once and never again. ");
+    const T=this.loopTable(s.line,"for",s.cond);
+    let spins=0;
+    while(spins++<MAX_LOOPS){
+      if(spins>MAX_PASSES) throw new Error("ENDLESS:"+s.cond+":"+MAX_PASSES);
+      const before=this.scalars(), outBefore=this.out;
+      const c=this.evalExpr(s.cond,s.line);
+      const row={pass:spins, testFirst:true, test:s.cond, result:!!c.v, before, after:null, printed:""};
+      T.rows.push(row);
+      this.snap(s.line, `Pass ${spins}: test <code>${esc(s.cond)}</code> &rarr; `+
+        `<strong>${c.v?"true":"false"}</strong>. `+
+        (c.v?"So the body below runs, and the step runs after it.":"So the loop is over and the body is skipped."));
+      if(!c.v){ row.after=before; break; }
+      this.loopPasses++;
+      this.runBlock(s.body);
+      if(this.returning) return;
+      if(this.continuing) this.continuing=false;
+      if(this.breaking){
+        this.breaking=false;
+        row.after=this.scalars();
+        row.printed=this.out.slice(outBefore.length);
+        row.broke=true;
+        this.snap(s.line,"Because of the <code>break</code>, the step <code>"+esc(s.update)+
+          "</code> does <strong>not</strong> run and the test is not checked again. The loop is over.");
+        break;
+      }
+      this.miniAssign(s.update,s.line,"One pass is done, so the step <code>"+esc(s.update)+"</code> runs. ");
+      row.after=this.scalars();
+      row.printed=this.out.slice(outBefore.length);
+    }
+  }else if(s.kind==="dowhile"){
+    this.ran.add(s.line);
+    this.snap(s.line,"A <code>do</code> loop runs its body <strong>before</strong> it tests anything, "+
+      "so the body below is about to run whether the test is true or not. That is the whole difference "+
+      "between <code>do&hellip;while</code> and <code>while</code>.");
+    const T=this.loopTable(s.line,"do...while",s.cond);
+    let spins=0;
+    while(spins++<MAX_LOOPS){
+      if(spins>MAX_PASSES) throw new Error("ENDLESS:"+s.cond+":"+MAX_PASSES);
+      const before=this.scalars(), outBefore=this.out;
+      this.loopPasses++;
+      this.runBlock(s.body);
+      if(this.returning) return;
+      if(this.continuing) this.continuing=false;
+      if(this.breaking){
+        this.breaking=false;
+        T.rows.push({pass:spins, testFirst:false, test:s.cond, result:false, broke:true,
+                     before, after:this.scalars(), printed:this.out.slice(outBefore.length)});
+        this.snap(s.line,"<code>break</code> left the loop before the test at the bottom was reached, "+
+          "so <code>"+esc(s.cond)+"</code> was never checked this time.");
+        break;
+      }
+      this.ran.add(s.endLine);
+      const c=this.evalExpr(s.cond,s.endLine);
+      T.rows.push({pass:spins, testFirst:false, test:s.cond, result:!!c.v,
+                   before, after:this.scalars(), printed:this.out.slice(outBefore.length)});
+      this.snap(s.endLine, `Pass ${spins} of the body is done. Only <strong>now</strong> is `+
+        `<code>${esc(s.cond)}</code> tested &rarr; <strong>${c.v?"true":"false"}</strong>. `+
+        (c.v?"So the body runs again.":"So the loop ends. The body ran "+spins+" time"+(spins===1?"":"s")+" in all."));
+      if(!c.v) break;
+    }
+  }else if(s.kind==="while"){
+    this.ran.add(s.line);
+    const T=this.loopTable(s.line,"while",s.cond);
+    let spins=0;
+    while(spins++<MAX_LOOPS){
+      if(spins>MAX_PASSES) throw new Error("ENDLESS:"+s.cond+":"+MAX_PASSES);
+      const before=this.scalars(), outBefore=this.out;
+      const c=this.evalExpr(s.cond,s.line);
+      const row={pass:spins, testFirst:true, test:s.cond, result:!!c.v, before, after:null, printed:""};
+      T.rows.push(row);
+      this.snap(s.line, `Pass ${spins}: the test comes <strong>first</strong>. `+
+        `<code>${esc(s.cond)}</code> &rarr; <strong>${c.v?"true":"false"}</strong>. `+
+        (c.v?"So the body below runs.":"So the body does not run, and the loop is over."));
+      if(!c.v){ T.rows[T.rows.length-1].after=before; break; }
+      this.loopPasses++;
+      this.runBlock(s.body);
+      if(this.returning) return;
+      row.after=this.scalars();
+      row.printed=this.out.slice(outBefore.length);
+      if(this.continuing) this.continuing=false;
+      if(this.breaking){ this.breaking=false; row.broke=true; break; }
+    }
+  }else if(s.kind==="if"){
+    let done=false;
+    for(const br of s.branches){
+      const r=this.evalExpr(br.cond,br.line);
+      const hot=this.cellsIn(br.cond,br.line);
+      if(r.v){
+        this.ran.add(br.line);
+        this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>true</strong>, so this block runs.`,hot);
+        this.runBlock(br.body); done=true; break;
+      }
+      this.snap(br.line,`<code>${esc(br.cond)}</code> is <strong>false</strong>, so this block is skipped.`,hot);
+      if(this.returning) return;
+    }
+    if(!done&&s.else){
+      this.ran.add(s.else.line);
+      this.snap(s.else.line,"None of the conditions were true, so the <code>else</code> block runs.");
+      this.runBlock(s.else.body);
+    }
+  }
+};
+function literalOf(r){
+  if(!r||r.type==="void") return "0";
+  if(isPtr(r.type)) return "@"+r.v+"@";
+  if(r.type==="char") return "'"+String.fromCharCode(r.v)+"'";
+  if(r.type==="float"){ const s=String(r.v); return (s.includes(".")||s.includes("e"))?s:s+".0"; }
+  return String(r.v);
+}
+const STRFNS=["strlen","strcmp","strcpy","strcat","strrev","strchr","strstr"];
+function findCall(s,fns){
+  const re=/([A-Za-z_]\w*)\s*\(/g;
+  let m;
+  while((m=re.exec(s))){
+    if(!(m[1] in fns) && STRFNS.indexOf(m[1])<0) continue;
+    const open=m.index+m[0].length-1;
+    let d=0;
+    for(let j=open;j<s.length;j++){
+      if(s[j]==="(") d++;
+      else if(s[j]===")"){ d--; if(d===0) return {name:m[1],args:s.slice(open+1,j),start:m.index,end:j+1}; }
+    }
+    throw new Error("A closing bracket is missing in a function call");
+  }
+  return null;
+}
+/* ============================================================
+   SHORTHAND
+   i++, ++i, i--, --i and x += 3 are written out into the long form, one line
+   for one line, so nothing about the numbering or the picture changes.
+   ============================================================ */
+const SH_STEP=/^\s*(?:(\+\+|--)\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)|((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*(\+\+|--))\s*$/;
+const SH_COMP=/^\s*((?:\*\s*)?[A-Za-z_]\w*(?:\s*\[[^\[\]]*\]|\s*\.\s*[A-Za-z_]\w*|\s*->\s*[A-Za-z_]\w*)*)\s*([-+*\/%])=\s*(.+)$/;
+/* one expression written out in full, or null when there is no shorthand in it */
+function expandShorthand(src){
+  const s=String(src).trim();
+  if(s==="") return null;
+  let m=s.match(SH_STEP);
+  if(m){
+    const tgt=(m[2]!==undefined?m[2]:m[3]).trim();
+    const op=((m[1]!==undefined?m[1]:m[4])==="++") ? "+" : "-";
+    return tgt+" = "+tgt+" "+op+" 1";
+  }
+  m=s.match(SH_COMP);
+  if(m) return m[1].trim()+" = "+m[1].trim()+" "+m[2]+" ("+m[3].trim()+")";
+  return null;
+}
+function expandLine(line){
+  const raw=String(line);
+  const code=raw.replace(/\/\*.*?\*\//g,"");
+  const ind=raw.match(/^\s*/)[0];
+  /* a for header: the first and third parts may carry shorthand */
+  let m=code.match(/^\s*for\s*\((.*)\)\s*(\{?)\s*$/);
+  if(m){
+    const parts=m[1].split(";");
+    if(parts.length===3){
+      let changed=false;
+      [0,2].forEach(k=>{
+        const ex=expandShorthand(parts[k]);
+        if(ex!==null){ parts[k]=" "+ex; changed=true; }
+      });
+      if(changed) return ind+"for ("+parts.join(";")+")"+(m[2]?" {":"");
+    }
+    return raw;
+  }
+  m=code.match(/^\s*(.*?)\s*;\s*$/);
+  if(m){
+    const ex=expandShorthand(m[1]);
+    if(ex!==null) return ind+ex+";";
+  }
+  return raw;
+}
+/* Comments and string bodies are blanked before anything is looked for, so that
+   a dash inside a comment is never mistaken for an operator. The line count is
+   kept, and only the parser sees this version -- the page shows what was written. */
+function shStrip(lines){
+  let block=false;
+  return (lines||[]).map(src=>{
+    const s=String(src); let out="", i=0;
+    while(i<s.length){
+      if(block){
+        if(s.substr(i,2)==="*/"){ block=false; out+="  "; i+=2; }
+        else { out+=" "; i++; }
+        continue;
+      }
+      if(s.substr(i,2)==="/*"){ block=true; out+="  "; i+=2; continue; }
+      if(s.substr(i,2)==="//"){ while(i<s.length){ out+=" "; i++; } continue; }
+      if(s[i]==='"'||s[i]==="'"){
+        const q=s[i]; out+=s[i]; i++;
+        while(i<s.length){
+          if(s[i]==="\\"&&i+1<s.length){ out+=s[i]+s[i+1]; i+=2; continue; }
+          out+=s[i]; if(s[i]===q){ i++; break; }
+          i++;
+        }
+        continue;
+      }
+      out+=s[i]; i++;
+    }
+    return out;
+  });
+}
+/* ++ and -- have no other meaning in C, so anything left really is in an expression */
+const SH_LEFT=t=>/(\+\+|--)/.test(String(t).replace(/"[^"]*"/g,'""').replace(/'[^']*'/g,"''"));
+function expandProgram(lines){
+  return shStrip(lines).map(l=>{
+    const out=expandLine(l);
+    if(SH_LEFT(out)) throw new Error("SHORTHAND_INSIDE");
+    return out;
+  });
+}
+function runProgram(lines){
+  try{ lines=expandProgram(lines); }
+  catch(x){
+    if(String(x.message)!=="SHORTHAND_INSIDE") throw x;
+    return [{line:0, out:"\n[the program stopped here]", ran:new Set(), touch:null,
+      note:"<strong>The program cannot continue.</strong> This page follows <code>i++</code>, "+
+        "<code>++i</code>, <code>i--</code> and <code>x += 3</code> when each one is a statement "+
+        "on its own, or the first or last part of a <code>for</code> header. Inside a larger "+
+        "expression &mdash; <code>a[i++]</code>, or <code>printf(\"%d\", n++)</code> &mdash; the "+
+        "order in which C does the parts catches out experienced programmers too, so this page "+
+        "asks you to put it on a line of its own instead.",
+      calls:0, deepest:1, depth:1, trace:[], loops:[], frames:[], crashed:true}];
+  }
+  const M=new Machine(lines);
+  const mainFn=M.fns.main;
+  const gdecls=M.fns.__globals||[];
+  if(gdecls.length){
+    M.globals={fn:"globals", vars:[]};
+    M.frames.push(M.globals);               /* borrow the frame machinery to declare them */
+    const savedNext=M.nextAddr; M.nextAddr=GLOBAL_TOP;
+    try{
+      gdecls.forEach(d=>{ M.ran.add(d.line); M.runStatement({...d, line:d.line}); });
+    }finally{ M.nextAddr=savedNext; M.frames.pop(); }
+    M.steps.length=0; M.ran=new Set();      /* those were setup, not program steps */
+    gdecls.forEach(d=>M.ran.add(d.line));
+    M.loops={}; M.loopOrder=[]; M.trace=[]; M.calls=0; M.deepest=1;
+  }
+  M.frames.push({fn:"main",vars:[],ret:undefined});
+  M.ran.add(mainFn.line);
+  M.snap(mainFn.line,
+    (M.globals?"Before <code>main</code> starts, the <strong>global</strong> variables are set up. They "+
+      "live outside every frame, from the moment the program begins until it ends, and every function "+
+      "can see them. ":"")+
+    "The program starts in <code>main</code>. A stack frame is created for it.");
+  try{
+    M.runBlock(mainFn.body);
+    M.snap(mainFn.endLine,"<code>main</code> finishes and the program ends.");
+  }catch(err){
+    const msg=String(err&&err.message||"");
+    const rm=msg.match(/^ROW:(.+):(-?\d+):(\d+)$/);
+    const cm=msg.match(/^COL:(.+):(-?\d+):(-?\d+):(\d+)$/);
+    const em=msg.match(/^ENDLESS:(.+):(\d+)$/);
+    const im=msg.match(/^INDEX:(.+):(-?\d+):(\d+)$/);
+    const om=msg.match(/^OVERFLOW:(.+):(\d+):(\d+)$/);
+    const why = rm
+      ? `<code>${esc(rm[1])}</code> has ${rm[3]} row(s), so the row numbers that exist are `+
+        `<strong>0 to ${+rm[3]-1}</strong>. The program asked for row ${rm[2]}, which is outside the `+
+        `matrix. The <strong>first</strong> index of <code>${esc(rm[1])}[i][j]</code> chooses the row.`
+      : cm
+      ? `<code>${esc(cm[1])}</code> has ${cm[4]} column(s), so the column numbers that exist are `+
+        `<strong>0 to ${+cm[4]-1}</strong>. The program asked for `+
+        `<code>${esc(cm[1])}[${cm[2]}][${cm[3]}]</code>, and column ${cm[3]} is outside the row. The `+
+        `<strong>second</strong> index chooses the column.`
+      : em
+      ? `This is an <strong>infinite loop</strong>. After ${em[2]} passes the test `+
+        `<code>${esc(em[1])}</code> is <em>still</em> true, and nothing in the body has moved the `+
+        `variable towards making it false. Look at the iteration table: the column never changes from `+
+        `one row to the next. A real program would hang here until you stopped it. Every loop needs a `+
+        `<strong>step</strong> that moves towards the test failing.`
+      : im
+      ? `<code>${esc(im[1])}</code> has ${im[3]} box${im[3]==="1"?"":"es"}, so the only indexes that `+
+        `exist are <strong>0 to ${+im[3]-1}</strong>. The program asked for `+
+        `<code>${esc(im[1])}[${im[2]}]</code>, which is outside it. C does not check this for you &mdash; `+
+        `a real compiler would let the program run and read or write memory belonging to something else. `+
+        `That is why an array of ${im[3]} starts at 0 and ends at ${+im[3]-1}, never ${im[3]}.`
+      : om
+      ? `<code>${esc(om[1])}</code> does not have room. ${om[2]} boxes are needed (the characters plus `+
+        `the <code>'\\0'</code>) but only ${om[3]} are left. In real C this would write past the end of `+
+        `the array and quietly damage whatever sits after it. Give the array more boxes.`
+      : /RUNAWAY/.test(msg)
+      ? "The stack reached "+MAX_DEPTH+" frames and stopped. There are two reasons this happens, and it "+
+        "is worth working out which one you are looking at. Either the <strong>base case</strong> is "+
+        "missing or can never be reached, so the calls would never stop &mdash; or the base case is "+
+        "fine and the starting number is simply larger than this page can draw at once. Look at the "+
+        "function: does it have a case that answers <em>without</em> calling itself again, and does "+
+        "each call get closer to it?"
+      : /TOO_MANY_STEPS/.test(msg)
+      ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Division by zero/.test(msg)
+      ? "A whole number cannot be divided by zero. In C this stops the program with an error."
+      : /Modulus by zero/.test(msg)
+      ? "<code>%</code> cannot be used with zero on the right."
+      : /no value yet/.test(msg)
+      ? "A variable was used before it was given a value."
+      : esc(msg)+".";
+    M.out += "\n[the program stopped here]";
+    const last=M.steps.length?M.steps[M.steps.length-1].line:0;
+    M.steps.push({line:last,
+      note:`<strong>The program cannot continue.</strong> ${why} Change the values at the top and run it again.`,
+      touch:null,out:M.out,ran:new Set(M.ran),
+      calls:M.calls, deepest:M.deepest, depth:M.frames.length,
+      trace:M.trace.map(t=>({...t})),
+      loops:M.loopOrder.map(l=>({...M.loops[l], rows:M.loops[l].rows.map(r=>({...r}))})),
+      frames:M.frames.map(f=>({fn:f.fn,vars:f.vars.map(v=>({...v}))})),
+      crashed:true});
+  }
+  return M.steps;
+}
+function finalOutput(lines){
+  const st=runProgram(lines);
+  const last=st[st.length-1];
+  return last.crashed ? "" : last.out;
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const MAIN=b=>["int main() {"].concat(b,["    return 0;","}"]);
+const NEEDS_STRING=/\b(strlen|strcpy|strcat|strcmp|strrev|strchr|strstr)\s*\(/;
+const PROG=(...parts)=>{
+  const body=[].concat(...parts);
+  const head=["#include <stdio.h>"];
+  if(body.some(l=>NEEDS_STRING.test(l))) head.push("#include <string.h>");
+  return head.concat([""],body);
+};
+
+const CONCEPTS=[
+{ key:"factorial", name:"Factorial, both ways", programs:[
+
+  {t:"Factorial by recursion", limits:{n:[0,12]}, code:PROG(
+    ["int fact(int n) {",
+     "    if (n == 0) return 1;",
+     "    return n * fact(n - 1);",
+     "}",""],
+    MAIN([
+    "    int n = 6;",
+    '    printf("factorial of %d is %d", n, fact(n));']))},
+
+  {t:"Factorial by a loop", limits:{n:[0,12]}, code:PROG(
+    ["int factIter(int n) {",
+     "    int i = 0, f = 1;",
+     "    for (i = 1; i <= n; i = i + 1) {",
+     "        f = f * i;",
+     "    }",
+     "    return f;",
+     "}",""],
+    MAIN([
+    "    int n = 6;",
+    '    printf("factorial of %d is %d", n, factIter(n));']))},
+
+  {t:"Both give the same answer", limits:{n:[0,12]}, code:PROG(
+    ["int fact(int n) {",
+     "    if (n == 0) return 1;",
+     "    return n * fact(n - 1);",
+     "}","",
+     "int factIter(int n) {",
+     "    int i = 0, f = 1;",
+     "    for (i = 1; i <= n; i = i + 1) {",
+     "        f = f * i;",
+     "    }",
+     "    return f;",
+     "}",""],
+    MAIN([
+    "    int n = 6;",
+    '    printf("recursion gives %d\\n", fact(n));',
+    '    printf("the loop gives  %d", factIter(n));']))},
+
+  {t:"Counting the calls and the passes", limits:{n:[0,12]}, code:PROG(
+    ["int calls = 0;",
+     "int passes = 0;",""],
+    ["int fact(int n) {",
+     "    calls = calls + 1;",
+     "    if (n == 0) return 1;",
+     "    return n * fact(n - 1);",
+     "}","",
+     "int factIter(int n) {",
+     "    int i = 0, f = 1;",
+     "    for (i = 1; i <= n; i = i + 1) {",
+     "        passes = passes + 1;",
+     "        f = f * i;",
+     "    }",
+     "    return f;",
+     "}",""],
+    MAIN([
+    "    int n = 6;",
+    "    int a = 0, b = 0;",
+    "    a = fact(n);",
+    "    b = factIter(n);",
+    '    printf("recursion: %d, using %d call(s)\\n", a, calls);',
+    '    printf("the loop:  %d, using %d pass(es)", b, passes);']))},
+
+  {t:"How deep each one goes", limits:{n:[0,12]}, code:PROG(
+    ["int deepest = 0;",""],
+    ["int fact(int n, int level) {",
+     "    if (level > deepest) {",
+     "        deepest = level;",
+     "    }",
+     "    if (n == 0) return 1;",
+     "    return n * fact(n - 1, level + 1);",
+     "}",""],
+    MAIN([
+    "    int n = 6;",
+    '    printf("factorial of %d is %d\\n", n, fact(n, 1));',
+    '    printf("the recursion went %d level(s) deep", deepest);']))}
+]},
+
+{ key:"fibonacci", name:"Fibonacci, both ways", programs:[
+
+  {t:"Fibonacci by recursion", limits:{n:[0,12]}, code:PROG(
+    ["int fib(int n) {",
+     "    if (n == 0) return 0;",
+     "    if (n == 1) return 1;",
+     "    return fib(n - 1) + fib(n - 2);",
+     "}",""],
+    MAIN([
+    "    int n = 7;",
+    '    printf("fib(%d) = %d", n, fib(n));']))},
+
+  {t:"Fibonacci by a loop", limits:{n:[0,40]}, code:PROG(
+    ["int fibIter(int n) {",
+     "    int i = 0, a = 0, b = 1, next = 0;",
+     "    if (n == 0) return 0;",
+     "    for (i = 2; i <= n; i = i + 1) {",
+     "        next = a + b;",
+     "        a = b;",
+     "        b = next;",
+     "    }",
+     "    return b;",
+     "}",""],
+    MAIN([
+    "    int n = 7;",
+    '    printf("fib(%d) = %d", n, fibIter(n));']))},
+
+  {t:"The call count explodes", limits:{n:[0,12]}, code:PROG(
+    ["int calls = 0;",
+     "int passes = 0;",""],
+    ["int fib(int n) {",
+     "    calls = calls + 1;",
+     "    if (n == 0) return 0;",
+     "    if (n == 1) return 1;",
+     "    return fib(n - 1) + fib(n - 2);",
+     "}","",
+     "int fibIter(int n) {",
+     "    int i = 0, a = 0, b = 1, next = 0;",
+     "    if (n == 0) return 0;",
+     "    for (i = 2; i <= n; i = i + 1) {",
+     "        passes = passes + 1;",
+     "        next = a + b;",
+     "        a = b;",
+     "        b = next;",
+     "    }",
+     "    return b;",
+     "}",""],
+    MAIN([
+    "    int n = 8;",
+    "    int a = 0, b = 0;",
+    "    a = fib(n);",
+    "    b = fibIter(n);",
+    '    printf("both say fib(%d) = %d\\n", n, a);',
+    '    printf("recursion took %d call(s)\\n", calls);',
+    '    printf("the loop took  %d pass(es)", passes);']))},
+
+  {t:"The same work done again and again", limits:{n:[2,10]}, code:PROG(
+    ["int threes = 0;",""],
+    ["int fib(int n) {",
+     "    if (n == 3) {",
+     "        threes = threes + 1;",
+     "    }",
+     "    if (n == 0) return 0;",
+     "    if (n == 1) return 1;",
+     "    return fib(n - 1) + fib(n - 2);",
+     "}",""],
+    MAIN([
+    "    int n = 8;",
+    '    printf("fib(%d) = %d\\n", n, fib(n));',
+    '    printf("fib(3) was worked out %d separate time(s)", threes);']))},
+
+  {t:"Depth stays small, calls do not", limits:{n:[0,12]}, code:PROG(
+    ["int calls = 0;",
+     "int deepest = 0;",""],
+    ["int fib(int n, int level) {",
+     "    calls = calls + 1;",
+     "    if (level > deepest) {",
+     "        deepest = level;",
+     "    }",
+     "    if (n == 0) return 0;",
+     "    if (n == 1) return 1;",
+     "    return fib(n - 1, level + 1) + fib(n - 2, level + 1);",
+     "}",""],
+    MAIN([
+    "    int n = 8;",
+    '    printf("fib(%d) = %d\\n", n, fib(n, 1));',
+    '    printf("%d call(s), but only %d level(s) deep", calls, deepest);']))}
+]},
+
+{ key:"search", name:"Binary search", programs:[
+
+  {t:"Binary search by recursion", limits:{key:[0,99]}, code:PROG(
+    ["int binaryRec(int a[], int low, int high, int key) {",
+     "    int mid = 0;",
+     "    if (low > high) return -1;",
+     "    mid = (low + high) / 2;",
+     "    if (a[mid] == key) return mid;",
+     "    if (a[mid] < key) return binaryRec(a, mid + 1, high, key);",
+     "    return binaryRec(a, low, mid - 1, key);",
+     "}",""],
+    MAIN([
+    "    int a[9] = {2, 5, 8, 12, 16, 23, 38, 56, 72};",
+    "    int key = 23;",
+    "    int pos = 0;",
+    "    pos = binaryRec(a, 0, 8, key);",
+    "    if (pos >= 0) {",
+    '        printf("%d found at index %d", key, pos);',
+    "    } else {",
+    '        printf("%d is not in the array", key);',
+    "    }"]))},
+
+  {t:"Binary search by a loop", limits:{key:[0,99]}, code:PROG(
+    ["int binaryIter(int a[], int n, int key) {",
+     "    int low = 0, high = 0, mid = 0;",
+     "    high = n - 1;",
+     "    while (low <= high) {",
+     "        mid = (low + high) / 2;",
+     "        if (a[mid] == key) return mid;",
+     "        if (a[mid] < key) {",
+     "            low = mid + 1;",
+     "        } else {",
+     "            high = mid - 1;",
+     "        }",
+     "    }",
+     "    return -1;",
+     "}",""],
+    MAIN([
+    "    int a[9] = {2, 5, 8, 12, 16, 23, 38, 56, 72};",
+    "    int key = 23;",
+    "    int pos = 0;",
+    "    pos = binaryIter(a, 9, key);",
+    "    if (pos >= 0) {",
+    '        printf("%d found at index %d", key, pos);',
+    "    } else {",
+    '        printf("%d is not in the array", key);',
+    "    }"]))},
+
+  {t:"Both ways, with the counts printed", limits:{key:[0,99]}, code:PROG(
+    ["int rcalls = 0;",
+     "int loops = 0;",""],
+    ["int binaryRec(int a[], int low, int high, int key) {",
+     "    int mid = 0;",
+     "    rcalls = rcalls + 1;",
+     "    if (low > high) return -1;",
+     "    mid = (low + high) / 2;",
+     "    if (a[mid] == key) return mid;",
+     "    if (a[mid] < key) return binaryRec(a, mid + 1, high, key);",
+     "    return binaryRec(a, low, mid - 1, key);",
+     "}","",
+     "int binaryIter(int a[], int n, int key) {",
+     "    int low = 0, high = 0, mid = 0;",
+     "    high = n - 1;",
+     "    while (low <= high) {",
+     "        loops = loops + 1;",
+     "        mid = (low + high) / 2;",
+     "        if (a[mid] == key) return mid;",
+     "        if (a[mid] < key) {",
+     "            low = mid + 1;",
+     "        } else {",
+     "            high = mid - 1;",
+     "        }",
+     "    }",
+     "    return -1;",
+     "}",""],
+    MAIN([
+    "    int a[9] = {2, 5, 8, 12, 16, 23, 38, 56, 72};",
+    "    int key = 23;",
+    "    int r = 0, it = 0;",
+    "    r = binaryRec(a, 0, 8, key);",
+    "    it = binaryIter(a, 9, key);",
+    '    printf("recursive: index %d, %d call(s)\\n", r, rcalls);',
+    '    printf("iterative: index %d, %d pass(es)", it, loops);']))},
+
+  {t:"A key that is not there", code:PROG(
+    ["int rcalls = 0;",
+     "int loops = 0;",""],
+    ["int binaryRec(int a[], int low, int high, int key) {",
+     "    int mid = 0;",
+     "    rcalls = rcalls + 1;",
+     "    if (low > high) return -1;",
+     "    mid = (low + high) / 2;",
+     "    if (a[mid] == key) return mid;",
+     "    if (a[mid] < key) return binaryRec(a, mid + 1, high, key);",
+     "    return binaryRec(a, low, mid - 1, key);",
+     "}","",
+     "int binaryIter(int a[], int n, int key) {",
+     "    int low = 0, high = 0, mid = 0;",
+     "    high = n - 1;",
+     "    while (low <= high) {",
+     "        loops = loops + 1;",
+     "        mid = (low + high) / 2;",
+     "        if (a[mid] == key) return mid;",
+     "        if (a[mid] < key) {",
+     "            low = mid + 1;",
+     "        } else {",
+     "            high = mid - 1;",
+     "        }",
+     "    }",
+     "    return -1;",
+     "}",""],
+    MAIN([
+    "    int a[9] = {2, 5, 8, 12, 16, 23, 38, 56, 72};",
+    "    int key = 40;",
+    "    int r = 0, it = 0;",
+    "    r = binaryRec(a, 0, 8, key);",
+    "    it = binaryIter(a, 9, key);",
+    '    printf("both return %d, meaning not found\\n", r);',
+    '    printf("recursive used %d call(s)\\n", rcalls);',
+    '    printf("iterative used %d pass(es) - one fewer", loops);'])), noQuiz:true},
+
+  {t:"Binary search needs sorted data", code:PROG(
+    ["/* Binary search only works if the values are in order. Given an unsorted",
+     "   array it does not crash - it quietly looks in the wrong half and reports",
+     "   that a value is missing when it is sitting right there. */",""],
+    ["int binaryIter(int a[], int n, int key) {",
+     "    int low = 0, high = 0, mid = 0;",
+     "    high = n - 1;",
+     "    while (low <= high) {",
+     "        mid = (low + high) / 2;",
+     "        if (a[mid] == key) return mid;",
+     "        if (a[mid] < key) {",
+     "            low = mid + 1;",
+     "        } else {",
+     "            high = mid - 1;",
+     "        }",
+     "    }",
+     "    return -1;",
+     "}","",
+     "int linearSearch(int a[], int n, int key) {",
+     "    int i = 0;",
+     "    for (i = 0; i < n; i = i + 1) {",
+     "        if (a[i] == key) return i;",
+     "    }",
+     "    return -1;",
+     "}",""],
+    MAIN([
+    "    int a[7] = {38, 2, 56, 8, 23, 5, 72};",
+    "    int key = 23;",
+    '    printf("the array is NOT sorted\\n");',
+    '    printf("binary search says index %d\\n", binaryIter(a, 7, key));',
+    '    printf("but a plain search finds it at index %d", linearSearch(a, 7, key));'])), noQuiz:true},
+
+  {t:"Why halving is so powerful", limits:{n:[1,20]}, code:PROG(
+    MAIN([
+    "    int n = 16;",
+    "    int left = n, steps = 0;",
+    "    while (left > 1) {",
+    "        left = left / 2;",
+    "        steps = steps + 1;",
+    "    }",
+    '    printf("searching %d values takes about %d halving(s)", n, steps);']))}
+]},
+
+{ key:"practice", name:"Palindrome and power", programs:[
+
+  {t:"Palindrome by recursion", code:PROG(
+    ["int isPalRec(char s[], int left, int right) {",
+     "    if (left >= right) return 1;",
+     "    if (s[left] != s[right]) return 0;",
+     "    return isPalRec(s, left + 1, right - 1);",
+     "}",""],
+    MAIN([
+    '    char s[20] = "level";',
+    "    int n = 0;",
+    "    n = strlen(s);",
+    "    if (isPalRec(s, 0, n - 1)) {",
+    '        printf("%s is a palindrome", s);',
+    "    } else {",
+    '        printf("%s is not a palindrome", s);',
+    "    }"]))},
+
+  {t:"Palindrome by a loop", code:PROG(
+    ["int isPalIter(char s[]) {",
+     "    int left = 0, right = 0;",
+     "    right = strlen(s) - 1;",
+     "    while (left < right) {",
+     "        if (s[left] != s[right]) return 0;",
+     "        left = left + 1;",
+     "        right = right - 1;",
+     "    }",
+     "    return 1;",
+     "}",""],
+    MAIN([
+    '    char s[20] = "level";',
+    "    if (isPalIter(s)) {",
+    '        printf("%s is a palindrome", s);',
+    "    } else {",
+    '        printf("%s is not a palindrome", s);',
+    "    }"]))},
+
+  {t:"Palindrome both ways, with counts", code:PROG(
+    ["int calls = 0;",
+     "int passes = 0;",""],
+    ["int isPalRec(char s[], int left, int right) {",
+     "    calls = calls + 1;",
+     "    if (left >= right) return 1;",
+     "    if (s[left] != s[right]) return 0;",
+     "    return isPalRec(s, left + 1, right - 1);",
+     "}","",
+     "int isPalIter(char s[]) {",
+     "    int left = 0, right = 0;",
+     "    right = strlen(s) - 1;",
+     "    while (left < right) {",
+     "        passes = passes + 1;",
+     "        if (s[left] != s[right]) return 0;",
+     "        left = left + 1;",
+     "        right = right - 1;",
+     "    }",
+     "    return 1;",
+     "}",""],
+    MAIN([
+    '    char s[20] = "racecar";',
+    "    int n = 0, r = 0, it = 0;",
+    "    n = strlen(s);",
+    "    r = isPalRec(s, 0, n - 1);",
+    "    it = isPalIter(s);",
+    '    printf("recursion says %d after %d call(s)\\n", r, calls);',
+    '    printf("the loop says  %d after %d pass(es)", it, passes);']))},
+
+  {t:"power by recursion", limits:{a:[0,9],n:[0,9]}, code:PROG(
+    ["int powerRec(int a, int n) {",
+     "    if (n == 0) return 1;",
+     "    return a * powerRec(a, n - 1);",
+     "}",""],
+    MAIN([
+    "    int a = 2;",
+    "    int n = 8;",
+    '    printf("%d to the power %d is %d", a, n, powerRec(a, n));']))},
+
+  {t:"power by a loop", limits:{a:[0,9],n:[0,9]}, code:PROG(
+    ["int powerIter(int a, int n) {",
+     "    int i = 0, result = 1;",
+     "    for (i = 1; i <= n; i = i + 1) {",
+     "        result = result * a;",
+     "    }",
+     "    return result;",
+     "}",""],
+    MAIN([
+    "    int a = 2;",
+    "    int n = 8;",
+    '    printf("%d to the power %d is %d", a, n, powerIter(a, n));']))},
+
+  {t:"power both ways, with counts", limits:{a:[0,9],n:[0,9]}, code:PROG(
+    ["int calls = 0;",
+     "int passes = 0;",""],
+    ["int powerRec(int a, int n) {",
+     "    calls = calls + 1;",
+     "    if (n == 0) return 1;",
+     "    return a * powerRec(a, n - 1);",
+     "}","",
+     "int powerIter(int a, int n) {",
+     "    int i = 0, result = 1;",
+     "    for (i = 1; i <= n; i = i + 1) {",
+     "        passes = passes + 1;",
+     "        result = result * a;",
+     "    }",
+     "    return result;",
+     "}",""],
+    MAIN([
+    "    int a = 2;",
+    "    int n = 8;",
+    "    int r = 0, it = 0;",
+    "    r = powerRec(a, n);",
+    "    it = powerIter(a, n);",
+    '    printf("both give %d\\n", r);',
+    '    printf("recursion: %d call(s), the loop: %d pass(es)", calls, passes);']))}
+]},
+
+{ key:"stack", name:"What the stack costs", programs:[
+
+  {t:"Watch the frames pile up", limits:{n:[0,12]}, code:PROG(
+    ["int countDown(int n) {",
+     '    printf("in the frame for n = %d\\n", n);',
+     "    if (n == 0) return 0;",
+     "    return countDown(n - 1);",
+     "}",""],
+    MAIN([
+    "    int n = 5;",
+    "    countDown(n);",
+    '    printf("every one of those frames existed at the same moment");'])), noQuiz:true},
+
+  {t:"A loop keeps just one frame", limits:{n:[0,20]}, code:PROG(
+    ["int countDownIter(int n) {",
+     "    int i = 0;",
+     "    for (i = n; i >= 0; i = i - 1) {",
+     '        printf("pass with i = %d\\n", i);',
+     "    }",
+     "    return 0;",
+     "}",""],
+    MAIN([
+    "    int n = 5;",
+    "    countDownIter(n);",
+    '    printf("one frame did all of that");'])), noQuiz:true},
+
+  {t:"Each frame keeps its own copy", limits:{n:[1,8]}, code:PROG(
+    ["int sumTo(int n) {",
+     "    int mine = 0;",
+     "    mine = n * 10;",
+     "    if (n == 0) return 0;",
+     '    printf("frame for n = %d holds mine = %d\\n", n, mine);',
+     "    return n + sumTo(n - 1);",
+     "}",""],
+    MAIN([
+    "    int n = 4;",
+    '    printf("total %d\\n", sumTo(n));',
+    '    printf("there were %d separate copies of mine, one per frame", n + 1);']))},
+
+  {t:"A recursion too deep", code:PROG(
+    ["int deep(int n) {",
+     "    if (n == 0) return 0;",
+     "    return deep(n - 1);",
+     "}",""],
+    MAIN([
+    "    int n = 200;",
+    '    printf("%d", deep(n));'])), noQuiz:true}
+]}
+];
+
+function editablesOf(lines){
+  const out=[];
+  let from=lines.findIndex(l=>/^\s*int\s+main\s*\(/.test(l));
+  if(from<0) from=0;
+  /* a variable the for loops drive, or one of a grouped declaration, is not an input */
+  const forVars=new Set();
+  lines.forEach(l=>{
+    const fm=l.match(/^\s*for\s*\(\s*([A-Za-z_]\w*)\s*=/);
+    if(fm) forVars.add(fm[1]);
+  });
+  lines.forEach((l,idx)=>{
+    if(idx<from) return;
+    const mm=l.match(/^\s*(int|float)\s+([A-Za-z_]\w*)\s*\[\s*(\d*)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{(.+)\}\s*;$/);
+    if(mm){
+      const cols=parseInt(mm[4],10);
+      const inner=mm[5].trim();
+      const rowTexts=[];
+      splitTop(inner).forEach(pt=>{
+        const t=pt.trim();
+        if(t.startsWith("{")) rowTexts.push(t.replace(/^\{|\}$/g,"").trim());
+      });
+      if(rowTexts.length){
+        out.push({name:mm[2],init:rowTexts.join("; "),line:idx,type:mm[1],kind:"matrix",
+                  rows:rowTexts.length,cols});
+      }
+      return;
+    }
+    const sm=l.match(/^\s*char\s+([A-Za-z_]\w*)\s*\[\s*(\d*)\s*\]\s*=\s*"([^"]*)"\s*;$/);
+    if(sm){ out.push({name:sm[1],init:sm[3],line:idx,type:"char",kind:"text",
+                      room:sm[2]===""?null:parseInt(sm[2],10)}); return; }
+    const lm=l.match(/^\s*(int|float)\s+([A-Za-z_]\w*)\s*\[\s*(\d*)\s*\]\s*=\s*\{([^}]*)\}\s*;$/);
+    if(lm){ out.push({name:lm[2],init:lm[4].split(",").map(x=>x.trim()).join(", "),line:idx,
+                      type:lm[1],kind:"list",fixed:lm[3]!==""?parseInt(lm[3],10):null}); return; }
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    if(/\[/.test(m[2])) return;
+    if(splitTop(m[2]).length>1) return;          /* grouped counters are not inputs */
+    if(forVars.has(m[2].split("=")[0].trim())) return;
+    {                                            /* nor is a holder for a function's result */
+      const nm=m[2].split("=")[0].trim();
+      if(lines.some(x=>new RegExp("^\\s*"+nm+"\\s*=\\s*[A-Za-z_]\\w*\\s*\\(").test(x))) return;
+    }
+    splitTop(m[2]).forEach(part=>{
+      part=part.trim();
+      if(part.startsWith("*")) return;
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1],kind:"num"});
+      else if(/^'.'$/.test(init)) out.push({name,init:init[1],line:idx,type:m[1],kind:"char"});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    let v=vals[e.name];
+    if(v===undefined||v===null) return;
+    if(v==="" && e.kind!=="text") return;
+    if(e.kind==="matrix"){
+      const rowsIn=String(v).split(";").map(x=>x.trim()).filter(x=>x!=="");
+      let nums;
+      if(rowsIn.length>1){
+        nums=rowsIn.map(r=>r.split(",").map(x=>x.trim()).filter(x=>/^-?\d+(\.\d+)?$/.test(x)));
+      }else{
+        const flat=String(v).split(",").map(x=>x.trim()).filter(x=>/^-?\d+(\.\d+)?$/.test(x));
+        nums=[];
+        for(let r=0;r<e.rows;r++) nums.push(flat.slice(r*e.cols,(r+1)*e.cols));
+      }
+      const fixed=[];
+      for(let r=0;r<e.rows;r++){
+        const row=(nums[r]||[]).slice(0,e.cols);
+        while(row.length<e.cols) row.push("0");
+        fixed.push("{"+row.join(", ")+"}");
+      }
+      copy[e.line]=copy[e.line].replace(/\{.*\}/, "{"+fixed.join(", ")+"}");
+      return;
+    }
+    if(e.kind==="text"){
+      let t=String(v).replace(/["\\]/g,"");
+      if(e.room!==null && t.length+1>e.room) t=t.slice(0,e.room-1);
+      copy[e.line]=copy[e.line].replace(/=\s*"[^"]*"/, '= "'+t+'"');
+      return;
+    }
+    if(e.kind==="list"){
+      const nums=String(v).split(",").map(x=>x.trim()).filter(x=>/^-?\d+(\.\d+)?$/.test(x));
+      if(!nums.length) return;
+      const use = e.fixed!==null ? nums.slice(0,e.fixed) : nums;
+      copy[e.line]=copy[e.line].replace(/\{[^}]*\}/, "{"+use.join(", ")+"}");
+      return;
+    }
+    if(e.kind==="char"){
+      v=String(v).charAt(0); if(v==="'") return;
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*'.'"), e.name+" = '"+v+"'");
+    }else{
+      const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".0"):String(v);
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+    }
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit,ran){
+  mount.innerHTML=lines.map((l,i)=>{
+    let cls="ln";
+    if(ran&&ran.has(i)) cls+=" ran";
+    if(i===hit) cls+=" hit";
+    return `<div class="${cls}"><span class="n">${i+1}</span><span>${esc(l)}</span></div>`;
+  }).join("");
+  const el=mount.querySelector(".ln.hit");
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+/* ---- memory inspector: boxes for variables, arrows for pointers ---- */
+function cellHtml(v,fi,flash,pre){
+  const ptr=isPtr(v.type);
+  const cls="cell "+(ptr?"ptr":"var")+(v.value===null?" unset":"")+(flash?" flash":"");
+  let val = v.value===null ? "?" : (ptr ? "&rarr; "+hexAddr(v.value) : esc(showVal(v.type,v.value)));
+  if(ptr&&v.value===0) val="NULL";
+  if(ptr&&v.points&&v.points.arr) val+=` <span class="at">${esc(v.points.arr)}[${v.points.k}]</span>`;
+  return `<div class="${cls}" id="${pre}c${fi}-${v.name}">
+      <div class="cell-name">${esc(v.name)} <em>${esc(v.type)}</em></div>
+      <div class="cell-val">${val}</div>
+      <div class="cell-addr">${hexAddr(v.addr)}</div>
+    </div>`;
+}
+/* ---- an array drawn the way it really sits: one block of touching boxes ---- */
+/* ---- a matrix drawn as the grid it is: rows down, columns across ---- */
+function matrixHtml(v,fi,touch,pre){
+  const sz=sizeOf(v.elem);
+  const mine = touch&&touch.idx===fi&&touch.name===v.name;
+  const hot = mine ? (touch.cells!==undefined ? touch.cells
+                     : (touch.cell!==undefined ? [touch.cell] : null)) : null;
+  const whole = mine && touch.cell===undefined && touch.cells===undefined;
+  let head=`<tr><th class="mcorner"></th>`;
+  for(let c=0;c<v.cols;c++) head+=`<th>${c}</th>`;
+  head+=`</tr>`;
+  let body="";
+  for(let r=0;r<v.rows;r++){
+    body+=`<tr><th>${r}</th>`;
+    for(let c=0;c<v.cols;c++){
+      const k=r*v.cols+c, val=v.value[k];
+      const cls=(hot&&hot.indexOf(k)>=0)?"mhot":"";
+      const shown = val===null ? "?" : esc(showVal(v.elem,val));
+      body+=`<td class="${cls}" id="${pre}m${fi}-${v.name}-${k}" title="${v.name}[${r}][${c}] at ${hexAddr(v.addr+k*sz)}">${shown}</td>`;
+    }
+    body+=`</tr>`;
+  }
+  return `<div class="mat${whole?" flash":""}" id="${pre}c${fi}-${v.name}">
+      <div class="arr-head"><code>${esc(v.name)}</code> <em>${esc(v.type)}</em>
+        <span class="arr-note">${v.rows} &times; ${v.cols} = ${v.rows*v.cols} boxes in one block
+        &middot; starts at ${hexAddr(v.addr)} &middot; row-major</span></div>
+      <table class="mgrid"><tbody>${head}${body}</tbody></table>
+    </div>`;
+}
+function arrayHtml(v,fi,touch,pre){
+  const sz=sizeOf(v.elem), isTxt=v.elem==="char";
+  const mine = touch&&touch.idx===fi&&touch.name===v.name;
+  const hotList = mine ? (touch.cells!==undefined ? touch.cells
+                         : (touch.cell!==undefined ? [touch.cell] : null)) : null;
+  const whole = mine && touch.cell===undefined && touch.cells===undefined;
+  /* where does the text stop? everything past the \0 is leftover, not part of the string */
+  let term=-1;
+  if(isTxt) for(let k=0;k<v.len;k++){ if(Number(v.value[k])===0){ term=k; break; } }
+  const boxes=v.value.map((val,k)=>{
+    let cls="abox";
+    if(hotList&&hotList.indexOf(k)>=0) cls+=" flash";
+    if(isTxt&&k===term) cls+=" term";
+    if(isTxt&&term>=0&&k>term) cls+=" past";
+    if(val===null) cls+=" unset";
+    let shown;
+    if(val===null) shown="?";
+    else if(isTxt) shown = Number(val)===0 ? "\\0" : esc(String.fromCharCode(Number(val)));
+    else shown = esc(showVal(v.elem,val));
+    return `<div class="${cls}" id="${pre}e${fi}-${v.name}-${k}">
+        <div class="aidx">${k}</div>
+        <div class="aval">${shown}</div>
+        <div class="aaddr">${hexAddr(v.addr+k*sz).replace("0x","")}</div>
+      </div>`;
+  }).join("");
+  const text = isTxt ? ` &nbsp;<span class="astr">"${esc(term<0?"":v.value.slice(0,term).map(c=>String.fromCharCode(Number(c))).join(""))}"</span>` : "";
+  return `<div class="arr${whole?" flash":""}" id="${pre}c${fi}-${v.name}">
+      <div class="arr-head"><code>${esc(v.name)}</code> <em>${esc(v.type)}</em>
+        <span class="arr-note">${v.len} box${v.len===1?"":"es"} &middot; ${sz} byte${sz===1?"":"s"} each
+        &middot; starts at ${hexAddr(v.addr)}</span>${text}</div>
+      <div class="arow">${boxes}</div>
+    </div>`;
+}
+function laneHtml(label,vars,fi,touch,pre){
+  if(!vars.length) return "";
+  return `<div class="lane"><div class="lane-label">${label}</div><div class="lane-row">`+
+    vars.map(v=>cellHtml(v,fi,touch&&touch.idx===fi&&touch.name===v.name,pre)).join("")+
+    `</div></div>`;
+}
+function blockHtml(f,fi,touch,pre,label,tag,cls){
+  const arrs=f.vars.filter(v=>isArrType(v.type));
+  const ptrs=f.vars.filter(v=>isPtr(v.type));
+  const vars=f.vars.filter(v=>!isPtr(v.type)&&!isArrType(v.type));
+  return `<div class="${cls}">
+      <div class="block-label">${label} <span class="tag">${tag}</span></div>
+      ${laneHtml("Pointers",ptrs,fi,touch,pre)}
+      ${laneHtml("Variables",vars,fi,touch,pre)}
+      ${arrs.length?`<div class="lane"><div class="lane-label">${
+          arrs.every(v=>v.dim===2)?"Matrix":(arrs.some(v=>v.dim===2)?"Arrays and matrices":"Arrays")
+        }</div>`+
+        arrs.map(v=>v.dim===2?matrixHtml(v,fi,touch,pre):arrayHtml(v,fi,touch,pre)).join("")+`</div>`:""}
+      ${f.vars.length?"":'<div class="empty">no variables yet</div>'}
+    </div>`;
+}
+function renderMemory(mount,frames,touch,entered,globals){
+  const pre=(mount.id||"m")+"-";
+  if((!frames||!frames.length)&&!globals){ mount.innerHTML='<div class="empty">Nothing in memory yet.</div>'; return; }
+  const arrows=[];
+  const blocks=frames.map((f,fi)=>({f,fi})).reverse().map(({f,fi})=>{
+    const arrs=f.vars.filter(v=>isArrType(v.type));
+    const ptrs=f.vars.filter(v=>isPtr(v.type));
+    const vars=f.vars.filter(v=>!isPtr(v.type)&&!isArrType(v.type));
+    ptrs.forEach(v=>{
+      if(!v.points) return;
+      const target = v.points.arr!==null && v.points.arr!==undefined
+        ? `${pre}e${v.points.idx}-${v.points.arr}-${v.points.k}`
+        : `${pre}c${v.points.idx}-${v.points.name}`;
+      arrows.push({from:`${pre}c${fi}-${v.name}`, to:target});
+    });
+    const running = fi===frames.length-1;
+    const cls="block"+(fi>0?" callee":"")+((running&&entered&&fi>0)?" enter":"");
+    return `<div class="${cls}">
+      <div class="block-label">${f.fn}()
+        <span class="tag">${running?"running now":"waiting"}</span></div>
+      ${laneHtml("Pointers",ptrs,fi,touch,pre)}
+      ${laneHtml("Variables",vars,fi,touch,pre)}
+      ${arrs.length?`<div class="lane"><div class="lane-label">${
+          arrs.every(v=>v.dim===2)?"Matrix":(arrs.some(v=>v.dim===2)?"Arrays and matrices":"Arrays")
+        }</div>`+
+        arrs.map(v=>v.dim===2?matrixHtml(v,fi,touch,pre):arrayHtml(v,fi,touch,pre)).join("")+`</div>`:""}
+      ${f.vars.length?"":'<div class="empty">no variables yet</div>'}
+    </div>`;
+  }).join("");
+  const gHtml = globals ? blockHtml(globals,-1,touch,pre,"globals",
+      "outside every frame, alive for the whole program","block globals") : "";
+  mount.innerHTML=blocks+gHtml;
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.dataset.pre=pre;
+  svg.setAttribute("class","arrows");
+  mount.appendChild(svg);
+  requestAnimationFrame(()=>drawArrows(mount,svg,arrows));
+  mount._arrows=arrows; mount._svg=svg;
+}
+function drawArrows(container,svg,arrows){
+  const cr=container.getBoundingClientRect();
+  const ox=cr.left-container.scrollLeft, oy=cr.top-container.scrollTop;
+  svg.setAttribute("width",container.scrollWidth);
+  svg.setAttribute("height",container.scrollHeight);
+  let lines="";
+  arrows.forEach(a=>{
+    const A=container.querySelector('[id="'+a.from+'"]'), B=container.querySelector('[id="'+a.to+'"]');
+    if(!A||!B||A===B) return;
+    const ra=A.getBoundingClientRect(), rb=B.getBoundingClientRect();
+    const ax=ra.left+ra.width/2-ox, ay=ra.top+ra.height/2-oy;
+    const bx=rb.left+rb.width/2-ox, by=rb.top+rb.height/2-oy;
+    const dx=bx-ax, dy=by-ay;
+    let sx,sy,tx,ty;
+    if(Math.abs(dx)>Math.abs(dy)){
+      sx=ax+(dx>=0?1:-1)*(ra.width/2); sy=ay;
+      tx=bx-(dx>=0?1:-1)*(rb.width/2+6); ty=by;
+    }else{
+      sx=ax; sy=ay+(dy>=0?1:-1)*(ra.height/2);
+      tx=bx; ty=by-(dy>=0?1:-1)*(rb.height/2+6);
+    }
+    const mx=(sx+tx)/2, my=(sy+ty)/2;
+    const d = Math.abs(dx)>Math.abs(dy)
+      ? `M${sx},${sy} C${mx},${sy} ${mx},${ty} ${tx},${ty}`
+      : `M${sx},${sy} C${sx},${my} ${tx},${my} ${tx},${ty}`;
+    lines+=`<path class="arrow-line" d="${d}" marker-end="url(#ah-${container.id})"/>`;
+  });
+  svg.innerHTML=`<defs><marker id="ah-${container.id}" markerWidth="9" markerHeight="9"
+      refX="6.5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" class="arrow-head"/></marker></defs>`+lines;
+}
+/* the p versus *p reader — the clearest way to keep the two apart */
+function costHtml(step){
+  const frames=step.depth||0, deepest=step.deepest||0, calls=step.calls||0;
+  const passes=step.loopPasses||0, bytes=step.bytes||0, peak=step.peakBytes||0;
+  return `<div class="rhead">What this is costing</div>
+    <table class="itab costtab"><tbody>
+      <tr><th>frames on the stack now</th><td><b>${frames}</b></td></tr>
+      <tr><th>most frames at once</th><td><b>${deepest}</b>${
+        deepest>1?` <span class="what">one per level of recursion, plus main</span>`
+                 :` <span class="what">just main &mdash; nothing was nested</span>`}</td></tr>
+      <tr><th>function calls made</th><td><b>${calls}</b>${
+        calls?` <span class="what">each one costs a frame and a jump</span>`:""}</td></tr>
+      <tr><th>loop passes run</th><td><b>${passes}</b>${
+        passes?` <span class="what">each one costs only a test and a step</span>`:""}</td></tr>
+      <tr><th>stack in use now</th><td><b>${bytes}</b> bytes</td></tr>
+      <tr><th>most stack at once</th><td><b>${peak}</b> bytes</td></tr>
+    </tbody></table>
+    <div class="trfoot">${
+      deepest>1
+        ? `Recursion pays in <strong>memory</strong>: ${deepest} frames had to exist at the same
+           moment, because every waiting call keeps its own copy of everything.`
+        : (passes
+            ? `A loop keeps <strong>one</strong> frame however many passes it makes &mdash; the memory
+               does not grow with the work.`
+            : `Nothing has happened yet.`)}</div>`;
+}
+function renderTrace(mount,step){
+  if(!mount) return;
+  if(!step){ mount.innerHTML=""; return; }
+  let out=costHtml(step);
+  if(step.trace && step.trace.length) out+=callTraceHtml(step);
+  if(step.loops && step.loops.length) out+=loopTablesHtml(step);
+  mount.innerHTML=out;
+  const el=mount.querySelector("tr:last-child");
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+/* the going-down / coming-back story, for the recursive half */
+function callTraceHtml(step){
+  const rows=step.trace.slice(-14).map((t,i)=>{
+    const pad=(t.depth-1)*14;
+    const right = t.open ? `<span class="what">waiting</span>`
+      : (t.gives==="nothing" ? `<span class="what">finished</span>` : `gives back <b>${esc(t.gives)}</b>`);
+    return `<tr class="tr-${t.open?"open":"done"}"><td style="padding-left:${8+pad}px">
+        <span class="tr-mark">${t.open?"&#8595;":"&#8593;"}</span><code>${esc(t.call)}</code></td>
+        <td>${right}</td></tr>`;
+  }).join("");
+  const waiting=step.trace.filter(t=>t.open).length;
+  return `<div class="rhead">The calls${step.trace.length>14?" (last 14)":""}</div>
+    <table class="itab"><tbody>${rows}</tbody></table>
+    <div class="trfoot">${waiting} still waiting for an answer</div>`;
+}
+function loopTablesHtml(step){
+  const blocks=step.loops.map(T=>{
+    if(!T.rows.length) return "";
+    /* which variables are worth a column? the ones that move, plus the one being tested */
+    const names=[...new Set(T.rows.flatMap(r=>Object.keys(r.before||{})))];
+    const moving=names.filter(n=>{
+      const vals=T.rows.flatMap(r=>[r.before&&r.before[n], r.after&&r.after[n]]).filter(v=>v!==undefined&&v!==null);
+      return new Set(vals).size>1 || new RegExp("\\\\b"+n+"\\\\b").test(T.test);
+    });
+    const cols = moving.length ? moving : names.slice(0,3);
+    const head = `<tr><th>Pass</th>`+
+      (T.kind==="do...while" ? "" : `<th>Test</th>`)+
+      cols.map(n=>`<th><code>${esc(n)}</code></th>`).join("")+
+      (T.kind==="do...while" ? `<th>Test after</th>` : "")+
+      `<th>Printed</th></tr>`;
+    const shown = T.rows.length>12 ? T.rows.slice(-12) : T.rows;
+    const body=shown.map((r,i)=>{
+      const last = i===shown.length-1;
+      const verdict = `<span class="${r.result?"vt":"vf"}">${r.result?"true":"false"}</span>`;
+      const vals=cols.map(n=>{
+        const b=(r.before||{})[n], a=(r.after||{})[n];
+        if(b===undefined) return "<td></td>";
+        return `<td>${esc(b)}${(a!==undefined&&a!==b)?` <span class="arrw">&rarr;</span> <b>${esc(a)}</b>`:""}</td>`;
+      }).join("");
+      let printed = r.printed ? `<code>${esc(r.printed).replace(/\n/g,"&#9166;")}</code>`
+                     : (r.result? "" : `<span class="what">body skipped</span>`);
+      if(r.broke) printed += ` <span class="what">&mdash; break</span>`;
+      return `<tr class="${r.result?"":"lastrow"}"><td>${r.pass}</td>`+
+        (T.kind==="do...while" ? "" : `<td>${verdict}</td>`)+
+        vals+
+        (T.kind==="do...while" ? `<td>${verdict}</td>` : "")+
+        `<td>${printed}</td></tr>`;
+    }).join("");
+    const ran=T.rows.filter(r=>r.result).length;
+    const note = T.kind==="do...while"
+      ? `The body ran <b>${T.rows.length}</b> time${T.rows.length===1?"":"s"}. The test
+         <code>${esc(T.test)}</code> is only reached at the <strong>end</strong> of each pass, which is
+         why the body always runs at least once.`
+      : `The body ran <b>${ran}</b> time${ran===1?"":"s"}. The last row is the test that came back
+         <b>false</b> &mdash; that pass tested but never ran the body.`;
+    return `<div class="rhead"><code>${esc(T.kind)}</code> on line ${T.line+1} &mdash;
+        <code>${esc(T.test)}</code></div>
+      <table class="itab"><tbody>${head}${body}</tbody></table>
+      <div class="trfoot">${note}</div>`;
+  }).filter(Boolean).join("");
+  return blocks;
+}
+function redrawArrows(mount){
+  if(mount&&mount._svg&&mount._arrows) drawArrows(mount,mount._svg,mount._arrows);
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dStack=document.getElementById("d-stack"),
+      dOut=document.getElementById("d-out"), dObs=document.getElementById("d-obs"),
+      dIn=document.getElementById("d-inputs"), dDepth=document.getElementById("d-depth"),
+      dReader=document.getElementById("d-reader");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=loadProgram;
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  dIn.innerHTML = eds.length
+    ? eds.map(e=> e.kind==="matrix"
+        ? `<label>${e.name}<input type="text" size="${Math.min(34,e.rows*e.cols*3+6)}" data-ed="${e.name}" value="${esc(e.init)}" title="${e.rows} row(s) of ${e.cols}, rows separated by a semicolon"></label>`
+      : e.kind==="text"
+        ? `<label>${e.name}<input type="text" size="16" data-ed="${e.name}" value="${esc(e.init)}"${
+            e.room!==null?` maxlength="${e.room-1}" title="This array has ${e.room} boxes, so at most ${e.room-1} characters plus the marker"`:""}></label>`
+      : e.kind==="list"
+        ? `<label>${e.name}<input type="text" size="20" data-ed="${e.name}" value="${esc(e.init)}" title="Numbers separated by commas"></label>`
+      : e.kind==="char"
+        ? `<label>${e.name}<input type="text" maxlength="1" data-ed="${e.name}" value="${e.init}"></label>`
+        : (()=>{ const lim=(prog.limits||{})[e.name];
+            const a = lim ? ` min="${lim[0]}" max="${lim[1]}"` : "";
+            const t = lim ? ` title="Use a value from ${lim[0]} to ${lim[1]} in this program"` : "";
+            return `<label>${e.name}<input type="number" step="${e.type==="float"?"0.1":"1"}" data-ed="${e.name}" value="${e.init}"${a}${t}></label>`; })()
+      ).join("")+`<span class="note">Change a value and the program runs again.</span>`
+    : `<span class="note">This program has no values to change.</span>`;
+  dIn.querySelectorAll('input[type="text"][data-ed]').forEach(el=>el.oninput=function(){ build(); });
+  dIn.querySelectorAll("[data-ed]").forEach(el=>el.onchange=function(){
+    const lim=(prog.limits||{})[this.dataset.ed];
+    if(lim && this.type==="number" && this.value!==""){
+      const v=Number(this.value);
+      if(v<lim[0]) this.value=lim[0];
+      if(v>lim[1]) this.value=lim[1];
+    }
+    build();
+  });
+  build();
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1,null); renderMemory(dStack,[]); renderTrace(dReader,null);
+  dDepth.textContent="";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin.";
+}
+function paint(){
+  const s=steps[idx];
+  const prev = idx>0 ? steps[idx-1] : null;
+  const entered = !prev || s.frames.length>prev.frames.length;
+  renderCode(dCode,lines,s.line,s.ran);
+  renderMemory(dStack,s.frames,s.touch,entered,s.globals);
+  renderTrace(dReader,s);
+  dDepth.textContent = s.frames.length ? `${s.frames.length} frame${s.frames.length>1?"s":""} on the stack` : "";
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+window.addEventListener("resize",()=>{ redrawArrows(dStack); });
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1,null); renderMemory(dStack,[]); renderTrace(dReader,null);
+    dDepth.textContent=""; dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-end").onclick=function(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(!steps.length) return;
+  idx=steps.length-1; paint();
+};
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+fillPrograms(); loadProgram();
+
+/* ============================================================
+   EXPLORER — measure both approaches, by actually running them
+   ============================================================ */
+const xFnSel=document.getElementById("x-fn"), xTable=document.getElementById("x-table"),
+      xGrow=document.getElementById("x-grow"), xObs=document.getElementById("x-obs");
+
+const XP={
+  fact:{
+    label:"factorial(n)", max:12,
+    rec:n=>["#include <stdio.h>","",
+      "int fact(int n) {",
+      "    if (n == 0) return 1;",
+      "    return n * fact(n - 1);",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", fact(n));',
+      "    return 0;","}"],
+    it:n=>["#include <stdio.h>","",
+      "int factIter(int n) {",
+      "    int i = 0, f = 1;",
+      "    for (i = 1; i <= n; i = i + 1) {",
+      "        f = f * i;",
+      "    }",
+      "    return f;",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", factIter(n));',
+      "    return 0;","}"],
+    story:"Recursive factorial makes one call per level and goes one level deeper for each one, so its "+
+      "memory grows straight in line with <code>n</code>. It does the <strong>same amount of work</strong> "+
+      "as the loop &mdash; the same multiplications &mdash; so the difference here is memory, not speed."
+  },
+  fib:{
+    label:"fibonacci(n)", max:14,
+    rec:n=>["#include <stdio.h>","",
+      "int fib(int n) {",
+      "    if (n == 0) return 0;",
+      "    if (n == 1) return 1;",
+      "    return fib(n - 1) + fib(n - 2);",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", fib(n));',
+      "    return 0;","}"],
+    it:n=>["#include <stdio.h>","",
+      "int fibIter(int n) {",
+      "    int i = 0, a = 0, b = 1, next = 0;",
+      "    if (n == 0) return 0;",
+      "    for (i = 2; i <= n; i = i + 1) {",
+      "        next = a + b;",
+      "        a = b;",
+      "        b = next;",
+      "    }",
+      "    return b;",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", fibIter(n));',
+      "    return 0;","}"],
+    story:"This is the one that really hurts. Each call makes <strong>two</strong> more, so the number of "+
+      "calls grows explosively while the depth stays near <code>n</code>. Look at the calls column against "+
+      "the loop passes column: that gap is wasted work, the same small answers computed over and over."
+  },
+  power:{
+    label:"power(2, n)", max:12,
+    rec:n=>["#include <stdio.h>","",
+      "int powerRec(int a, int n) {",
+      "    if (n == 0) return 1;",
+      "    return a * powerRec(a, n - 1);",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", powerRec(2, n));',
+      "    return 0;","}"],
+    it:n=>["#include <stdio.h>","",
+      "int powerIter(int a, int n) {",
+      "    int i = 0, result = 1;",
+      "    for (i = 1; i <= n; i = i + 1) {",
+      "        result = result * a;",
+      "    }",
+      "    return result;",
+      "}","",
+      "int main() {",
+      "    int n = "+n+";",
+      '    printf("%d", powerIter(2, n));',
+      "    return 0;","}"],
+    story:"Power behaves like factorial: one call per level, the same number of multiplications either "+
+      "way. The recursion costs memory that the loop does not, and buys nothing in return except that it "+
+      "reads a little like the definition."
+  },
+  search:{
+    label:"binary search in n sorted values", max:18, nIsSize:true,
+    build:n=>{
+      const vals=[]; for(let i=1;i<=Math.max(1,n);i++) vals.push(i*2);
+      return vals;
+    },
+    rec:function(n){ const v=this.build(n);
+      return ["#include <stdio.h>","",
+      "int binaryRec(int a[], int low, int high, int key) {",
+      "    int mid = 0;",
+      "    if (low > high) return -1;",
+      "    mid = (low + high) / 2;",
+      "    if (a[mid] == key) return mid;",
+      "    if (a[mid] < key) return binaryRec(a, mid + 1, high, key);",
+      "    return binaryRec(a, low, mid - 1, key);",
+      "}","",
+      "int main() {",
+      "    int a["+v.length+"] = {"+v.join(", ")+"};",
+      "    int key = "+v[v.length-1]+";",
+      '    printf("%d", binaryRec(a, 0, '+(v.length-1)+', key));',
+      "    return 0;","}"]; },
+    it:function(n){ const v=this.build(n);
+      return ["#include <stdio.h>","",
+      "int binaryIter(int a[], int n, int key) {",
+      "    int low = 0, high = 0, mid = 0;",
+      "    high = n - 1;",
+      "    while (low <= high) {",
+      "        mid = (low + high) / 2;",
+      "        if (a[mid] == key) return mid;",
+      "        if (a[mid] < key) {",
+      "            low = mid + 1;",
+      "        } else {",
+      "            high = mid - 1;",
+      "        }",
+      "    }",
+      "    return -1;",
+      "}","",
+      "int main() {",
+      "    int a["+v.length+"] = {"+v.join(", ")+"};",
+      "    int key = "+v[v.length-1]+";",
+      '    printf("%d", binaryIter(a, '+v.length+', key));',
+      "    return 0;","}"]; },
+    story:"This is the fair fight. Each step halves the range, so both versions take only a handful of "+
+      "steps and the recursion never gets deep &mdash; about twenty frames would search a million values. "+
+      "Here the memory cost is so small that choosing recursion for readability is perfectly reasonable."
+  }
+};
+xFnSel.innerHTML=Object.keys(XP).map(k=>`<option value="${k}">${XP[k].label}</option>`).join("");
+
+function xMeasure(lines){
+  try{
+    const st=runProgram(lines);
+    const L=st[st.length-1];
+    return {ok:!L.crashed, out:L.out, calls:L.calls||0, deepest:L.deepest||0,
+            passes:L.loopPasses||0, peak:L.peakBytes||0, steps:st.length};
+  }catch(e){ return {ok:false, out:"", calls:0, deepest:0, passes:0, peak:0, steps:0}; }
+}
+function xRun(){
+  const key=xFnSel.value, spec=XP[key];
+  let n=Math.trunc(Number(document.getElementById("x-n").value)||0);
+  if(n<0) n=0;
+  if(n>spec.max) n=spec.max;
+  document.getElementById("x-n").value=n;
+
+  const R=xMeasure(spec.rec(n)), I=xMeasure(spec.it(n));
+  const row=(label,a,b,note)=>`<tr><th>${label}</th><td>${a}</td><td>${b}</td>${
+    note?`<td class="what">${note}</td>`:"<td></td>"}</tr>`;
+  xTable.innerHTML=`<div class="rhead">${esc(spec.label)} with n = ${n}</div>
+    <table class="itab costtab"><tbody>
+      <tr><th></th><th>recursion</th><th>a loop</th><th></th></tr>
+      ${row("answer","<b>"+esc(R.out||"-")+"</b>","<b>"+esc(I.out||"-")+"</b>",
+            (R.out===I.out&&R.ok&&I.ok)?"the same, as they must be":"")}
+      ${row("function calls","<b>"+R.calls+"</b>","<b>"+I.calls+"</b>","each call sets up a frame")}
+      ${row("loop passes","<b>"+R.passes+"</b>","<b>"+I.passes+"</b>","each pass is just a test and a step")}
+      ${row("most frames at once","<b>"+R.deepest+"</b>","<b>"+I.deepest+"</b>","main included")}
+      ${row("most stack at once","<b>"+R.peak+"</b> bytes","<b>"+I.peak+"</b> bytes",
+            R.peak>I.peak?"recursion is holding "+(R.peak-I.peak)+" bytes more":"")}
+    </tbody></table>
+    <div class="trfoot">${R.ok&&I.ok
+      ? (R.out===I.out
+          ? "Both give <b>"+esc(R.out)+"</b>. The answers match; only the cost differs."
+          : "<b>The answers differ, which should not happen.</b>")
+      : "One of them could not finish at this size."}</div>`;
+
+  /* the same measurements across a range of n, so the shape is visible */
+  const rows=[];
+  const sizes=[];
+  for(let k=1;k<=spec.max;k++) if(k<=spec.max) sizes.push(k);
+  const show=sizes.filter(k=>k%Math.max(1,Math.ceil(spec.max/6))===0||k===spec.max||k===n);
+  show.forEach(k=>{
+    const r=xMeasure(spec.rec(k)), i2=xMeasure(spec.it(k));
+    rows.push(`<tr class="${k===n?"":"tr-open"}"><td>${k}</td><td>${r.calls}</td><td>${i2.passes}</td>
+      <td>${r.deepest}</td><td>${r.peak}</td><td>${i2.peak}</td></tr>`);
+  });
+  xGrow.innerHTML=`<div class="rhead">How it grows</div>
+    <table class="itab"><tbody>
+      <tr><th>n</th><th>rec. calls</th><th>loop passes</th><th>rec. frames</th><th>rec. bytes</th><th>loop bytes</th></tr>
+      ${rows.join("")}
+    </tbody></table>
+    <div class="trfoot">Measured by running both versions at each size, not estimated.</div>`;
+
+  xObs.innerHTML=`<p>${spec.story}</p>`+
+    (R.peak>I.peak
+      ? `<p class="note">At n = ${n} the recursion held <b>${R.peak}</b> bytes of stack at its deepest
+         moment against the loop's <b>${I.peak}</b>, and made <b>${R.calls}</b> call(s) where the loop
+         made <b>${I.passes}</b> pass(es).</p>`
+      : `<p class="note">At this size the two cost about the same.</p>`);
+}
+document.getElementById("x-run").onclick=xRun;
+document.getElementById("x-reset").onclick=()=>{
+  xTable.innerHTML=""; xGrow.innerHTML="";
+  xObs.innerHTML="Choose a problem and a size, then press Measure both.";
+};
+xFnSel.onchange=()=>{
+  const spec=XP[xFnSel.value];
+  const el=document.getElementById("x-n");
+  el.max=spec.max;
+  if(+el.value>spec.max) el.value=spec.max;
+};
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display=b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-change").style.display=b.dataset.mode==="change"?"block":"none";
+    if(b.dataset.mode==="change" && !pcSpec) pcNew();
+  };
+});
+
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+
+/* a value for one editable, obeying whatever range the program allows */
+const PWORDS=["cat","Sonia","memory","lab","C","array","hello","index","byte","virtual",
+               "Education","Programming","level","AEIOU","rhythm","stack","data","loop"];
+function randValue(p,e){
+  if(e.kind==="matrix"){
+    const rows=[];
+    for(let r=0;r<e.rows;r++){
+      const row=[];
+      for(let c=0;c<e.cols;c++) row.push(Math.random()<0.35 ? 0 : R(20)+1);
+      rows.push(row.join(", "));
+    }
+    return rows.join("; ");
+  }
+  if(e.kind==="text"){
+    const room=e.room;
+    const fit=PWORDS.filter(w=>room===null||w.length+1<=room);
+    return (fit.length?pick(fit):"ab");
+  }
+  if(e.kind==="list"){
+    const n=e.fixed!==null?e.fixed:(3+R(3));
+    return Array.from({length:n},()=>R(99)+1).join(", ");
+  }
+  if(e.kind==="char") return pick("ABCF".split(""));
+  const lim=(p.limits||{})[e.name];
+  if(lim) return lim[0]+R(lim[1]-lim[0]+1);
+  const base=Math.abs(Number(e.init));
+  if(base>=1000) return R(99999)+1;          /* numbers to pick apart digit by digit */
+  if(base>=100)  return R(999)+1;
+  return R(12)+1;
+}
+function randomiseProgram(p){
+  const es=editablesOf(p.code), vals={};
+  es.forEach(e=>vals[e.name]=randValue(p,e));
+  return applyEdits(p.code,es,vals);
+}
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+{
+  const all=document.createElement("option"); all.value="all"; all.textContent="All concepts";
+  ppSel.appendChild(all);
+  CONCEPTS.forEach(c=>{
+    const o=document.createElement("option"); o.value=c.key; o.textContent=c.name; ppSel.appendChild(o);
+  });
+}
+let ppLines=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+function ppNew(){
+  const pool = (ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.key===ppSel.value).programs).filter(p=>!p.noQuiz);
+  for(let k=0;k<120;k++){
+    const p=pick(pool);
+    const code = Math.random()<0.85 ? randomiseProgram(p) : p.code;
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    const opts=new Set([out]);
+    try{ const base=finalOutput(p.code); if(base) opts.add(base); }catch(e){}
+    for(let a=0;a<60&&opts.size<4;a++){
+      try{ const alt=finalOutput(randomiseProgram(p)); if(alt) opts.add(alt); }catch(e){}
+    }
+    if(opts.size<2) continue;
+    ppLines=code; ppAns=out;
+    renderCode(document.getElementById("pp-code"),code,-1,null);
+    const list=[...opts].sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${esc(o).replace(/\n/g," &#9166; ")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Work down to the
+      base case first, write down the value it returns, then come back up one level at a time doing the
+      small piece of work at each level. Press <em>Show me the trace</em> to see those levels.`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  if(!ppLines) return;
+  const st=runProgram(ppLines);
+  const last=st[st.length-1];
+  const box=document.createElement("div");
+  box.className="reader";
+  renderTrace(box,last);
+  document.getElementById("pp-obs").innerHTML=
+    `<p>What that program cost, measured by running it:</p>`+box.innerHTML+
+    `<p class="note">The output is <code>${esc(ppAns).replace(/\n/g," &#9166; ")}</code>.</p>`;
+};
+
+/* ---------- MODE B: count the cost ---------- */
+let pcSpec=null, pcRight=0, pcTries=0, pcStreak=0;
+
+const PC_POOL=CONCEPTS.flatMap(c=>c.programs).filter(p=>{
+  if(p.noQuiz) return false;
+  try{
+    const st=runProgram(p.code);
+    const L=st[st.length-1];
+    return !L.crashed && ((L.calls||0)>1 || (L.loopPasses||0)>0);
+  }catch(e){ return false; }
+});
+
+function pcNew(){
+  for(let k=0;k<160;k++){
+    const p=pick(PC_POOL);
+    const code=randomiseProgram(p);
+    let st,L;
+    try{ st=runProgram(code); L=st[st.length-1]; }catch(e){ continue; }
+    if(!L||L.crashed) continue;
+    const calls=L.calls||0, passes=L.loopPasses||0, deepest=L.deepest||0, peak=L.peakBytes||0;
+
+    const kinds=[];
+    if(calls>1) kinds.push("calls","deepest");
+    if(passes>0) kinds.push("passes");
+    if(calls>1&&passes>0) kinds.push("which");
+    kinds.push("grows");
+    const kind=pick(kinds);
+    let q, right, opts, why;
+
+    if(kind==="calls"){
+      right=String(calls);
+      q=`How many function calls does this program make in total?`;
+      opts=[right,String(calls-1),String(calls+1),String(deepest)];
+      why=`<strong>${calls}</strong> calls. Every one needed its own frame, and the deepest moment had
+        ${deepest} frames alive at once. Note that the number of calls and the greatest depth are not
+        the same thing unless every call is still waiting.`;
+    }else if(kind==="deepest"){
+      right=String(deepest);
+      q=`At the deepest moment, how many stack frames exist at once, counting <code>main</code>?`;
+      opts=[right,String(deepest-1),String(deepest+1),String(calls)];
+      why=`<strong>${deepest}</strong> frames, which is what decides the memory this program needs.
+        ${calls!==deepest?`It made ${calls} calls in all, but they were not all waiting at the same
+        time.`:""}`;
+    }else if(kind==="passes"){
+      right=String(passes);
+      q=`How many loop passes run in this program altogether?`;
+      opts=[right,String(passes+1),String(Math.max(0,passes-1)),String(calls)];
+      why=`<strong>${passes}</strong> loop passes. A pass costs only a test and a step &mdash; no frame
+        is created, so the memory does not grow with the number of passes.`;
+    }else if(kind==="which"){
+      right = calls>passes ? "the recursion, by making more calls" : "the loop, by running more passes";
+      q=`This program does the work both ways. Which side did more separate steps?`;
+      opts=[right, calls>passes ? "the loop, by running more passes" : "the recursion, by making more calls",
+            "they did exactly the same number", "neither did any work"];
+      why=`The recursion made <strong>${calls}</strong> call(s) and the loop ran
+        <strong>${passes}</strong> pass(es). ${
+        calls>passes ? "Each of those calls also cost a stack frame, which a loop pass does not."
+                     : "Here the loop did more separate steps, but each one was far cheaper."}`;
+    }else{
+      const hasRec = calls>1 && deepest>2;
+      right = hasRec ? "the recursion, because each waiting call keeps its own frame"
+                     : "neither, because a loop keeps one frame however long it runs";
+      q=`Which part of this program uses more memory as its input grows?`;
+      opts=[right,
+            hasRec ? "neither, because a loop keeps one frame however long it runs"
+                   : "the recursion, because each waiting call keeps its own frame",
+            "both grow at exactly the same rate",
+            "memory never depends on the input"];
+      why = hasRec
+        ? `The recursion reached ${deepest} frames and ${peak} bytes of stack at its deepest point.
+           Raise the input and both of those rise with it. A loop would have stayed at one frame.`
+        : `This program's loop keeps a single frame whatever the input is, so its memory does not grow.
+           Only the number of passes changes.`;
+    }
+
+    const list=[...new Set(opts.filter(x=>x!==undefined&&x!==null&&x!==""))].slice(0,4)
+                 .sort(()=>Math.random()-0.5);
+    if(!list.includes(right)) list[0]=right;
+    if(list.length<2) continue;
+
+    pcSpec={right,why};
+    renderCode(document.getElementById("pc-code"),code,-1,null);
+    document.getElementById("pc-q").innerHTML=q;
+    document.getElementById("pc-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="pca" value="${encodeURIComponent(o)}"> <code>${esc(o)}</code></label>`).join("");
+    document.getElementById("pc-obs").textContent="Choose an answer and press Check.";
+    return;
+  }
+}
+document.getElementById("pc-new").onclick=pcNew;
+document.getElementById("pc-check").onclick=()=>{
+  const sel=document.querySelector('input[name="pca"]:checked');
+  const obs=document.getElementById("pc-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  if(!pcSpec) return;
+  pcTries++;
+  if(decodeURIComponent(sel.value)===pcSpec.right){
+    pcRight++; pcStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> ${pcSpec.why}`;
+  }else{
+    pcStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> The answer is
+      <code>${esc(pcSpec.right)}</code>. ${pcSpec.why}`;
+  }
+  document.getElementById("pc-right").textContent=pcRight;
+  document.getElementById("pc-tries").textContent=pcTries;
+  document.getElementById("pc-streak").textContent=pcStreak;
+};
+ppNew(); pcNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"Can every recursive function be rewritten as a loop?",
+     o:["No, never","Yes, always","Only for factorial","Only if it returns a value"], a:1},
+    {q:"What does each function call get for itself?",
+     o:["A copy of the whole program","A new processor","Nothing","Its own stack frame holding its parameters and locals"], a:3},
+    {q:"How many stack frames does a loop need, however many passes it makes?",
+     o:["One","One per pass","Two per pass","It depends on n"], a:0},
+    {q:"What is a stack overflow?",
+     o:["A number too large for an int","A loop that never ends","The stack running out of room because a recursion went too deep","An array index out of range"], a:2},
+    {q:"Where does a variable declared outside every function live?",
+     o:["In main's frame","Outside every frame, for the whole run of the program","In the first function that uses it","It is not allowed in C"], a:1}
+  ],
+  post:[
+    {q:"How many calls does a recursive fact(n) make, counting the first one?",
+     o:["n","n + 1","2n","n squared"], a:1},
+    {q:"At the deepest moment of fact(6), how many frames exist counting main?",
+     o:["6","7","1","8"], a:3},
+    {q:"An iterative factorial of n = 4 and of n = 400 use how much stack?",
+     o:["The same amount","400 times as much for the larger","Twice as much","It cannot be measured"], a:0},
+    {q:"Recursive fib(20) makes about 22,000 calls while a loop makes 19 passes. What is the cause?",
+     o:["Recursion is always slow","Loops use less memory","The same small results are computed again and again","The compiler optimises loops"], a:2},
+    {q:"Compared with recursive factorial, recursive Fibonacci is worse mainly in:",
+     o:["Stack depth","The number of calls it makes","Readability","The answer it gives"], a:1},
+    {q:"For binary search on 1,000,000 sorted values, roughly how deep does the recursion go?",
+     o:["1,000,000","About 1,000","Only 1","About 20"], a:3},
+    {q:"When the key is NOT present, how do the two binary searches compare?",
+     o:["The iterative one makes an extra pass","They always match exactly","The recursive one makes one extra call, to discover low > high","The recursive one fails"], a:2},
+    {q:"What does function call overhead refer to?",
+     o:["The work of setting up a frame, copying arguments and jumping, on every call","The memory a loop uses","The size of the program file","Errors in the function"], a:0},
+    {q:"Which situation most favours recursion?",
+     o:["Adding up a million numbers","Printing a pattern","Counting to 100","A problem defined on a smaller version of itself, where the depth stays small"], a:3},
+    {q:"Binary search is given an unsorted array. What happens?",
+     o:["The compiler refuses to build it","It looks in the wrong half and may report a present value as missing","It still works correctly","The program crashes"], a:1}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${esc(it.q)}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${esc(o)}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>

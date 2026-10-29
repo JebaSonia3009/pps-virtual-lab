@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 1.2 — Decision Making with if…else</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:17px; align-items:start}
+
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:400px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+  .code .ln.ran{background:#eef7f2; box-shadow:inset 3px 0 0 var(--ok)}
+  .code .ln.hit.ran{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  .mem{padding:11px; display:flex; flex-direction:column; gap:8px; min-height:110px}
+  .var{border:1px solid var(--line); border-radius:var(--radius); padding:7px 10px; background:#fff}
+  .var.flash{border-color:var(--gold); background:#fffaf0}
+  .var .top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .var .nm{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+  .var .ty{font-size:10.5px; color:var(--teal); font-weight:700; letter-spacing:.04em; text-transform:uppercase}
+  .var .val{font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:600; margin-top:1px}
+
+  .cond{font-family:"IBM Plex Mono",monospace; font-size:19px; padding:18px 12px; text-align:center; line-height:2}
+  .cond .tok{padding:2px 4px; border-radius:3px}
+  .cond .skipped{opacity:.38; text-decoration:line-through}
+  .badge{display:inline-block; font-family:"Source Sans 3",sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase; padding:3px 9px; border-radius:3px; vertical-align:middle}
+  .badge.t{color:var(--ok); background:#e4f4ec}
+  .badge.f{color:var(--no); background:#fbe9e9}
+
+  .path{padding:10px 12px; font-size:15px; max-height:200px; overflow:auto}
+  .path div{padding:5px 0; border-bottom:1px dotted var(--line); display:flex; gap:9px;
+    align-items:center; justify-content:space-between}
+  .path .c{font-family:"IBM Plex Mono",monospace; font-size:13.5px}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:44px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+  .tfvars{text-align:center; font-family:"IBM Plex Mono",monospace; font-size:15px;
+    color:var(--ink-soft); padding:12px 12px 0}
+  .tfrow{display:flex; gap:12px; justify-content:center; padding:6px 0 16px}
+  .tfrow button{font:inherit; font-weight:700; font-size:16px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; padding:10px 30px; border-radius:var(--radius)}
+  .tfrow button.t:hover{border-color:var(--ok); background:#e4f4ec; color:var(--ok)}
+  .tfrow button.f:hover{border-color:var(--no); background:#fbe9e9; color:var(--no)}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+    .cond{font-size:15px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 1 &rsaquo; Experiment 1.2</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Decision Making with if…else</h1>
+    <div class="sub">Unit 1 · Decision Making · 23 programs to explore · Estimated time: 60 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand how a C program chooses between different courses of action using
+      <code>if</code>, <code>if…else</code> and the else-if ladder, and how a condition is worked out
+      to decide which path the program takes.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>Write conditions using the relational operators and say whether a condition is true or
+        false for given values.</li>
+        <li>Explain that in C a condition produces the number 1 for true and 0 for false.</li>
+        <li>Combine conditions with <code>&amp;&amp;</code>, <code>||</code> and <code>!</code>.</li>
+        <li>Trace an else-if ladder and say exactly which conditions were tested and which were
+        skipped.</li>
+        <li>Write a range check to validate an input value.</li>
+        <li>Solve the standard classification problems: odd or even, positive or negative, vowel or
+        consonant, leap year, character type, and eligibility checks.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>Experiment 1.1 — data types, assignment and expressions.</p>
+
+      <h3>How to use this experiment</h3>
+      <p>The Demo has four concepts, each with several programs. Finish one concept before moving to
+      the next, and change the input values to check that your understanding still holds for different
+      numbers.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>Every program you have written so far runs straight from the first statement to the last. A
+      decision statement changes that. It asks a question, and depending on the answer it runs one
+      block of statements instead of another. The statements that are not chosen are not executed at
+      all — the program simply jumps over them.</p>
+
+      <h2>The shape of an if statement</h2>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">if (condition) {
+    /* runs only when the condition is true */
+}</pre>
+      </div>
+      <p>If the condition is false, the whole block is skipped and the program carries on from the line
+      after the closing brace. Nothing is printed, nothing is changed.</p>
+
+      <h2>Choosing between two paths</h2>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">if (condition) {
+    /* runs when true  */
+} else {
+    /* runs when false */
+}</pre>
+      </div>
+      <p>Exactly one of the two blocks runs — never both, and never neither.</p>
+
+      <h2>What a condition actually is</h2>
+      <p>C has no separate true/false type. A condition is an ordinary number. A comparison such as
+      <code>7 &gt; 3</code> produces the value <strong>1</strong> when it holds and <strong>0</strong>
+      when it does not. You can store that result in an <code>int</code> and print it.</p>
+      <p>Going the other way, when a number is used as a condition C asks only one question: is it
+      zero? Zero means false, and <strong>every other value</strong> — positive or negative — means
+      true. That is why <code>if (n)</code> is a valid way of writing <code>if (n != 0)</code>.</p>
+
+      <h2>The relational operators</h2>
+      <table>
+        <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+        <tr><td><code>==</code></td><td>is equal to</td><td><code>5 == 5</code></td><td>1 (true)</td></tr>
+        <tr><td><code>!=</code></td><td>is not equal to</td><td><code>5 != 3</code></td><td>1 (true)</td></tr>
+        <tr><td><code>&gt;</code></td><td>is greater than</td><td><code>3 &gt; 5</code></td><td>0 (false)</td></tr>
+        <tr><td><code>&lt;</code></td><td>is less than</td><td><code>3 &lt; 5</code></td><td>1 (true)</td></tr>
+        <tr><td><code>&gt;=</code></td><td>is greater than or equal to</td><td><code>5 &gt;= 5</code></td><td>1 (true)</td></tr>
+        <tr><td><code>&lt;=</code></td><td>is less than or equal to</td><td><code>6 &lt;= 5</code></td><td>0 (false)</td></tr>
+      </table>
+      <p class="note"><strong>Take care:</strong> <code>==</code> asks a question, while a single
+      <code>=</code> stores a value. <code>a == b</code> tests whether they are equal;
+      <code>a = b</code> copies b into a. They look similar and mean completely different things.</p>
+
+      <h2>Combining conditions</h2>
+      <table>
+        <tr><th>Operator</th><th>Name</th><th>True when</th></tr>
+        <tr><td><code>&amp;&amp;</code></td><td>AND</td><td>both sides are true</td></tr>
+        <tr><td><code>||</code></td><td>OR</td><td>at least one side is true</td></tr>
+        <tr><td><code>!</code></td><td>NOT</td><td>the thing after it is false</td></tr>
+      </table>
+      <p>Arithmetic is worked out first, then the comparisons, then <code>&amp;&amp;</code>, and last
+      of all <code>||</code>. So <code>a + 1 &gt; b &amp;&amp; c == d</code> means
+      <code>((a + 1) &gt; b) &amp;&amp; (c == d)</code>. Adding brackets of your own makes the
+      condition easier for a reader, and they cost nothing.</p>
+
+      <h2>C stops as soon as it knows the answer</h2>
+      <p>For <code>A &amp;&amp; B</code>, if A is false then the whole thing must be false, so B is
+      never worked out. For <code>A || B</code>, if A is true the answer is already known and B is
+      skipped.</p>
+      <p>This is a promise the language makes, not an accident, and it is useful. In
+      <code>if (n != 0 &amp;&amp; total / n &gt; 5)</code> the division never happens when
+      <code>n</code> is zero, so the program cannot crash.</p>
+
+      <h2>The else-if ladder</h2>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">if (marks &gt;= 90) {
+    printf("Grade A");
+} else if (marks &gt;= 75) {
+    printf("Grade B");
+} else if (marks &gt;= 60) {
+    printf("Grade C");
+} else {
+    printf("Fail");
+}</pre>
+      </div>
+      <p>The conditions are tested from the top, one at a time, and C stops at the <strong>first one
+      that is true</strong>. Every condition below it is skipped without even being looked at. Only one
+      block ever runs.</p>
+      <p>This is why the order of the tests matters so much. If you wrote <code>marks &gt;= 40</code>
+      first, then a student with 82 marks would match it immediately and be given Grade D — the test
+      for Grade B below would never be reached. Always start a ladder of bands with the
+      <strong>narrowest</strong> condition.</p>
+
+      <h2>Range checks</h2>
+      <p>To test whether a value lies between two limits, both ends must be written out and joined with
+      <code>&amp;&amp;</code>:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">if (marks &gt;= 0 &amp;&amp; marks &lt;= 100) {   /* correct   */
+
+if (0 &lt;= marks &lt;= 100) {             /* WRONG     */</pre>
+      </div>
+      <p>The second line compiles but does not do what it looks like. It is a very common beginner's
+      mistake, so write range checks with <code>&amp;&amp;</code> every time.</p>
+      <p>Checking a value before using it is called <strong>validating</strong> the input, and it
+      belongs at the top of the ladder so that nonsense values are caught before any other test runs.</p>
+
+      <h2>Characters can be compared too</h2>
+      <p>A <code>char</code> holds a small number — the code of the character — so characters can be
+      compared with the same operators. Because the letters a to z sit next to each other in order,
+      <code>ch &gt;= 'a' &amp;&amp; ch &lt;= 'z'</code> tests whether <code>ch</code> is a small
+      letter. The same idea works for <code>'A'</code> to <code>'Z'</code> and for the digits
+      <code>'0'</code> to <code>'9'</code>.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score before continuing.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo on <em>if and if…else</em>. Step through the first program, then change
+      <code>n</code> to a smaller value and run it again. Notice that when the condition is false, the
+      whole block is simply skipped.</p>
+      <h3>Step 3</h3>
+      <p>Move to <em>Boolean expressions</em>. In the first program, see that a comparison produces
+      1 or 0. Then run <em>C stops as soon as it knows</em> and confirm from the condition panel that
+      the division is never carried out.</p>
+      <h3>Step 4</h3>
+      <p>Move to <em>The else-if ladder</em>. Run <em>Grade bands</em> with 82 marks, then run
+      <em>Why the order matters</em> with the same 82 marks and compare the two answers. Explain in
+      your own words why the second one is wrong.</p>
+      <h3>Step 5</h3>
+      <p>Move to <em>Classification problems</em> and run all seven. For <em>Leap year</em>, try 2024,
+      then 1900, then 2000, and watch which part of the condition decides each answer.</p>
+      <h3>Step 6</h3>
+      <p>In Practice, answer at least six questions in <em>Predict the output</em> and at least ten in
+      <em>True or false?</em>.</p>
+      <h3>Step 7</h3>
+      <p>Attempt the Posttest and compare your score with the Pretest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores appear immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program. Change the values at the top and the program
+      runs again with your numbers.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="1000" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div>
+          <div class="card">
+            <h4>Memory</h4>
+            <div class="mem" id="d-mem"></div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <h4>Decisions taken</h4>
+            <div class="path" id="d-path"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h4>Condition being worked out</h4>
+        <div class="cond" id="d-cond">&mdash;</div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="tf">True or false?</button>
+      </div>
+
+      <!-- MODE A -->
+      <div id="mode-predict">
+        <p>Read the program, work out what it prints, and write your answer down before choosing.</p>
+        <div class="controls">
+          <label class="note">Concept
+            <select id="pp-concept"><option value="all">All concepts</option></select>
+          </label>
+          <button class="btn" id="pp-new">New program</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h4>Program</h4>
+            <pre class="code" id="pp-code"></pre>
+          </div>
+          <div class="card">
+            <h4>What will it print?</h4>
+            <div style="padding:13px">
+              <div class="opts" id="pp-opts"></div>
+              <div class="controls" style="margin-bottom:0">
+                <button class="btn" id="pp-check">Check</button>
+                <button class="btn ghost" id="pp-show" disabled>Show the decisions</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pp-right">0</b></span>
+          <span>Attempts <b id="pp-tries">0</b></span>
+          <span>Streak <b id="pp-streak">0</b></span>
+        </div>
+      </div>
+
+      <!-- MODE B -->
+      <div id="mode-tf" style="display:none">
+        <p>Decide whether the condition is true or false for the values shown, then click your answer.</p>
+        <div class="controls">
+          <label class="note">Difficulty
+            <select id="tf-level">
+              <option value="1">Beginner — one comparison</option>
+              <option value="2" selected>Intermediate — AND, OR and NOT</option>
+              <option value="3">Advanced — mixed conditions</option>
+            </select>
+          </label>
+          <button class="btn" id="tf-new">New question</button>
+        </div>
+        <div class="card">
+          <h4>Is this condition true or false?</h4>
+          <div class="tfvars" id="tf-vars"></div>
+          <div class="cond" id="tf-cond" style="padding-top:8px"></div>
+          <div class="tfrow">
+            <button class="t" data-ans="1">TRUE</button>
+            <button class="f" data-ans="0">FALSE</button>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="tf-obs">Click TRUE or FALSE to answer.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="tf-right">0</b></span>
+          <span>Attempts <b id="tf-tries">0</b></span>
+          <span>Streak <b id="tf-streak">0</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 3 (Control Flow), Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapter 5 (Decision Making and
+        Branching), McGraw Hill Education.</li>
+        <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapter 6, McGraw Hill.</li>
+        <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.8.4 (Selection statements) and
+        clauses 6.5.13–6.5.14 (Logical AND and OR operators).</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and development</td>
+            <td>Department of Data Science and Business Systems,<br>School of Computing,
+                SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", practice:"Practice", posttest:"Posttest", references:"References",
+  contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   VALUES AND TYPES
+   ============================================================ */
+const SIZES={int:4,float:4,char:1};
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  dv.setFloat32(0,v,true); return dv.getFloat32(0,true);
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function showVal(type,v){
+  if(v===null) return null;
+  if(type==="char"){
+    const p=v>=32&&v<=126;
+    return p?`'${String.fromCharCode(v)}'`:String(v);
+  }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+function shownOperand(x){
+  if(x.bool) return x.v?'<span class="badge t">true</span>':'<span class="badge f">false</span>';
+  if(x.type==="char"&&x.v>=32&&x.v<=126) return "'"+String.fromCharCode(x.v)+"'";
+  if(x.type==="float") return trimF(x.v);
+  return String(x.v);
+}
+
+/* ============================================================
+   CONDITION / EXPRESSION ENGINE
+   Handles arithmetic, relational and logical operators,
+   with real short-circuit behaviour.
+   ============================================================ */
+const LEVEL={"||":1,"&&":2,"==":3,"!=":3,"<":4,">":4,"<=":4,">=":4,
+             "+":5,"-":5,"*":6,"/":6,"%":6};
+
+function ctok(src,vars){
+  const t=[]; let i=0;
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const two=src.substr(i,2);
+    if(["==","!=","<=",">=","&&","||"].includes(two)){t.push({k:"op",v:two}); i+=2; continue;}
+    if("<>+-*/%".includes(c)){t.push({k:"op",v:c}); i++; continue;}
+    if(c==="!"){t.push({k:"not"}); i++; continue;}
+    if(c==="("||c===")"){t.push({k:"paren",v:c}); i++; continue;}
+    if(c==="'"){
+      const ch=src[i+1];
+      if(src[i+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"lit",type:"char",v:ch.charCodeAt(0),txt:"'"+ch+"'"}); i+=3; continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i; while(j<src.length&&/[0-9.]/.test(src[j])) j++;
+      const lit=src.slice(i,j);
+      t.push({k:"lit",type:lit.includes(".")?"float":"int",v:parseFloat(lit),txt:lit});
+      i=j; continue;
+    }
+    if(/[a-zA-Z_]/.test(c)){
+      let j=i; while(j<src.length&&/[a-zA-Z0-9_]/.test(src[j])) j++;
+      t.push({k:"id",name:src.slice(i,j)}); i=j; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty condition");
+  return t;
+}
+function cparse(t){
+  let p=0;
+  function primary(){
+    const x=t[p];
+    if(!x) throw new Error("Unexpected end of condition");
+    if(x.k==="not"){p++; return {op:"!",a:primary()};}
+    if(x.k==="op"&&x.v==="-"){p++; return {op:"neg",a:primary()};}
+    if(x.k==="paren"&&x.v==="("){
+      p++; const e=expr(1);
+      if(!t[p]||t[p].v!==")") throw new Error("Missing )");
+      p++; return {op:"()",a:e};
+    }
+    p++;
+    if(x.k==="lit") return {lit:x};
+    if(x.k==="id") return {id:x.name};
+    throw new Error("Unexpected token");
+  }
+  function expr(min){
+    let left=primary();
+    while(t[p]&&t[p].k==="op"&&LEVEL[t[p].v]>=min){
+      const o=t[p].v; p++;
+      const right=expr(LEVEL[o]+1);
+      left={op:o,a:left,b:right};
+    }
+    return left;
+  }
+  const e=expr(1);
+  if(p!==t.length) throw new Error("Malformed condition");
+  return e;
+}
+function nodeText(n,val,skipped){
+  if(skipped.has(n)) return `<span class="skipped">${rawText(n)}</span>`;
+  if(val.has(n)) return shownOperand(val.get(n));
+  if(n.lit) return n.lit.txt;
+  if(n.id!==undefined) return n.id;
+  if(n.op==="()") return '<span class="tok">(</span> '+nodeText(n.a,val,skipped)+' <span class="tok">)</span>';
+  if(n.op==="!") return "!"+nodeText(n.a,val,skipped);
+  if(n.op==="neg") return "-"+nodeText(n.a,val,skipped);
+  return nodeText(n.a,val,skipped)+" "+esc(n.op)+" "+nodeText(n.b,val,skipped);
+}
+function rawText(n){
+  if(n.lit) return n.lit.txt;
+  if(n.id!==undefined) return n.id;
+  if(n.op==="()") return "( "+rawText(n.a)+" )";
+  if(n.op==="!") return "!"+rawText(n.a);
+  if(n.op==="neg") return "-"+rawText(n.a);
+  return rawText(n.a)+" "+esc(n.op)+" "+rawText(n.b);
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function evalCond(src,vars){
+  const root=cparse(ctok(src,vars));
+  const val=new Map(), skipped=new Set();
+  const frames=[];
+  const snap=note=>frames.push({html:nodeText(root,val,skipped), note});
+
+  let anyId=false;
+  (function sub(n){
+    if(n.id!==undefined){
+      const v=vars[n.id];
+      if(!v) throw new Error("Unknown variable: "+n.id);
+      if(v.value===null) throw new Error(n.id+" has no value yet");
+      val.set(n,{v:v.value,type:v.type}); anyId=true; return;
+    }
+    if(n.a) sub(n.a); if(n.b) sub(n.b);
+  })(root);
+
+  const hasOp = root.op!==undefined;
+  if(hasOp){
+    snap("The condition as it is written in the program.");
+    if(anyId) snap("Each variable is replaced by the value it is holding right now.");
+  }
+
+  function markSkipped(n){ skipped.add(n); }
+
+  function ev(n){
+    if(n.lit){const r={v:n.lit.v,type:n.lit.type}; val.set(n,r); return r;}
+    if(n.id!==undefined) return val.get(n);
+    if(n.op==="()"){const r=ev(n.a); val.set(n,r); return r;}
+    if(n.op==="neg"){
+      const a=ev(n.a); const r={v:-a.v,type:a.type}; val.set(n,r);
+      snap("The minus sign is applied."); return r;
+    }
+    if(n.op==="!"){
+      const a=ev(n.a); const r={v:a.v?0:1,type:"int",bool:true}; val.set(n,r);
+      snap(`<code>!</code> turns ${a.v?"a non-zero value (true)":"zero (false)"} into ${r.v?"true":"false"}.`);
+      return r;
+    }
+    if(n.op==="&&"||n.op==="||"){
+      const a=ev(n.a);
+      const decisive = n.op==="&&" ? !a.v : !!a.v;
+      if(decisive){
+        markSkipped(n.b);
+        const r={v:n.op==="&&"?0:1,type:"int",bool:true}; val.set(n,r);
+        snap(n.op==="&&"
+          ? `The left side is <strong>false</strong>, and <code>&amp;&amp;</code> needs both sides, so the answer is already false. <strong>The right side is never worked out</strong> — it is crossed out above.`
+          : `The left side is <strong>true</strong>, and <code>||</code> needs only one side, so the answer is already true. <strong>The right side is never worked out</strong> — it is crossed out above.`);
+        return r;
+      }
+      const b=ev(n.b);
+      const r={v:(n.op==="&&"?(a.v&&b.v):(a.v||b.v))?1:0,type:"int",bool:true};
+      val.set(n,r);
+      snap(n.op==="&&"
+        ? `Both sides were needed. <code>&amp;&amp;</code> gives ${r.v?"true":"false"}.`
+        : `The left side was false, so the right side had to be checked. <code>||</code> gives ${r.v?"true":"false"}.`);
+      return r;
+    }
+    const a=ev(n.a), b=ev(n.b);
+    const bothInt = a.type!=="float" && b.type!=="float";
+    let v,type=bothInt?"int":"float",bool=false,extra="";
+    switch(n.op){
+      case "+": v=a.v+b.v; break;
+      case "-": v=a.v-b.v; break;
+      case "*": v=a.v*b.v; break;
+      case "/":
+        if(b.v===0) throw new Error("Division by zero");
+        v=bothInt?Math.trunc(a.v/b.v):a.v/b.v;
+        if(bothInt) extra=" Both are whole numbers, so this is integer division and any fraction is dropped.";
+        break;
+      case "%":
+        if(!bothInt) throw new Error("% needs whole numbers");
+        if(b.v===0) throw new Error("Modulus by zero");
+        v=a.v%b.v; extra=" <code>%</code> gives the remainder after dividing.";
+        break;
+      case "==": v=a.v===b.v?1:0; type="int"; bool=true; break;
+      case "!=": v=a.v!==b.v?1:0; type="int"; bool=true; break;
+      case "<":  v=a.v<b.v?1:0;  type="int"; bool=true; break;
+      case ">":  v=a.v>b.v?1:0;  type="int"; bool=true; break;
+      case "<=": v=a.v<=b.v?1:0; type="int"; bool=true; break;
+      case ">=": v=a.v>=b.v?1:0; type="int"; bool=true; break;
+      default: throw new Error("Unknown operator "+n.op);
+    }
+    const r={v,type,bool}; val.set(n,r);
+    const sa=shownOperand(a), sb=shownOperand(b);
+    snap(bool
+      ? `Is ${sa} ${esc(n.op)} ${sb}? ${v?"Yes":"No"} — so this comparison gives <strong>${v?"true":"false"}</strong>, which C stores as the number ${v}.`
+      : `${sa} ${esc(n.op)} ${sb} gives ${type==="float"?trimF(v):v}.${extra}`);
+    return r;
+  }
+  const res=ev(root);
+  return {value:!!res.v, raw:res, frames, finalHtml:nodeText(root,val,skipped)};
+}
+
+/* ============================================================
+   MINI C INTERPRETER  (declarations, assignment, printf, if/else)
+   ============================================================ */
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){
+      if(c==="(") d++; if(c===")") d--;
+      if(c===","&&d===0){out.push(cur); cur=""; continue;}
+    }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+/* Returns the index of the line holding the "}" that closes the block opened
+   on line `start`. On the start line only "{" is counted, because a line such
+   as "} else if (...) {" begins by closing the PREVIOUS block.
+   Braces inside string literals are ignored. */
+function matchBrace(lines,start,end){
+  let depth=0;
+  for(let i=start;i<end;i++){
+    let q=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ q=!q; continue; }
+      if(q) continue;
+      if(ch==="{") depth++;
+      else if(ch==="}" && i>start){ depth--; if(depth===0) return i; }
+    }
+  }
+  return end-1;
+}
+function parseBlock(lines,i,end){
+  const out=[];
+  while(i<end){
+    const s=lines[i].replace(/\/\*.*?\*\//g,"").trim();
+    if(s===""||s.startsWith("#")||s==="int main() {"||s.startsWith("return")||s==="}"){i++; continue;}
+    let m=s.match(/^if\s*\((.+)\)\s*\{$/);
+    if(m){
+      const close=matchBrace(lines,i,end);
+      const node={kind:"if",line:i,
+        branches:[{line:i,cond:m[1],body:parseBlock(lines,i+1,close)}], else:null};
+      let j=close;
+      while(j<end){
+        const t=lines[j].replace(/\/\*.*?\*\//g,"").trim();
+        let em=t.match(/^\}\s*else\s+if\s*\((.+)\)\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.branches.push({line:j,cond:em[1],body:parseBlock(lines,j+1,c2)});
+          j=c2; continue;
+        }
+        em=t.match(/^\}\s*else\s*\{$/);
+        if(em){
+          const c2=matchBrace(lines,j,end);
+          node.else={line:j,body:parseBlock(lines,j+1,c2)};
+          j=c2;
+        }
+        break;
+      }
+      out.push(node); i=j+1; continue;
+    }
+    if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+      const type=m[1];
+      splitTop(m[2]).forEach(part=>{
+        const eq=part.indexOf("=");
+        if(eq<0) out.push({kind:"decl",line:i,type,name:part.trim(),init:null});
+        else out.push({kind:"decl",line:i,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+      });
+      i++; continue;
+    }
+    if((m=s.match(/^printf\((.*)\);$/))){
+      const args=splitTop(m[1]);
+      out.push({kind:"printf",line:i,fmt:args[0].trim().replace(/^"|"$/g,""),
+                args:args.slice(1).map(a=>a.trim())});
+      i++; continue;
+    }
+    if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+      out.push({kind:"assign",line:i,name:m[1],expr:m[2].trim()});
+      i++; continue;
+    }
+    throw new Error("Cannot parse line "+(i+1)+": "+s);
+  }
+  return out;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(\.\d+)?([dfc%])/);
+      if(m){
+        if(m[2]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        if(m[2]==="d") out+=String(Math.trunc(v.v));
+        else if(m[2]==="c") out+=String.fromCharCode(v.v);
+        else out+=Number(v.v).toFixed(m[1]?parseInt(m[1].slice(1)):6);
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+function runProgram(lines){
+  const tree=parseBlock(lines,0,lines.length);
+  const vars={}, order=[], ran=new Set(), path=[];
+  let out="", steps=[];
+  const snap=(line,note,touch,cond)=>steps.push({
+    line,note,touch,cond,out,
+    ran:new Set(ran), path:path.slice(),
+    mem:order.map(n=>({name:n,type:vars[n].type,value:vars[n].value}))
+  });
+  const mainLine=lines.findIndex(l=>l.includes("int main"));
+  snap(mainLine<0?0:mainLine,"The program starts here. No variables exist yet.");
+
+  function runBlock(block){
+    for(const s of block){
+      if(s.kind==="decl"){
+        vars[s.name]={type:s.type,value:null}; order.push(s.name);
+        ran.add(s.line);
+        if(s.init===null){
+          snap(s.line,`<code>${s.name}</code> is created but has not been given a value yet.`,s.name);
+        }else{
+          const r=evalCond(s.init,vars);
+          const stored=fitToType(s.type,r.raw.v);
+          vars[s.name].value=stored;
+          let note=`<code>${s.name}</code> now holds ${showVal(s.type,stored)}.`;
+          if(r.raw.bool) note+=` The comparison was ${r.raw.v?"true":"false"}, and C stores that as the number ${r.raw.v}.`;
+          snap(s.line,note,s.name, r.frames.length?r.finalHtml:null);
+        }
+      }else if(s.kind==="assign"){
+        const r=evalCond(s.expr,vars);
+        const stored=fitToType(vars[s.name].type,r.raw.v);
+        const old=vars[s.name].value;
+        vars[s.name].value=stored; ran.add(s.line);
+        snap(s.line,`<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(vars[s.name].type,old)+" to"} ${showVal(vars[s.name].type,stored)}.`,s.name);
+      }else if(s.kind==="printf"){
+        const vals=s.args.map(a=>evalCond(a,vars).raw);
+        out+=formatPrintf(s.fmt,vals); ran.add(s.line);
+        snap(s.line,`This line runs and writes to the screen.`);
+      }else if(s.kind==="if"){
+        let done=false;
+        for(let bi=0;bi<s.branches.length;bi++){
+          const br=s.branches[bi];
+          snap(br.line, bi===0
+            ? "The condition in the <code>if</code> is about to be checked."
+            : "The condition above was false, so this <code>else if</code> condition is checked now.");
+          const r=evalCond(br.cond,vars);
+          r.frames.forEach(f=>snap(br.line,f.note,null,f.html));
+          path.push({text:br.cond,value:r.value});
+          if(r.value){
+            ran.add(br.line);
+            snap(br.line,"The condition is <strong>true</strong>, so the block below runs. Every remaining condition in this ladder is skipped without being checked.",null,r.finalHtml);
+            runBlock(br.body); done=true; break;
+          }else{
+            snap(br.line,"The condition is <strong>false</strong>, so this block is skipped completely.",null,r.finalHtml);
+          }
+        }
+        if(!done){
+          if(s.else){
+            path.push({text:"else",value:true});
+            ran.add(s.else.line);
+            snap(s.else.line,"None of the conditions were true, so the <code>else</code> block runs.");
+            runBlock(s.else.body);
+          }else{
+            snap(s.branches[s.branches.length-1].line,
+              "No condition was true and there is no <code>else</code>, so nothing here runs. The program simply carries on with the next line.");
+          }
+        }
+      }
+    }
+  }
+  runBlock(tree);
+  snap(lines.length-2,"The program ends here.");
+  return steps;
+}
+function finalOutput(lines){
+  const st=runProgram(lines);
+  return st[st.length-1].out;
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const H=["#include <stdio.h>","","int main() {"], F=["    return 0;","}"];
+const P=(...body)=>H.concat(body,F);
+
+const CONCEPTS=[
+{id:"basic", name:"if and if…else", programs:[
+  {t:"Doing something only when a condition is true", code:P(
+    "    int n = 12;",
+    "    if (n > 10) {",
+    '        printf("n is big\\n");',
+    "    }",
+    '    printf("Finished");')},
+  {t:"Choosing between two paths", code:P(
+    "    int age = 20;",
+    "    if (age >= 18) {",
+    '        printf("Eligible to vote");',
+    "    } else {",
+    '        printf("Not eligible to vote");',
+    "    }")},
+  {t:"The larger of two numbers", code:P(
+    "    int a = 14, b = 9;",
+    "    if (a > b) {",
+    '        printf("a is larger");',
+    "    } else {",
+    '        printf("b is larger or equal");',
+    "    }")},
+  {t:"The largest of three numbers", code:P(
+    "    int a = 14, b = 9, c = 22;",
+    "    if (a >= b && a >= c) {",
+    '        printf("a is the largest");',
+    "    } else if (b >= a && b >= c) {",
+    '        printf("b is the largest");',
+    "    } else {",
+    '        printf("c is the largest");',
+    "    }")},
+  {t:"Testing for equality", code:P(
+    "    int code = 7;",
+    "    if (code == 7) {",
+    '        printf("Match found\\n");',
+    "    }",
+    "    if (code != 7) {",
+    '        printf("No match\\n");',
+    "    }",
+    '    printf("Checked");')}
+]},
+{id:"bool", name:"Boolean expressions", programs:[
+  {t:"A comparison is a number", code:P(
+    "    int a = 7, b = 3;",
+    "    int r = a > b;",
+    "    int s = a < b;",
+    '    printf("a > b gives %d\\na < b gives %d", r, s);')},
+  {t:"AND needs both sides to be true", code:P(
+    "    int marks = 82, attendance = 90;",
+    "    if (marks >= 75 && attendance >= 80) {",
+    '        printf("Distinction");',
+    "    } else {",
+    '        printf("No distinction");',
+    "    }")},
+  {t:"OR needs only one side", code:P(
+    "    int day = 7;",
+    "    if (day == 1 || day == 7) {",
+    '        printf("Weekend");',
+    "    } else {",
+    '        printf("Weekday");',
+    "    }")},
+  {t:"NOT turns the answer around", code:P(
+    "    int stock = 0;",
+    "    if (!stock) {",
+    '        printf("Out of stock");',
+    "    } else {",
+    '        printf("Available");',
+    "    }")},
+  {t:"C stops as soon as it knows", code:P(
+    "    int total = 50, n = 0;",
+    "    if (n != 0 && total / n > 5) {",
+    '        printf("Average is above 5");',
+    "    } else {",
+    '        printf("Cannot divide by zero");',
+    "    }")},
+  {t:"Checking that a value is in range", code:P(
+    "    int marks = 85;",
+    "    if (marks >= 0 && marks <= 100) {",
+    '        printf("Valid mark");',
+    "    } else {",
+    '        printf("Invalid mark");',
+    "    }")}
+]},
+{id:"ladder", name:"The else-if ladder", programs:[
+  {t:"Grade bands", code:P(
+    "    int marks = 82;",
+    "    if (marks >= 90) {",
+    '        printf("Grade A");',
+    "    } else if (marks >= 75) {",
+    '        printf("Grade B");',
+    "    } else if (marks >= 60) {",
+    '        printf("Grade C");',
+    "    } else if (marks >= 40) {",
+    '        printf("Grade D");',
+    "    } else {",
+    '        printf("Fail");',
+    "    }")},
+  {t:"Why the order matters (this one is wrong)", code:P(
+    "    int marks = 82;",
+    "    if (marks >= 40) {",
+    '        printf("Grade D");',
+    "    } else if (marks >= 60) {",
+    '        printf("Grade C");',
+    "    } else if (marks >= 75) {",
+    '        printf("Grade B");',
+    "    } else {",
+    '        printf("Fail");',
+    "    }")},
+  {t:"Only one branch ever runs", code:P(
+    "    int n = 7;",
+    "    if (n > 0) {",
+    '        printf("positive\\n");',
+    "    } else if (n > 5) {",
+    '        printf("more than five\\n");',
+    "    }",
+    '    printf("done");')},
+  {t:"Day number to day name", code:P(
+    "    int day = 3;",
+    "    if (day == 1) {",
+    '        printf("Sunday");',
+    "    } else if (day == 2) {",
+    '        printf("Monday");',
+    "    } else if (day == 3) {",
+    '        printf("Tuesday");',
+    "    } else {",
+    '        printf("Some other day");',
+    "    }")},
+  {t:"Validating the input first", code:P(
+    "    int marks = 120;",
+    "    if (marks < 0 || marks > 100) {",
+    '        printf("Please enter a mark from 0 to 100");',
+    "    } else if (marks >= 40) {",
+    '        printf("Pass");',
+    "    } else {",
+    '        printf("Fail");',
+    "    }")}
+]},
+{id:"classify", name:"Classification problems", programs:[
+  {t:"Odd or even", code:P(
+    "    int n = 17;",
+    "    if (n % 2 == 0) {",
+    '        printf("Even");',
+    "    } else {",
+    '        printf("Odd");',
+    "    }")},
+  {t:"Positive, negative or zero", code:P(
+    "    int n = -5;",
+    "    if (n > 0) {",
+    '        printf("Positive");',
+    "    } else if (n < 0) {",
+    '        printf("Negative");',
+    "    } else {",
+    '        printf("Zero");',
+    "    }")},
+  {t:"Vowel or consonant", code:P(
+    "    char ch = 'e';",
+    "    if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') {",
+    '        printf("Vowel");',
+    "    } else {",
+    '        printf("Consonant");',
+    "    }")},
+  {t:"Leap year", code:P(
+    "    int year = 1900;",
+    "    if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {",
+    '        printf("Leap year");',
+    "    } else {",
+    '        printf("Not a leap year");',
+    "    }")},
+  {t:"Alphabet, digit or special symbol", code:P(
+    "    char ch = '7';",
+    "    if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {",
+    '        printf("Alphabet");',
+    "    } else if (ch >= '0' && ch <= '9') {",
+    '        printf("Digit");',
+    "    } else {",
+    '        printf("Special symbol");',
+    "    }")},
+  {t:"Loan eligibility", code:P(
+    "    int age = 30, salary = 45000;",
+    "    if (age >= 21 && age <= 60 && salary >= 25000) {",
+    '        printf("Loan approved");',
+    "    } else {",
+    '        printf("Loan not approved");',
+    "    }")},
+  {t:"Scholarship eligibility", code:P(
+    "    int marks = 88, income = 150000;",
+    "    if (marks >= 75 && income <= 200000) {",
+    '        printf("Scholarship granted");',
+    "    } else {",
+    '        printf("Not eligible");',
+    "    }")}
+]}
+];
+
+/* editable initial values */
+function editablesOf(lines){
+  const out=[];
+  lines.forEach((l,idx)=>{
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    splitTop(m[2]).forEach(part=>{
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1],kind:"num"});
+      else if(/^'.'$/.test(init)) out.push({name,init:init[1],line:idx,type:m[1],kind:"char"});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    let v=vals[e.name];
+    if(v===undefined||v===null||v==="") return;
+    if(e.kind==="char"){
+      v=String(v).charAt(0); if(v==="'") return;
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*'.'"), e.name+" = '"+v+"'");
+    }else{
+      const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".0"):String(v);
+      copy[e.line]=copy[e.line].replace(
+        new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+    }
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit,ran){
+  mount.innerHTML=lines.map((l,i)=>{
+    let cls="ln";
+    if(ran&&ran.has(i)) cls+=" ran";
+    if(i===hit) cls+=" hit";
+    return `<div class="${cls}"><span class="n">${i+1}</span><span>${
+      l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</span></div>`;
+  }).join("");
+}
+function renderMem(mount,mem,touch){
+  if(!mem||!mem.length){mount.innerHTML='<div class="note">No variables yet.</div>'; return;}
+  mount.innerHTML=mem.map(v=>`
+    <div class="var${touch===v.name?" flash":""}">
+      <div class="top"><span class="nm">${v.name}</span><span class="ty">${v.type}</span></div>
+      <div class="val">${v.value===null?"<span style='color:#a63232'>no value yet</span>":showVal(v.type,v.value)}</div>
+    </div>`).join("");
+}
+function renderPath(mount,path){
+  if(!path||!path.length){mount.innerHTML='<div class="note">No condition checked yet.</div>'; return;}
+  mount.innerHTML=path.map(p=>
+    `<div><span class="c">${esc(p.text)}</span>
+      ${p.value?'<span class="badge t">true</span>':'<span class="badge f">false</span>'}</div>`).join("");
+}
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dMem=document.getElementById("d-mem"),
+      dPath=document.getElementById("d-path"), dCond=document.getElementById("d-cond"),
+      dOut=document.getElementById("d-out"), dObs=document.getElementById("d-obs"),
+      dIn=document.getElementById("d-inputs");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=loadProgram;
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  dIn.innerHTML = eds.length
+    ? eds.map(e=> e.kind==="char"
+        ? `<label>${e.name}<input type="text" maxlength="1" data-ed="${e.name}" value="${e.init}"></label>`
+        : `<label>${e.name}<input type="number" step="${e.type==="float"?"0.1":"1"}" data-ed="${e.name}" value="${e.init}"></label>`
+      ).join("")+`<span class="note">Change a value and the program runs again.</span>`
+    : `<span class="note">This program has no values to change.</span>`;
+  dIn.querySelectorAll("[data-ed]").forEach(el=>el.onchange=build);
+  build();
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1,null); renderMem(dMem,[],null); renderPath(dPath,[]);
+  dCond.innerHTML="&mdash;";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin.";
+}
+function paint(){
+  const s=steps[idx];
+  renderCode(dCode,lines,s.line,s.ran);
+  renderMem(dMem,s.mem,s.touch);
+  renderPath(dPath,s.path);
+  if(s.cond) dCond.innerHTML=s.cond;
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1,null); renderMem(dMem,[],null);
+    renderPath(dPath,[]); dCond.innerHTML="&mdash;";
+    dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+fillPrograms(); loadProgram();
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display=b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-tf").style.display=b.dataset.mode==="tf"?"block":"none";
+  };
+});
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+CONCEPTS.forEach(c=>{
+  const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; ppSel.appendChild(o);
+});
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+let ppLines=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+/* Picks fresh values that still make sense for what the variable means,
+   so the question stays realistic and both answers remain possible. */
+const YEARS=[1800,1900,1996,2000,2004,2016,2023,2024,2025,2100,2400];
+function randomiseProgram(code){
+  const es=editablesOf(code);
+  const vals={};
+  es.forEach(e=>{
+    if(e.kind==="char"){ vals[e.name]=pick("aeiouqztmBZ7#*3".split("")); return; }
+    const nm=e.name.toLowerCase(), base=Math.abs(Number(e.init));
+    if(nm.includes("year"))                              vals[e.name]=pick(YEARS);
+    else if(nm.includes("income")||nm.includes("salary"))vals[e.name]=(R(9)+1)*25000;
+    else if(base<20)                                     vals[e.name]=R(15)-7;
+    else if(base<=200)                                   vals[e.name]=R(140)-10;
+    else                                                 vals[e.name]=(R(9)+1)*500;
+  });
+  return applyEdits(code,es,vals);
+}
+function ppNew(){
+  const pool = ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.id===ppSel.value).programs;
+  for(let k=0;k<80;k++){
+    const p=pick(pool);
+    const code = Math.random()<0.8 ? randomiseProgram(p.code) : p.code;
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    /* the wrong choices are real outputs the SAME program gives for other
+       values, so a student cannot pick the answer by elimination */
+    const opts=new Set([out]);
+    try{ const orig=finalOutput(p.code); if(orig) opts.add(orig); }catch(e){}
+    for(let a=0;a<40&&opts.size<4;a++){
+      try{ const alt=finalOutput(randomiseProgram(p.code)); if(alt) opts.add(alt); }catch(e){}
+    }
+    if(opts.size<2) continue;        /* never offer a question with one choice */
+    ppLines=code; ppAns=out;
+    renderCode(document.getElementById("pp-code"),code,-1,null);
+    const list=[...opts].sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${o.replace(/\n/g," &#9166; ").replace(/</g,"&lt;")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${ppAns.replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Work down the
+      program from the top. Check each condition one at a time with the values given, and stop at the
+      first one that is true — everything below it is skipped.`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  const st=runProgram(ppLines);
+  const last=st[st.length-1];
+  document.getElementById("pp-obs").innerHTML=
+    (last.path.length
+      ? last.path.map(p=>`<div style="padding:3px 0"><code>${esc(p.text)}</code>
+          ${p.value?'<span class="badge t">true</span>':'<span class="badge f">false</span>'}</div>`).join("")
+      : '<div class="note">This program has no conditions.</div>')+
+    `<div style="padding:5px 0"><strong>prints</strong> <code>${ppAns.replace(/\n/g," &#9166; ")}</code></div>`;
+};
+
+/* ---------- MODE B: true or false ---------- */
+let tfCond="", tfVars=null, tfAns=false, tfRight=0, tfTries=0, tfStreak=0;
+const TF={
+  1:[
+    ()=>({v:{n:["int",R(40)-10]}, c:"n > 0"}),
+    ()=>({v:{n:["int",R(40)-10]}, c:"n % 2 == 0"}),
+    ()=>({v:{marks:["int",R(101)]}, c:"marks >= 40"}),
+    ()=>({v:{a:["int",R(20)+1],b:["int",R(20)+1]}, c:"a == b"}),
+    ()=>({v:{a:["int",R(20)+1],b:["int",R(20)+1]}, c:"a != b"}),
+    ()=>({v:{ch:["char",pick("aeqz".split("")).charCodeAt(0)]}, c:"ch == 'a'"}),
+    ()=>({v:{n:["int",R(30)]}, c:"n <= 15"})
+  ],
+  2:[
+    ()=>({v:{marks:["int",R(101)],att:["int",R(101)]}, c:"marks >= 75 && att >= 80"}),
+    ()=>({v:{day:["int",R(7)+1]}, c:"day == 1 || day == 7"}),
+    ()=>({v:{n:["int",R(30)]}, c:"n >= 10 && n <= 20"}),
+    ()=>({v:{stock:["int",R(3)]}, c:"!stock"}),
+    ()=>({v:{age:["int",R(70)+10]}, c:"age >= 21 && age <= 60"}),
+    ()=>({v:{ch:["char",pick("aeioubqz".split("")).charCodeAt(0)]},
+          c:"ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u'"}),
+    ()=>({v:{n:["int",R(40)-20]}, c:"n > 0 && n % 2 == 0"}),
+    ()=>({v:{x:["int",R(20)],y:["int",R(20)]}, c:"x > y || x == y"})
+  ],
+  3:[
+    ()=>({v:{year:["int",pick([1900,2000,2024,2023,2100,1996,2016])]},
+          c:"(year % 4 == 0 && year % 100 != 0) || year % 400 == 0"}),
+    ()=>({v:{ch:["char",pick("aZ7#q*3B".split("")).charCodeAt(0)]},
+          c:"(ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')"}),
+    ()=>({v:{ch:["char",pick("aZ7#q*3".split("")).charCodeAt(0)]}, c:"ch >= '0' && ch <= '9'"}),
+    ()=>({v:{marks:["int",R(130)-10]}, c:"marks < 0 || marks > 100"}),
+    ()=>({v:{age:["int",R(70)+10],salary:["int",(R(8)+1)*10000]},
+          c:"age >= 21 && age <= 60 && salary >= 25000"}),
+    ()=>({v:{a:["int",R(20)+1],b:["int",R(20)+1],c:["int",R(20)+1]}, c:"a >= b && a >= c"}),
+    ()=>({v:{n:["int",R(40)-20]}, c:"!(n > 0) && n != 0"}),
+    ()=>({v:{m:["int",R(101)],inc:["int",(R(6)+1)*50000]}, c:"m >= 75 && inc <= 200000"})
+  ]
+};
+function tfNew(){
+  const lvl=document.getElementById("tf-level").value;
+  for(let k=0;k<40;k++){
+    const g=pick(TF[lvl])();
+    const vars={};
+    Object.keys(g.v).forEach(n=>{vars[n]={type:g.v[n][0],value:g.v[n][1]};});
+    try{
+      const r=evalCond(g.c,vars);
+      tfCond=g.c; tfVars=vars; tfAns=r.value;
+      document.getElementById("tf-vars").innerHTML=
+        Object.keys(vars).map(n=>`${n} = ${showVal(vars[n].type,vars[n].value)}`).join(" &nbsp;&nbsp; ");
+      document.getElementById("tf-cond").innerHTML=esc(g.c);
+      document.getElementById("tf-obs").textContent="Click TRUE or FALSE to answer.";
+      return;
+    }catch(e){}
+  }
+}
+document.querySelectorAll(".tfrow button").forEach(b=>{
+  b.onclick=()=>{
+    if(!tfVars) return;
+    tfTries++;
+    const given=b.dataset.ans==="1";
+    const r=evalCond(tfCond,tfVars);
+    const obs=document.getElementById("tf-obs");
+    if(given===tfAns){
+      tfRight++; tfStreak++;
+      obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct — it is ${tfAns?"TRUE":"FALSE"}.</span><br>`+
+        r.frames.slice(-3).map(f=>`<div style="padding:2px 0;font-size:15px">${f.note}</div>`).join("");
+    }else{
+      tfStreak=0;
+      obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct — it is ${tfAns?"TRUE":"FALSE"}.</span><br>`+
+        r.frames.map(f=>`<div style="padding:2px 0;font-size:15px">${f.note}</div>`).join("");
+    }
+    document.getElementById("tf-cond").innerHTML=r.finalHtml;
+    document.getElementById("tf-right").textContent=tfRight;
+    document.getElementById("tf-tries").textContent=tfTries;
+    document.getElementById("tf-streak").textContent=tfStreak;
+  };
+});
+document.getElementById("tf-new").onclick=tfNew;
+document.getElementById("tf-level").onchange=tfNew;
+ppNew(); tfNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"What does an if statement do when its condition is false?",
+     o:["Stops the program","Skips the block and carries on","Runs the block anyway","Shows an error"], a:1},
+    {q:"In C, what is the value of the expression 7 > 3?", o:["true","1","0","Nothing"], a:1},
+    {q:"Which condition tests whether n is even?",
+     o:["n / 2 == 0","n % 2 == 1","n == 2","n % 2 == 0"], a:3},
+    {q:"Which operator means 'is equal to'?", o:["=","==","!=","=>"], a:1},
+    {q:"&& (AND) is true when:",
+     o:["Both sides are true","Either side is true","Neither side is true","Only the left side is true"], a:0},
+    {q:"In an else-if ladder, what happens after the first true condition?",
+     o:["All the others are tested too","The program stops","The rest are skipped","The else also runs"], a:2}
+  ],
+  post:[
+    {q:"int a = 5, b = 9; if (a > b) printf(\"X\"); else printf(\"Y\"); prints:",
+     o:["X","Y","Both","Nothing"], a:1},
+    {q:"int r = (4 < 9); what does r hold?", o:["4","9","1","0"], a:2},
+    {q:"In C, which value counts as false in a condition?",
+     o:["0 and negative numbers","Only negative numbers","The word false","Only 0"], a:3},
+    {q:"With marks = 82 and the ladder if(m>=90) … else if(m>=75) … else if(m>=60), which runs?",
+     o:["The m>=75 branch","The m>=90 branch","The m>=60 branch","The else branch"], a:0},
+    {q:"With marks = 82 and the ladder if(m>=40) … else if(m>=60) … else if(m>=75), which runs?",
+     o:["The m>=60 branch","The m>=75 branch","The m>=40 branch","None of them"], a:2},
+    {q:"In if (n != 0 && total / n > 5), when n is 0 the division is:",
+     o:["Carried out and crashes","Never carried out","Carried out but ignored","Replaced by zero"], a:1},
+    {q:"Which is the correct way to test that marks is between 0 and 100?",
+     o:["0 <= marks <= 100","marks >= 0 || marks <= 100","marks == 0 to 100","marks >= 0 && marks <= 100"], a:3},
+    {q:"The leap year condition (y%4==0 && y%100!=0) || y%400==0 for y = 1900 is:",
+     o:["True, from the left side","True, from the right side","False","An error"], a:2},
+    {q:"For y = 2000, the same condition is true because:",
+     o:["y divides by 400","y divides by 4","y does not divide by 100","Both sides are true"], a:0},
+    {q:"char ch = 'q'; which condition tests that ch is a small letter?",
+     o:["ch == 'a' to 'z'","ch >= 'A' && ch <= 'Z'","ch > 0","ch >= 'a' && ch <= 'z'"], a:3}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${esc(it.q)}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${esc(o)}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>

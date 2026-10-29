@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment 1.1 — Data Types, Assignment and Expressions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16232b; --ink-soft:#4a5c66; --line:#dbe3e6; --wash:#f2f6f6; --paper:#ffffff;
+    --teal:#14625f; --teal-soft:#e2efed; --gold:#9a6b12; --ok:#1f7a4d; --no:#a63232; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Sans 3",system-ui,sans-serif; font-size:17px; line-height:1.6;}
+  a{color:var(--teal)}
+  header.masthead{border-bottom:1px solid var(--line); padding:12px 24px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .home{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+    border:1px solid var(--teal); color:var(--teal); background:#fff; font-weight:600;
+    font-size:14px; padding:6px 13px; border-radius:var(--radius)}
+  .home:hover{background:var(--teal-soft)}
+  .brand{font-family:Newsreader,serif; font-size:21px; font-weight:600}
+  .brand span{color:var(--teal)}
+  .crumb{font-size:13.5px; color:var(--ink-soft)}
+  .rule{height:3px; background:var(--teal)}
+  .shell{display:grid; grid-template-columns:215px 1fr; max-width:1200px; margin:0 auto; min-height:80vh}
+  nav.side{border-right:1px solid var(--line); padding:26px 0}
+  nav.side button{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--ink-soft); padding:9px 20px; border-left:3px solid transparent;}
+  nav.side button:hover{color:var(--ink); background:var(--wash)}
+  nav.side button[aria-current="true"]{color:var(--teal); border-left-color:var(--teal); background:var(--teal-soft)}
+  main{padding:26px 32px 80px}
+  h1{font-family:Newsreader,serif; font-weight:600; font-size:29px; text-align:center; color:var(--teal); margin:0 0 6px}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:22px}
+  h2{font-family:Newsreader,serif; font-weight:600; font-size:23px; margin:26px 0 8px}
+  h2:first-child{margin-top:0}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold); margin:20px 0 4px}
+  section{display:none} section.on{display:block}
+  ul,ol{padding-left:22px}
+  code{font-family:"IBM Plex Mono",monospace; font-size:14px; background:var(--wash); padding:1px 5px; border-radius:3px}
+  .panel{background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin:16px 0}
+  .note{font-size:14px; color:var(--ink-soft)}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:12px 0}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top}
+  th{background:var(--wash)}
+  .btn{font:inherit; font-weight:600; cursor:pointer; border:1px solid var(--teal); background:var(--teal);
+    color:#fff; padding:7px 14px; border-radius:var(--radius)}
+  .btn.ghost{background:#fff; color:var(--teal)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .controls{display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin:13px 0}
+  select,input[type=text],input[type=number]{font:inherit; padding:6px 9px; border:1px solid var(--line);
+    border-radius:var(--radius); background:#fff}
+  input[type=text],input[type=number]{font-family:"IBM Plex Mono",monospace}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .grid2{display:grid; grid-template-columns:1.08fr .92fr; gap:17px; align-items:start}
+
+  /* concept tabs */
+  .tabs{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px}
+  .tabs button{font:inherit; font-weight:600; font-size:14.5px; cursor:pointer; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); padding:8px 14px; border-radius:20px}
+  .tabs button:hover{border-color:var(--teal); color:var(--teal)}
+  .tabs button[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff}
+
+  .code{font-family:"IBM Plex Mono",monospace; font-size:13.5px; line-height:1.74;
+    padding:10px 0; margin:0; background:#fff; max-height:400px; overflow:auto}
+  .code .ln{display:flex; gap:11px; padding:0 12px}
+  .code .ln .n{color:#9fb0b6; min-width:20px; text-align:right; user-select:none}
+  .code .ln.hit{background:#fdf4e0; box-shadow:inset 3px 0 0 var(--gold)}
+
+  .mem{padding:11px; display:flex; flex-direction:column; gap:8px; min-height:140px}
+  .var{border:1px solid var(--line); border-radius:var(--radius); padding:7px 10px; background:#fff}
+  .var.flash{border-color:var(--gold); background:#fffaf0}
+  .var .top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .var .nm{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+  .var .ty{font-size:10.5px; color:var(--teal); font-weight:700; letter-spacing:.04em; text-transform:uppercase}
+  .var .ad{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:11px; color:#90a2a8}
+  .var .val{font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:600; margin:2px 0}
+  .bytes{display:flex; gap:4px; margin-top:3px; flex-wrap:wrap}
+  .bytes span{font-family:"IBM Plex Mono",monospace; font-size:11px; border:1px solid var(--line);
+    background:var(--wash); border-radius:3px; padding:2px 5px; color:var(--ink-soft)}
+
+  .expr{font-family:"IBM Plex Mono",monospace; font-size:22px; padding:18px 12px; text-align:center; line-height:1.9}
+  .expr .tok{padding:2px 4px; border-radius:3px}
+  .expr .op{color:var(--ink-soft)}
+  .expr .id{color:var(--teal); font-weight:600}
+  .expr .hot{background:#fdf4e0; box-shadow:0 0 0 2px var(--gold); border-radius:4px; color:var(--ink)}
+  .expr .new{background:var(--teal-soft); box-shadow:0 0 0 2px var(--teal); border-radius:4px; font-weight:600}
+  .expr .paren{color:var(--gold)}
+  .expr .lhs{color:var(--ink-soft); font-size:18px}
+
+  .out{font-family:"IBM Plex Mono",monospace; font-size:14px; background:#16232b; color:#e8f3f1;
+    padding:10px 12px; border-radius:var(--radius); margin-top:12px; min-height:44px; white-space:pre-wrap}
+  .out .lbl{color:#7fa8a3; font-size:11px; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:3px}
+  .obs{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:15px}
+  .obs h4{margin:0; padding:8px 12px; background:var(--ink); color:#fff;
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase}
+  .obsbody{padding:12px 14px; font-size:16px; min-height:60px}
+
+  .inputs{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; padding:11px;
+    background:var(--wash); border:1px solid var(--line); border-radius:var(--radius); margin:13px 0}
+  .inputs label{font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px}
+  .inputs input{width:110px}
+
+  /* type explorer */
+  .exp-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; padding:13px}
+  .slot{border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px}
+  .slot .k{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); font-weight:700}
+  .slot .big{font-family:"IBM Plex Mono",monospace; font-size:21px; font-weight:600; margin-top:2px}
+  .slot .small{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-soft); word-break:break-all}
+  .flag{display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    padding:3px 8px; border-radius:3px}
+  .flag.fit{color:var(--ok); background:#e4f4ec}
+  .flag.wrap{color:var(--no); background:#fbe9e9}
+
+  /* practice */
+  .opts label{display:block; padding:4px 0; cursor:pointer}
+  .score{display:flex; gap:16px; flex-wrap:wrap; font-size:14px; padding:9px 12px; background:var(--wash);
+    border:1px solid var(--line); border-radius:var(--radius)}
+  .score b{font-family:"IBM Plex Mono",monospace; font-size:16px}
+  .pickrow{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:4px 0 14px}
+  .pickrow button{font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink); width:46px; height:42px; border-radius:var(--radius)}
+  .pickrow button:hover{border-color:var(--gold); background:#fdf4e0}
+
+  .quiz .q{margin:17px 0; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .quiz .q p{font-weight:600; margin:0 0 6px}
+  .quiz label{display:block; padding:2px 0; cursor:pointer}
+  .verdict{font-weight:600; font-size:14px; margin-top:4px}
+  .verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+  @media (max-width:900px){
+    /* keep wide tables and code samples inside the screen */
+    table{display:block; overflow-x:auto; max-width:100%}
+    pre{overflow-x:auto; max-width:100%}
+
+    .shell{grid-template-columns:minmax(0,1fr)}
+    nav.side{border-right:0; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; padding:0; min-width:0}
+    nav.side button{width:auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:12px 14px}
+    nav.side button[aria-current="true"]{border-left:0; border-bottom-color:var(--teal)}
+    main{padding:18px 15px 60px}
+    .grid2{grid-template-columns:1fr}
+    .expr{font-size:17px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="home" href="index.html">&larr; Lab home</a>
+  <div class="brand">Virtual <span>Lab</span></div>
+  <div class="crumb">Programming for Problem Solving &rsaquo; Unit 1 &rsaquo; Experiment 1.1</div>
+</header>
+<div class="rule"></div>
+
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <h1>Data Types, Assignment and Expressions</h1>
+    <div class="sub">Unit 1 · Decision Making · 22 programs to explore · Estimated time: 60 minutes</div>
+
+    <!-- AIM -->
+    <section id="aim" class="on">
+      <h2>Aim</h2>
+      <p>To understand how C stores values of the basic data types in memory, how each assignment
+      changes that memory, and the order in which the operators of an arithmetic expression are
+      applied.</p>
+
+      <h3>Learning outcomes</h3>
+      <p>After completing this experiment, a student will be able to:</p>
+      <ol>
+        <li>State the size and range of <code>int</code>, <code>float</code> and <code>char</code>, and
+        choose a suitable type for a given quantity.</li>
+        <li>Predict what happens when a value too large for its type, or a value with a fractional part,
+        is stored.</li>
+        <li>Trace a sequence of declarations and assignments and state every variable's value at each
+        point.</li>
+        <li>Apply precedence and associativity to evaluate an expression one operator at a time.</li>
+        <li>Explain integer division and implicit type promotion, and recognise where an average silently
+        goes wrong.</li>
+        <li>Swap two variables with and without a temporary variable, and explain why the obvious
+        two-line attempt fails.</li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <p>The shape of a simple C program: <code>main()</code>, statements and <code>printf</code>.</p>
+
+      <h3>How to use this experiment</h3>
+      <p>The Demo is organised into four concepts, each with several programs. Work through a concept
+      completely before moving to the next, and change the input values to test whether your
+      understanding survives different numbers.</p>
+    </section>
+
+    <!-- THEORY -->
+    <section id="theory">
+      <h2>Theory</h2>
+      <p>A computer's memory holds nothing but bits. It has no idea whether a particular byte is a
+      number, a letter, or part of a photograph. Everything that gives those bits meaning comes from
+      your program — and almost all of it comes from one word: the <strong>type</strong>.</p>
+
+      <h2>What a declaration really does</h2>
+      <p>Writing <code>int marks = 87;</code> settles three things at once. A region of memory is
+      reserved, at some <strong>address</strong>. Its <strong>size</strong> is fixed by the type. And the
+      rule for <strong>interpreting</strong> those bytes is fixed too.</p>
+      <table>
+        <tr><th>Type</th><th>Typical size</th><th>Range</th><th>Specifier</th><th>Good for</th></tr>
+        <tr><td><code>char</code></td><td>1 byte</td><td>−128 to 127</td><td><code>%c</code></td><td>One character, or a very small number</td></tr>
+        <tr><td><code>int</code></td><td>4 bytes</td><td>−2,147,483,648 to 2,147,483,647</td><td><code>%d</code></td><td>Counts, marks, indices, years</td></tr>
+        <tr><td><code>float</code></td><td>4 bytes</td><td>±3.4 × 10<sup>38</sup>, about 7 digits</td><td><code>%f</code></td><td>Averages, measurements, money</td></tr>
+      </table>
+      <p class="note">These are the sizes of a typical desktop compiler. The C standard fixes only
+      minimums, which is exactly why <code>sizeof</code> exists.</p>
+
+      <h2>The same bits, two different meanings</h2>
+      <p>The byte pattern <code>41</code> in hexadecimal is the number 65 when read as an
+      <code>int</code>, and the letter <code>'A'</code> when read as a <code>char</code>. Nothing in
+      memory distinguishes them. This is why <code>'b' - 'a'</code> is a perfectly sensible expression
+      with the value 1 — characters are small integers wearing a costume.</p>
+
+      <h2>When a value does not fit</h2>
+      <p>A <code>char</code> holds one byte, so it has only 256 possible values. Storing 200 in it does
+      not raise an error and does not store 200. The low eight bits are kept, and read back as a signed
+      byte they give −56. Values <strong>wrap around</strong> rather than overflow outwards.</p>
+      <p>The same silent reshaping happens between <code>float</code> and <code>int</code>:
+      <code>int n = 7.9;</code> stores 7. The fraction is not rounded, it is discarded.</p>
+
+      <h2>Assignment destroys what was there</h2>
+      <p><code>a = b;</code> does not link <code>a</code> and <code>b</code>. It copies the value in
+      <code>b</code> into <code>a</code> and destroys whatever <code>a</code> held. That destruction is
+      the entire difficulty of swapping two variables.</p>
+
+      <h2>Precedence and associativity</h2>
+      <p>An expression with several operators is not evaluated left to right. Two fixed rules decide.</p>
+      <table>
+        <tr><th>Level</th><th>Operators</th><th>Associativity</th></tr>
+        <tr><td>Highest</td><td><code>( )</code></td><td>Left to right</td></tr>
+        <tr><td></td><td><code>*</code> &nbsp; <code>/</code> &nbsp; <code>%</code></td><td>Left to right</td></tr>
+        <tr><td>Lowest</td><td><code>+</code> &nbsp; <code>−</code></td><td>Left to right</td></tr>
+      </table>
+      <p>Precedence alone does not settle <code>100 / 5 * 2</code>, where both operators sit at the same
+      level. Associativity does: left to right, so the division happens first and the answer is 40, not
+      10.</p>
+
+      <h2>Integer division and the average that goes wrong</h2>
+      <p>When both operands are integers, <code>/</code> performs integer division and throws the
+      fraction away: <code>7 / 2</code> is <code>3</code>. If either operand is floating-point, the same
+      symbol does real division instead.</p>
+      <p>So <code>float avg = total / n;</code> with two <code>int</code> variables loses the fraction
+      <em>before</em> the result ever reaches the float. Widening the destination cannot recover what has
+      already been discarded. The fix is to make one operand floating-point:
+      <code>total / (float) n</code>.</p>
+
+      <h2>Promotion happens per operation</h2>
+      <p>When one operand is an integer and the other floating-point, the integer is converted first and
+      that one operation is done in floating-point. It applies to a single operation, not the whole
+      expression — so an expression can begin in integer arithmetic and switch halfway:</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">5 / 2 * 2.0   →   2 * 2.0    →   4.0     /* division happened first, in integers */
+2.0 * 5 / 2   →   10.0 / 2   →   5.0     /* promotion arrived in time          */</pre>
+      </div>
+
+      <h2>Swapping two variables</h2>
+      <p>The obvious attempt fails. <code>a = b;</code> followed by <code>b = a;</code> leaves both
+      holding the old <code>b</code>, because the first statement has already destroyed
+      <code>a</code>'s value.</p>
+      <div class="panel">
+<pre style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:14px">temp = a;       a = a + b;      /* sum hides both values */
+a = b;          b = a - b;      /* sum − b gives old a   */
+b = temp;       a = a - b;      /* sum − old a gives b   */</pre>
+      </div>
+      <p>The left version keeps a copy and always works. The right version is a clever trick, but it
+      works only for numbers and the sum can overflow the type even when both original values are
+      perfectly valid. Use a temporary variable in real programs.</p>
+    </section>
+
+    <!-- PROCEDURE -->
+    <section id="procedure">
+      <h2>Procedure</h2>
+      <h3>Step 1</h3>
+      <p>Read the Theory and attempt the Pretest. Note your score before continuing.</p>
+      <h3>Step 2</h3>
+      <p>Open the Demo on the <em>Data types</em> concept. Use the Type Explorer first: enter 200 as a
+      <code>char</code>, then 7.9 as an <code>int</code>, and read what is actually stored.</p>
+      <h3>Step 3</h3>
+      <p>Still on <em>Data types</em>, step through all five programs. At each step look at the memory
+      panel and the byte cells, not only the printed output.</p>
+      <h3>Step 4</h3>
+      <p>Move to <em>Assignment</em>. Before pressing Step, say aloud what the next line will change.
+      Then change the input values at the top and run the same program again.</p>
+      <h3>Step 5</h3>
+      <p>Move to <em>Expressions</em>. Watch which operator is boxed in gold at each step and check it
+      against the precedence table. Compare the two lines of the promotion program carefully.</p>
+      <h3>Step 6</h3>
+      <p>Move to <em>Swapping</em> and run all four programs, including the broken one. Identify the
+      exact statement at which the original value of <code>a</code> is lost.</p>
+      <h3>Step 7</h3>
+      <p>In Practice, do at least six questions in <em>Predict the output</em> and at least three
+      expressions in <em>Pick the next operator</em>.</p>
+      <h3>Step 8</h3>
+      <p>Attempt the Posttest and compare your score with the Pretest.</p>
+    </section>
+
+    <!-- PRETEST -->
+    <section id="pretest">
+      <h2>Pretest</h2>
+      <p class="note">Answer before studying the demo. Scores appear immediately and nothing is submitted.</p>
+      <div class="quiz" id="pre-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('pre')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('pre')">Clear</button>
+        <strong id="pre-score"></strong>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="note">Choose a concept, then a program within it. Every program can be re-run with
+      different values.</p>
+
+      <div class="tabs" id="tabs"></div>
+
+      <div id="explorer-wrap" style="display:none">
+        <div class="card" style="margin-bottom:16px">
+          <h4>Type Explorer &nbsp;·&nbsp; what actually gets stored</h4>
+          <div class="controls" style="padding:12px 13px 0; margin:0">
+            <label class="note">Type
+              <select id="tx-type">
+                <option value="char">char</option>
+                <option value="int" selected>int</option>
+                <option value="float">float</option>
+              </select>
+            </label>
+            <label class="note">Value you write
+              <input type="text" id="tx-val" value="200" size="12">
+            </label>
+            <span class="note">Try 200 as a char, 7.9 as an int, 3000000000 as an int.</span>
+          </div>
+          <div class="exp-grid" id="tx-out"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label class="note">Program <select id="prog"></select></label>
+        <button class="btn" id="d-run">Run</button>
+        <button class="btn ghost" id="d-prev">&#9664; Back</button>
+        <button class="btn ghost" id="d-step">Step &#9654;</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+        <label class="note">Speed <input type="range" id="d-speed" min="300" max="2000" value="1000" step="100"></label>
+      </div>
+
+      <div class="inputs" id="d-inputs"></div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Program</h4>
+          <pre class="code" id="d-code"></pre>
+        </div>
+        <div class="card">
+          <h4>Memory</h4>
+          <div class="mem" id="d-mem"></div>
+        </div>
+      </div>
+
+      <div class="card" id="exprcard" style="margin-top:16px; display:none">
+        <h4>Expression being evaluated</h4>
+        <div class="expr" id="d-expr"></div>
+      </div>
+
+      <div class="out" id="d-out"><span class="lbl">Output</span></div>
+
+      <div class="obs">
+        <h4>Observations</h4>
+        <div class="obsbody" id="d-obs">Press Step to begin execution.</div>
+      </div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice">
+      <h2>Practice</h2>
+
+      <div class="tabs" id="ptabs">
+        <button aria-pressed="true" data-mode="predict">Predict the output</button>
+        <button aria-pressed="false" data-mode="operator">Pick the next operator</button>
+      </div>
+
+      <!-- MODE A -->
+      <div id="mode-predict">
+        <p>Read the program, work out what it prints, and write your answer down before choosing.</p>
+        <div class="controls">
+          <label class="note">Concept
+            <select id="pp-concept"><option value="all">All concepts</option></select>
+          </label>
+          <button class="btn" id="pp-new">New program</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h4>Program</h4>
+            <pre class="code" id="pp-code"></pre>
+          </div>
+          <div class="card">
+            <h4>What will it print?</h4>
+            <div style="padding:13px">
+              <div class="opts" id="pp-opts"></div>
+              <div class="controls" style="margin-bottom:0">
+                <button class="btn" id="pp-check">Check</button>
+                <button class="btn ghost" id="pp-show" disabled>Show the trace</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="pp-obs">Choose the output you expect and press Check.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="pp-right">0</b></span>
+          <span>Attempts <b id="pp-tries">0</b></span>
+          <span>Streak <b id="pp-streak">0</b></span>
+        </div>
+      </div>
+
+      <!-- MODE B -->
+      <div id="mode-operator" style="display:none">
+        <p>Click the operator that C applies next. The expression reduces one step at a time until a
+        single value remains.</p>
+        <div class="controls">
+          <label class="note">Difficulty
+            <select id="po-level">
+              <option value="1">Beginner — two operators</option>
+              <option value="2" selected>Intermediate — three operators</option>
+              <option value="3">Advanced — parentheses and floats</option>
+            </select>
+          </label>
+          <button class="btn" id="po-new">New expression</button>
+        </div>
+        <div class="card">
+          <h4>Which operator is applied next?</h4>
+          <div class="expr" id="po-expr"></div>
+          <div class="pickrow" id="po-picks"></div>
+        </div>
+        <div class="obs">
+          <h4>Observations</h4>
+          <div class="obsbody" id="po-obs">Click an operator to make your choice.</div>
+        </div>
+        <div class="score" style="margin-top:12px">
+          <span>Correct <b id="po-right">0</b></span>
+          <span>Attempts <b id="po-tries">0</b></span>
+          <span>Expressions finished <b id="po-done">0</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- POSTTEST -->
+    <section id="posttest">
+      <h2>Posttest</h2>
+      <div class="quiz" id="post-quiz"></div>
+      <div class="controls">
+        <button class="btn" onclick="gradeQuiz('post')">Check answers</button>
+        <button class="btn ghost" onclick="resetQuiz('post')">Clear</button>
+        <strong id="post-score"></strong>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section id="references">
+      <h2>References</h2>
+      <ol>
+        <li>Kernighan, B. W. and Ritchie, D. M., <em>The C Programming Language</em>, 2nd ed.,
+        Chapter 2 (Types, Operators and Expressions), Prentice Hall.</li>
+        <li>Balagurusamy, E., <em>Programming in ANSI C</em>, Chapters 3 and 4, McGraw Hill Education.</li>
+        <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapters 2 and 3,
+        McGraw Hill.</li>
+        <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.2.5 (Types), clause 6.3.1.8
+        (Usual arithmetic conversions) and clause 6.5 (Expressions).</li>
+      </ol>
+      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+    </section>
+
+    <!-- CONTRIBUTORS -->
+    <section id="contributors">
+      <h2>Developed by</h2>
+      <table>
+        <tr><th>Name</th><th>Role</th><th>Affiliation</th></tr>
+        <tr><td>Dr. Jeba Sonia J</td><td>Concept, content and development</td>
+            <td>Department of Data Science and Business Systems,<br>School of Computing,
+                SRM Institute of Science and Technology, Kattankulathur</td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const SECTIONS={aim:"Aim", theory:"Theory", procedure:"Procedure", pretest:"Pretest",
+  demo:"Demo", practice:"Practice", posttest:"Posttest", references:"References",
+  contributors:"Contributors"};
+const nav=document.getElementById("nav");
+Object.keys(SECTIONS).forEach((id,i)=>{
+  const b=document.createElement("button");
+  b.textContent=SECTIONS[id]; b.dataset.target=id;
+  b.setAttribute("aria-current", i===0);
+  b.onclick=()=>show(id); nav.appendChild(b);
+});
+function show(id){
+  Object.keys(SECTIONS).forEach(s=>document.getElementById(s).classList.toggle("on", s===id));
+  [...nav.children].forEach(b=>b.setAttribute("aria-current", b.dataset.target===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   TYPE MODEL
+   ============================================================ */
+const SIZES={char:1,int:4,float:4};
+const BASE=0x1000;
+function hex2(n){return n.toString(16).toUpperCase().padStart(2,"0");}
+function fitToType(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,Math.trunc(v)); return dv.getInt8(0);}
+  if(type==="int"){dv.setInt32(0,Math.trunc(v),true); return dv.getInt32(0,true);}
+  dv.setFloat32(0,v,true); return dv.getFloat32(0,true);
+}
+function bytesOf(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,v); return [hex2(dv.getUint8(0))];}
+  if(type==="int"){dv.setInt32(0,v,true); return [0,1,2,3].map(i=>hex2(dv.getUint8(i)));}
+  dv.setFloat32(0,v,true); return [0,1,2,3].map(i=>hex2(dv.getUint8(i)));
+}
+function binOf(type,v){
+  const dv=new DataView(new ArrayBuffer(4));
+  if(type==="char"){dv.setInt8(0,v); return dv.getUint8(0).toString(2).padStart(8,"0");}
+  if(type==="int"){dv.setInt32(0,v,false); return [0,1,2,3].map(i=>dv.getUint8(i).toString(2).padStart(8,"0")).join(" ");}
+  dv.setFloat32(0,v,false); return [0,1,2,3].map(i=>dv.getUint8(i).toString(2).padStart(8,"0")).join(" ");
+}
+function trimF(v){
+  if(!isFinite(v)) return String(v);
+  let s=v.toFixed(6).replace(/0+$/,""); if(s.endsWith(".")) s+="0"; return s;
+}
+function showVal(type,v){
+  if(v===null) return null;
+  if(type==="char"){
+    const p=v>=32&&v<=126;
+    return p?`'${String.fromCharCode(v)}'  (${v})`:String(v);
+  }
+  if(type==="float") return trimF(v);
+  return String(v);
+}
+const RANGE={char:"-128 to 127", int:"-2147483648 to 2147483647", float:"about +/-3.4e38, ~7 digits"};
+
+/* ============================================================
+   EXPRESSION ENGINE  (precedence climbing by repeated reduction)
+   ============================================================ */
+const PREC={"*":2,"/":2,"%":2,"+":1,"-":1};
+function tokenize(src,vars){
+  const t=[]; let i=0;
+  while(i<src.length){
+    const c=src[i];
+    if(c===" "){i++; continue;}
+    const prev=t[t.length-1];
+    const unary = c==="-" && /[0-9.a-zA-Z_']/.test(src[i+1]||"") &&
+      (!prev || prev.k==="op" || (prev.k==="paren"&&prev.v==="("));
+    if(!unary && "+-*/%()".includes(c)){
+      t.push({k:(c==="("||c===")")?"paren":"op", v:c}); i++; continue;
+    }
+    let j=unary?i+1:i;
+    if(src[j]==="'"){
+      const ch=src[j+1];
+      if(src[j+2]!=="'") throw new Error("Bad character literal");
+      t.push({k:"num",type:"char",v:(unary?-1:1)*ch.charCodeAt(0),name:"'"+ch+"'"});
+      i=j+3; continue;
+    }
+    if(/[a-zA-Z_]/.test(src[j])){
+      let e=j; while(e<src.length&&/[a-zA-Z0-9_]/.test(src[e])) e++;
+      const nm=src.slice(j,e);
+      if(!vars||!(nm in vars)) throw new Error("Unknown variable: "+nm);
+      const v=vars[nm];
+      if(v.value===null) throw new Error("Variable "+nm+" used before it was given a value");
+      t.push({k:"num",type:v.type,v:(unary?-1:1)*v.value,name:(unary?"-":"")+nm});
+      i=e; continue;
+    }
+    if(/[0-9.]/.test(src[j])){
+      let e=j; while(e<src.length&&/[0-9.]/.test(src[e])) e++;
+      const lit=src.slice(j,e);
+      if((lit.match(/\./g)||[]).length>1) throw new Error("Malformed number: "+lit);
+      t.push({k:"num",type:lit.includes(".")?"float":"int",
+              v:(unary?-1:1)*parseFloat(lit), name:(unary?"-":"")+lit});
+      i=e; continue;
+    }
+    throw new Error("Unexpected character: "+c);
+  }
+  if(!t.length) throw new Error("Empty expression");
+  return t;
+}
+function fmtTok(t){ return t.type==="float"?trimF(t.v):String(t.v); }
+function pickIn(seg){
+  let best=null,bp=0;
+  for(let i=0;i<seg.length;i++)
+    if(seg[i].k==="op"&&i>0&&seg[i-1].k==="num"){
+      const p=PREC[seg[i].v]; if(p>bp){bp=p; best=i;}
+    }
+  return best;
+}
+function nextOp(t){
+  let open=-1;
+  for(let i=0;i<t.length;i++){
+    if(t[i].k==="paren"&&t[i].v==="(") open=i;
+    if(t[i].k==="paren"&&t[i].v===")"){
+      const inner=t.slice(open+1,i);
+      if(inner.length===1) return {kind:"unwrap",open,close:i};
+      const r=pickIn(inner);
+      if(r===null) throw new Error("Malformed expression");
+      return {kind:"apply", idx:open+1+r, scope:[open+1,i]};
+    }
+  }
+  if(t.length===1) return null;
+  const r=pickIn(t);
+  return r===null?null:{kind:"apply", idx:r, scope:[0,t.length]};
+}
+function applyAt(t,idx){
+  const L=t[idx-1],O=t[idx].v,R=t[idx+1];
+  const bothInt = L.type!=="float" && R.type!=="float";
+  let type=bothInt?"int":"float", val, why;
+  if(O==="%"){
+    if(!bothInt) throw new Error("% cannot be used with a floating-point operand");
+    if(R.v===0) throw new Error("Modulus by zero");
+    val=L.v%R.v;
+    why=`<code>%</code> gives the remainder after integer division, and its sign follows the left operand.`;
+  }else if(O==="/"){
+    if(R.v===0) throw new Error("Division by zero");
+    if(bothInt){ val=Math.trunc(L.v/R.v);
+      why=`Both operands are integers, so this is <strong>integer division</strong>: ${L.v}/${R.v} is ${trimF(L.v/R.v)}, truncated to ${val}. The fraction is gone for good.`;
+    }else{ val=L.v/R.v; why=`One operand is floating-point, so the other is promoted and real division is performed.`; }
+  }else{
+    val = O==="+"?L.v+R.v : O==="-"?L.v-R.v : L.v*R.v;
+    why = bothInt ? `Both operands are integers, so the result stays an integer.`
+                  : `One operand is floating-point, so the other is promoted and the arithmetic is done in floating-point.`;
+  }
+  const out={k:"num",type,v:val,name:null};
+  return {tokens:t.slice(0,idx-1).concat([out],t.slice(idx+2)),
+          result:out, why, text:`${fmtTok(L)} ${O} ${fmtTok(R)}`, at:idx-1};
+}
+function whyNext(t,idx,scope){
+  const op=t[idx].v,p=PREC[op],[s,e]=scope;
+  let left=false,higher=false; const others=[];
+  for(let i=s;i<e;i++){
+    if(i===idx||t[i].k!=="op"||i===0||t[i-1].k!=="num") continue;
+    if(PREC[t[i].v]===p&&i<idx) left=true;
+    if(PREC[t[i].v]>p) higher=true;
+    others.push(t[i].v);
+  }
+  if(higher) return "";
+  if(!others.length) return `<code>${op}</code> is the only operator left.`;
+  const lower=others.filter(o=>PREC[o]<p);
+  if(lower.length) return `<code>${op}</code> has higher precedence than <code>${lower[0]}</code>, so it goes first.`;
+  if(left) return "";
+  return `<code>${op}</code> and <code>${others[0]}</code> are at the same level, so left-to-right associativity takes the leftmost.`;
+}
+function renderExpr(tokens,hot,fresh,useNames){
+  return tokens.map((t,i)=>{
+    let cls="tok";
+    if(t.k==="op") cls+=" op";
+    if(t.k==="paren") cls+=" paren";
+    if(useNames&&t.name&&/[a-zA-Z_]/.test(t.name)) cls+=" id";
+    if(hot&&i>=hot[0]&&i<=hot[1]) cls+=" hot";
+    if(fresh===i) cls+=" new";
+    const txt=t.k==="num"?((useNames&&t.name)?t.name:fmtTok(t)):t.v;
+    return `<span class="${cls}">${txt}</span>`;
+  }).join(" ");
+}
+function reduce(src,vars){
+  let t=tokenize(src,vars);
+  const frames=[];
+  const named=t.some(x=>x.name&&/[a-zA-Z_]/.test(x.name));
+  const hasOp=t.some(x=>x.k==="op");
+  if(named&&hasOp){
+    frames.push({html:renderExpr(t,null,null,true),
+      note:"The expression as written, with the variable names still in place."});
+    frames.push({html:renderExpr(t,null,null,false),
+      note:"Each variable is read from memory and its value substituted. The variables themselves are not changed by being read."});
+  }else if(hasOp){
+    frames.push({html:renderExpr(t,null,null,false), note:"The expression as written."});
+  }
+  let guard=0;
+  while(guard++<60){
+    const n=nextOp(t);
+    if(!n) break;
+    if(n.kind==="unwrap"){
+      const inner=t[n.open+1];
+      t=t.slice(0,n.open).concat([inner],t.slice(n.close+1));
+      frames.push({html:renderExpr(t,null,n.open,false),
+        note:"These parentheses have done their job and are removed."});
+      continue;
+    }
+    const L=t[n.idx-1],R=t[n.idx+1];
+    if(!L||!R||L.k!=="num"||R.k!=="num") throw new Error("Malformed expression");
+    const w=whyNext(t,n.idx,n.scope);
+    const inPar = n.scope[0]!==0||n.scope[1]!==t.length;
+    frames.push({html:renderExpr(t,[n.idx-1,n.idx+1],null,false),
+      note:(inPar?"Parentheses are evaluated first. ":"")+(w||`Applying <code>${t[n.idx].v}</code>.`)+
+           ` Next: <strong>${fmtTok(L)} ${t[n.idx].v} ${fmtTok(R)}</strong>`});
+    const r=applyAt(t,n.idx); t=r.tokens;
+    frames.push({html:renderExpr(t,null,r.at,false),
+      note:`<strong>${r.text} = ${fmtTok(r.result)}</strong> — ${r.why}`});
+  }
+  if(t.length!==1||t[0].k!=="num") throw new Error("Malformed expression");
+  return {frames, value:t[0]};
+}
+
+/* ============================================================
+   MINI C INTERPRETER  (declarations, assignments, printf)
+   ============================================================ */
+function parseProgram(lines){
+  const st=[];
+  lines.forEach((raw,idx)=>{
+    let s=raw.replace(/\/\*.*?\*\//g,"").trim();
+    if(!s||s.startsWith("#")||s==="{"||s==="}"||s==="int main() {"||s.startsWith("return")) return;
+    let m;
+    if((m=s.match(/^(int|float|char)\s+(.+);$/))){
+      const type=m[1];
+      splitTop(m[2]).forEach(part=>{
+        const eq=part.indexOf("=");
+        if(eq<0) st.push({kind:"decl",line:idx,type,name:part.trim(),init:null});
+        else st.push({kind:"decl",line:idx,type,name:part.slice(0,eq).trim(),init:part.slice(eq+1).trim()});
+      });
+      return;
+    }
+    if((m=s.match(/^printf\((.*)\);$/))){
+      const args=splitTop(m[1]);
+      const fmt=args[0].trim().replace(/^"|"$/g,"");
+      st.push({kind:"printf",line:idx,fmt,args:args.slice(1).map(a=>a.trim())});
+      return;
+    }
+    if((m=s.match(/^([A-Za-z_]\w*)\s*=\s*(.+);$/))){
+      st.push({kind:"assign",line:idx,name:m[1],expr:m[2].trim()});
+      return;
+    }
+    throw new Error("Cannot parse line "+(idx+1)+": "+s);
+  });
+  return st;
+}
+function splitTop(s){
+  const out=[]; let d=0,cur="",q=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(c==='"') q=!q;
+    if(!q){ if(c==="(") d++; if(c===")") d--; 
+      if(c===","&&d===0){out.push(cur); cur=""; continue;} }
+    cur+=c;
+  }
+  if(cur.trim()!=="") out.push(cur);
+  return out;
+}
+function formatPrintf(fmt,vals){
+  let out="",vi=0;
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==="\\"&&fmt[i+1]==="n"){out+="\n"; i++; continue;}
+    if(fmt[i]==="%"){
+      const m=fmt.slice(i).match(/^%(\.\d+)?([dfc%])/);
+      if(m){
+        if(m[2]==="%"){out+="%"; i+=m[0].length-1; continue;}
+        const v=vals[vi++];
+        if(m[2]==="d") out+=String(Math.trunc(v.v));
+        else if(m[2]==="c") out+=String.fromCharCode(v.v);
+        else out+= Number(v.v).toFixed(m[1]?parseInt(m[1].slice(1)):6);
+        i+=m[0].length-1; continue;
+      }
+    }
+    out+=fmt[i];
+  }
+  return out;
+}
+function runProgram(lines){
+  const st=parseProgram(lines);
+  const vars={}; const order=[]; let offset=0, out="";
+  const steps=[];
+  const mainLine=lines.findIndex(l=>l.includes("int main"));
+  const snap=(line,note,touch,expr)=>steps.push({
+    line,note,touch,expr,out,
+    mem:order.map(n=>({name:n,type:vars[n].type,value:vars[n].value,addr:vars[n].addr}))
+  });
+  snap(mainLine<0?0:mainLine,"Execution begins at <code>main</code>. No variables exist yet.");
+  for(const s of st){
+    if(s.kind==="decl"){
+      vars[s.name]={type:s.type,value:null,addr:BASE+offset};
+      offset+=SIZES[s.type]; order.push(s.name);
+      if(s.init===null){
+        snap(s.line,`<code>${s.name}</code> is declared but given no value, so it holds whatever bits were already at that address. Printing it now would show an unpredictable number.`,s.name);
+      }else{
+        const r=reduce(s.init,vars);
+        r.frames.forEach((f,i)=>snap(s.line,f.note,null,{html:f.html,lhs:s.name}));
+        const stored=fitToType(s.type,r.value.v);
+        vars[s.name].value=stored;
+        let note=`<code>${s.name}</code> now holds ${showVal(s.type,stored)}.`;
+        if(s.type==="int"&&r.value.type==="float"&&stored!==r.value.v)
+          note+=` The value ${trimF(r.value.v)} had a fractional part, and storing it in an <code>int</code> <strong>discarded</strong> it — it was not rounded.`;
+        else if(s.type==="char"&&stored!==r.value.v)
+          note+=` The value ${r.value.v} does not fit in one signed byte, so only the low eight bits were kept and read back as ${stored}. No error was raised.`;
+        else if(s.type==="float"&&r.value.type!=="float")
+          note+=` The integer result was converted to <code>float</code> on the way in.`;
+        snap(s.line,note,s.name,r.frames.length?{html:renderExpr([{k:"num",type:s.type,v:stored}],null,0,false),lhs:s.name}:null);
+      }
+    }else if(s.kind==="assign"){
+      if(!(s.name in vars)) throw new Error("Unknown variable: "+s.name);
+      const r=reduce(s.expr,vars);
+      r.frames.forEach(f=>snap(s.line,f.note,null,{html:f.html,lhs:s.name}));
+      const old=vars[s.name].value;
+      const stored=fitToType(vars[s.name].type,r.value.v);
+      vars[s.name].value=stored;
+      let note=`<code>${s.name}</code> ${old===null?"receives":"changes from "+showVal(vars[s.name].type,old)+" to"} ${showVal(vars[s.name].type,stored)}.`;
+      if(old!==null) note+=` Its previous value is now gone — assignment overwrites, it does not remember.`;
+      snap(s.line,note,s.name,{html:renderExpr([{k:"num",type:vars[s.name].type,v:stored}],null,0,false),lhs:s.name});
+    }else{
+      const vals=s.args.map(a=>reduce(a,vars).value);
+      out+=formatPrintf(s.fmt,vals);
+      snap(s.line,`<code>printf</code> reads each value according to its format specifier and writes the result to the screen.`);
+    }
+  }
+  snap(lines.length-2,"<code>main</code> returns 0. Every variable is released and the program ends.");
+  return steps;
+}
+function finalOutput(lines){
+  const st=runProgram(lines);
+  return st[st.length-1].out;
+}
+
+/* ============================================================
+   PROGRAM LIBRARY
+   ============================================================ */
+const H=["#include <stdio.h>","","int main() {"], F=["    return 0;","}"];
+const P=(...body)=>H.concat(body,F);
+
+const CONCEPTS=[
+{id:"types", name:"Data types and memory", explorer:true, programs:[
+  {t:"Three types side by side", code:P(
+    "    int   marks = 87;",
+    "    float avg = 74.5;",
+    "    char  grade = 'A';",
+    '    printf("%d %f %c", marks, avg, grade);')},
+  {t:"A char is a small integer", code:P(
+    "    char c = 'A';",
+    "    int  n = c;",
+    '    printf("%c is stored as %d", c, n);')},
+  {t:"Characters are ordered", code:P(
+    "    char a = 'a';",
+    "    char b = 'e';",
+    "    int gap = b - a;",
+    '    printf("%d letters apart", gap);')},
+  {t:"A value that does not fit", code:P(
+    "    char c = 200;",
+    "    int  n = 200;",
+    '    printf("c = %d, n = %d", c, n);')},
+  {t:"A float stored in an int", code:P(
+    "    float f = 7.9;",
+    "    int   n = 7.9;",
+    '    printf("f = %f, n = %d", f, n);')}
+]},
+{id:"assign", name:"Assignment", programs:[
+  {t:"Assignment copies a value", code:P(
+    "    int a = 5, b = 9;",
+    "    a = b;",
+    '    printf("a = %d, b = %d", a, b);')},
+  {t:"A variable can update itself", code:P(
+    "    int count = 10;",
+    "    count = count + 5;",
+    "    count = count * 2;",
+    '    printf("count = %d", count);')},
+  {t:"An uninitialised variable", code:P(
+    "    int a = 5;",
+    "    int b;",
+    "    b = a + 1;",
+    '    printf("b = %d", b);')},
+  {t:"The order of statements matters", code:P(
+    "    int x = 2;",
+    "    int y = x * 10;",
+    "    x = 7;",
+    '    printf("x = %d, y = %d", x, y);')},
+  {t:"An average that comes out wrong", code:P(
+    "    int total = 250, n = 4;",
+    "    float avg = total / n;",
+    '    printf("average = %f", avg);')},
+  {t:"The same average done correctly", code:P(
+    "    int total = 250, n = 4;",
+    "    float avg = total / 4.0;",
+    '    printf("average = %f", avg);')}
+]},
+{id:"expr", name:"Expressions and precedence", programs:[
+  {t:"Multiplication before addition", code:P(
+    "    int a = 2, b = 3, c = 4;",
+    "    int r = a + b * c;",
+    '    printf("r = %d", r);')},
+  {t:"Parentheses change everything", code:P(
+    "    int a = 2, b = 3, c = 4;",
+    "    int r = (a + b) * c;",
+    '    printf("r = %d", r);')},
+  {t:"Equal precedence, left to right", code:P(
+    "    int a = 100, b = 5, c = 2;",
+    "    int r = a / b * c;",
+    '    printf("r = %d", r);')},
+  {t:"Integer division truncates", code:P(
+    "    int a = 7, b = 2;",
+    "    int r = a / b;",
+    '    printf("r = %d", r);')},
+  {t:"One float changes the arithmetic", code:P(
+    "    int a = 7;",
+    "    float r = a / 2.0;",
+    '    printf("r = %f", r);')},
+  {t:"Where the promotion happens", code:P(
+    "    float p = 5 / 2 * 2.0;",
+    "    float q = 2.0 * 5 / 2;",
+    '    printf("p = %f, q = %f", p, q);')},
+  {t:"The remainder operator", code:P(
+    "    int a = 17, b = 5, c = 3;",
+    "    int r = a % b + c;",
+    '    printf("r = %d", r);')},
+  {t:"Three levels at once", code:P(
+    "    int a = 10, b = 20, c = 7;",
+    "    int r = a + b % c * 2;",
+    '    printf("r = %d", r);')}
+]},
+{id:"swap", name:"Swapping two variables", programs:[
+  {t:"Swap using a temporary variable", code:P(
+    "    int a = 5, b = 9, temp;",
+    "    temp = a;",
+    "    a = b;",
+    "    b = temp;",
+    '    printf("a = %d, b = %d", a, b);')},
+  {t:"Swap without a temporary variable", code:P(
+    "    int a = 5, b = 9;",
+    "    a = a + b;",
+    "    b = a - b;",
+    "    a = a - b;",
+    '    printf("a = %d, b = %d", a, b);')},
+  {t:"The swap that does not work", code:P(
+    "    int a = 5, b = 9;",
+    "    a = b;",
+    "    b = a;",
+    '    printf("a = %d, b = %d", a, b);')},
+  {t:"Rotating three variables", code:P(
+    "    int a = 1, b = 2, c = 3, temp;",
+    "    temp = a;",
+    "    a = c;",
+    "    c = b;",
+    "    b = temp;",
+    '    printf("%d %d %d", a, b, c);')}
+]}
+];
+
+/* editable numeric initialisers */
+function editablesOf(lines){
+  const out=[];
+  lines.forEach((l,idx)=>{
+    const m=l.match(/^\s*(int|float|char)\s+(.+);$/);
+    if(!m) return;
+    splitTop(m[2]).forEach(part=>{
+      const eq=part.indexOf("=");
+      if(eq<0) return;
+      const name=part.slice(0,eq).trim(), init=part.slice(eq+1).trim();
+      if(/^-?\d+(\.\d+)?$/.test(init)) out.push({name,init,line:idx,type:m[1]});
+    });
+  });
+  return out;
+}
+function applyEdits(lines,eds,vals){
+  const copy=lines.slice();
+  eds.forEach(e=>{
+    const v=vals[e.name];
+    if(v===undefined||v===null||v==="") return;
+    const txt=(e.type==="float"&&String(v).indexOf(".")<0)?(v+".0"):String(v);
+    copy[e.line]=copy[e.line].replace(
+      new RegExp("\\b"+e.name+"\\s*=\\s*-?\\d+(\\.\\d+)?"), e.name+" = "+txt);
+  });
+  return copy;
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderCode(mount,lines,hit){
+  mount.innerHTML=lines.map((l,i)=>
+    `<div class="ln${i===hit?" hit":""}"><span class="n">${i+1}</span><span>${
+      l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span></div>`).join("");
+}
+function renderMem(mount,mem,touch){
+  if(!mem||!mem.length){mount.innerHTML='<div class="note">No variables yet.</div>'; return;}
+  mount.innerHTML=mem.map(v=>`
+    <div class="var${touch===v.name?" flash":""}">
+      <div class="top"><span class="nm">${v.name}</span><span class="ty">${v.type}</span>
+        <span class="ad">0x${v.addr.toString(16).toUpperCase()} · ${SIZES[v.type]} byte${SIZES[v.type]>1?"s":""}</span></div>
+      <div class="val">${v.value===null?"<span style='color:#a63232'>garbage</span>":showVal(v.type,v.value)}</div>
+      <div class="bytes">${v.value===null
+        ? Array(SIZES[v.type]).fill('<span>??</span>').join("")
+        : bytesOf(v.type,v.value).map(b=>`<span>${b}</span>`).join("")}</div>
+    </div>`).join("");
+}
+
+/* ============================================================
+   TYPE EXPLORER
+   ============================================================ */
+function paintExplorer(){
+  const type=document.getElementById("tx-type").value;
+  const raw=document.getElementById("tx-val").value.trim();
+  const mount=document.getElementById("tx-out");
+  const n=Number(raw);
+  if(raw===""||isNaN(n)){
+    mount.innerHTML='<div class="slot"><div class="k">Value</div><div class="small">Type a number to see what is stored.</div></div>';
+    return;
+  }
+  const stored=fitToType(type,n);
+  const same = (type==="float") ? Math.abs(stored-n)<1e-9 : stored===n;
+  let msg;
+  if(same) msg="The value fits in this type and is stored exactly as written.";
+  else if(type==="int") msg=`<code>int</code> holds whole numbers only, so the fractional part of ${raw} was <strong>discarded</strong>, not rounded.`;
+  else if(type==="char") msg=`${raw} is outside the range of a signed <code>char</code>. Only the low eight bits were kept, and read back as a signed byte they give ${stored}. <strong>No error was raised.</strong>`;
+  else msg=`<code>float</code> keeps only about 7 significant digits, so ${raw} was stored as the nearest value it can represent.`;
+  mount.innerHTML=`
+    <div class="slot"><div class="k">You wrote</div><div class="big">${raw}</div>
+      <div class="small">as a ${type}</div></div>
+    <div class="slot"><div class="k">Actually stored</div>
+      <div class="big">${type==="float"?trimF(stored):stored}</div>
+      <div class="small">${showVal(type,stored)===null?"":""}
+        <span class="flag ${same?"fit":"wrap"}">${same?"fits exactly":"changed on the way in"}</span></div></div>
+    <div class="slot"><div class="k">Size and range</div>
+      <div class="big">${SIZES[type]} byte${SIZES[type]>1?"s":""}</div>
+      <div class="small">${RANGE[type]}</div></div>
+    <div class="slot"><div class="k">Bytes in memory</div>
+      <div class="bytes" style="margin-top:4px">${bytesOf(type,stored).map(b=>`<span>${b}</span>`).join("")}</div>
+      <div class="small" style="margin-top:5px">binary ${binOf(type,stored)}</div></div>
+    <div class="slot" style="grid-column:1/-1"><div class="k">What happened</div>
+      <div style="font-family:'Source Sans 3',sans-serif; font-size:15px; margin-top:3px">${msg}</div></div>`;
+}
+document.getElementById("tx-type").onchange=paintExplorer;
+document.getElementById("tx-val").oninput=paintExplorer;
+
+/* ============================================================
+   DEMO CONTROLLER
+   ============================================================ */
+const tabs=document.getElementById("tabs"), progSel=document.getElementById("prog"),
+      dCode=document.getElementById("d-code"), dMem=document.getElementById("d-mem"),
+      dExpr=document.getElementById("d-expr"), dExprCard=document.getElementById("exprcard"),
+      dOut=document.getElementById("d-out"), dObs=document.getElementById("d-obs"),
+      dIn=document.getElementById("d-inputs");
+let concept=CONCEPTS[0], prog=concept.programs[0], eds=[], lines=[], steps=[], idx=-1, timer=null;
+
+CONCEPTS.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.textContent=c.name; b.setAttribute("aria-pressed", i===0);
+  b.onclick=()=>{
+    concept=c;
+    [...tabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("explorer-wrap").style.display=c.explorer?"block":"none";
+    fillPrograms(); loadProgram();
+  };
+  tabs.appendChild(b);
+});
+function fillPrograms(){
+  progSel.innerHTML=concept.programs.map((p,i)=>`<option value="${i}">${p.t}</option>`).join("");
+}
+progSel.onchange=()=>{prog=concept.programs[+progSel.value]; loadProgram();};
+function loadProgram(){
+  prog=concept.programs[+progSel.value||0];
+  eds=editablesOf(prog.code);
+  dIn.innerHTML = eds.length
+    ? eds.map(e=>`<label>${e.name}<input type="number" step="${e.type==="float"?"0.1":"1"}" data-ed="${e.name}" value="${e.init}"></label>`).join("")
+      +`<span class="note">Change a value and the program re-runs.</span>`
+    : `<span class="note">This program has no editable values — the point is in the literals themselves.</span>`;
+  dIn.querySelectorAll("[data-ed]").forEach(el=>el.onchange=build);
+  build();
+}
+function build(){
+  const vals={};
+  dIn.querySelectorAll("[data-ed]").forEach(el=>{vals[el.dataset.ed]=el.value;});
+  lines=applyEdits(prog.code,eds,vals);
+  try{ steps=runProgram(lines); }
+  catch(e){ dObs.textContent="Could not run this program: "+e.message; return; }
+  idx=-1; clearInterval(timer); timer=null;
+  document.getElementById("d-run").textContent="Run";
+  renderCode(dCode,lines,-1); renderMem(dMem,[],null);
+  dExprCard.style.display="none"; dExpr.innerHTML="";
+  dOut.innerHTML='<span class="lbl">Output</span>';
+  dObs.textContent="Press Step to begin execution.";
+}
+function paint(){
+  const s=steps[idx];
+  renderCode(dCode,lines,s.line);
+  renderMem(dMem,s.mem,s.touch);
+  if(s.expr){ dExprCard.style.display="block";
+    dExpr.innerHTML=`<span class="lhs">${s.expr.lhs} = </span>`+s.expr.html; }
+  dOut.innerHTML='<span class="lbl">Output</span>'+(s.out||"");
+  dObs.innerHTML=s.note;
+}
+function stepFwd(){
+  if(idx>=steps.length-1){clearInterval(timer); timer=null;
+    document.getElementById("d-run").textContent="Run"; return;}
+  idx++; paint();
+}
+function stepBack(){
+  clearInterval(timer); timer=null; document.getElementById("d-run").textContent="Run";
+  if(idx<=0){ idx=-1; renderCode(dCode,lines,-1); renderMem(dMem,[],null);
+    dOut.innerHTML='<span class="lbl">Output</span>';
+    dObs.textContent="Back at the start. Press Step to begin again."; return; }
+  idx--; paint();
+}
+document.getElementById("d-step").onclick=stepFwd;
+document.getElementById("d-prev").onclick=stepBack;
+document.getElementById("d-reset").onclick=build;
+document.getElementById("d-run").onclick=function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent="Run"; return;}
+  if(idx>=steps.length-1) build();
+  this.textContent="Pause";
+  timer=setInterval(stepFwd,+document.getElementById("d-speed").value);
+};
+document.getElementById("d-speed").oninput=function(){
+  if(timer){clearInterval(timer); timer=setInterval(stepFwd,+this.value);}
+};
+document.getElementById("explorer-wrap").style.display="block";
+fillPrograms(); loadProgram(); paintExplorer();
+
+/* ============================================================
+   PRACTICE — mode switch
+   ============================================================ */
+const ptabs=document.getElementById("ptabs");
+[...ptabs.children].forEach(b=>{
+  b.onclick=()=>{
+    [...ptabs.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+    document.getElementById("mode-predict").style.display = b.dataset.mode==="predict"?"block":"none";
+    document.getElementById("mode-operator").style.display = b.dataset.mode==="operator"?"block":"none";
+  };
+});
+
+/* ---------- MODE A: predict the output ---------- */
+const ppSel=document.getElementById("pp-concept");
+CONCEPTS.forEach(c=>{
+  const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; ppSel.appendChild(o);
+});
+const R=n=>Math.floor(Math.random()*n), pick=a=>a[R(a.length)];
+let ppLines=null, ppAns="", ppRight=0, ppTries=0, ppStreak=0;
+
+function randomiseProgram(code){
+  const eds=editablesOf(code);
+  const vals={};
+  eds.forEach(e=>{
+    if(e.type==="float") vals[e.name]=(R(90)+10)/10;
+    else if(Math.abs(Number(e.init))>50) vals[e.name]=(R(40)+5)*10;
+    else vals[e.name]=R(18)+2;
+  });
+  return applyEdits(code,eds,vals);
+}
+function ppNew(){
+  const pool = ppSel.value==="all" ? CONCEPTS.flatMap(c=>c.programs)
+             : CONCEPTS.find(c=>c.id===ppSel.value).programs;
+  for(let k=0;k<60;k++){
+    const p=pick(pool);
+    const code = Math.random()<0.75 ? randomiseProgram(p.code) : p.code;
+    let out;
+    try{ out=finalOutput(code); }catch(e){ continue; }
+    if(!out) continue;
+    ppLines=code; ppAns=out;
+    renderCode(document.getElementById("pp-code"),code,-1);
+    const opts=new Set([out]);
+    const nums=out.match(/-?\d+(\.\d+)?/g)||[];
+    if(nums.length){
+      [0,1].forEach(()=>{
+        const i=R(nums.length); const n=Number(nums[i]);
+        const alt=[n+1,n-1,n*2,Math.trunc(n/2)||n+2][R(4)];
+        let c=0;
+        opts.add(out.replace(/-?\d+(\.\d+)?/g, m=> (c++===i)? (nums[i].includes(".")?Number(alt).toFixed(6):String(alt)) : m));
+      });
+    }
+    if(nums.length>=2){
+      let c=0;
+      opts.add(out.replace(/-?\d+(\.\d+)?/g, m=> nums[(c++ +1)%nums.length]));
+    }
+    const list=[...opts].slice(0,4).sort(()=>Math.random()-0.5);
+    if(!list.includes(out)) list[0]=out;
+    document.getElementById("pp-opts").innerHTML=list.map(o=>
+      `<label><input type="radio" name="ppa" value="${encodeURIComponent(o)}">
+        <code>${o.replace(/\n/g," &#9166; ").replace(/</g,"&lt;")}</code></label>`).join("");
+    document.getElementById("pp-obs").textContent="Choose the output you expect and press Check.";
+    document.getElementById("pp-show").disabled=true;
+    return;
+  }
+}
+document.getElementById("pp-new").onclick=ppNew;
+ppSel.onchange=ppNew;
+document.getElementById("pp-check").onclick=()=>{
+  const sel=document.querySelector('input[name="ppa"]:checked');
+  const obs=document.getElementById("pp-obs");
+  if(!sel){obs.textContent="Select an answer before checking."; return;}
+  ppTries++;
+  if(decodeURIComponent(sel.value)===ppAns){
+    ppRight++; ppStreak++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span> The program prints
+      <code>${ppAns.replace(/\n/g," &#9166; ")}</code>.`;
+  }else{
+    ppStreak=0;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not correct.</span> Work down the
+      program one line at a time, writing each variable's value beside it. Check in particular whether
+      any division has two integer operands, and whether an assignment has overwritten a value you still
+      needed.`;
+  }
+  document.getElementById("pp-show").disabled=false;
+  document.getElementById("pp-right").textContent=ppRight;
+  document.getElementById("pp-tries").textContent=ppTries;
+  document.getElementById("pp-streak").textContent=ppStreak;
+};
+document.getElementById("pp-show").onclick=()=>{
+  const st=runProgram(ppLines);
+  const keep=st.filter(s=>s.touch||s.note.includes("printf"));
+  document.getElementById("pp-obs").innerHTML=keep.map(s=>
+    `<div style="padding:2px 0;font-size:15px"><code>line ${s.line+1}</code> ${s.note}</div>`).join("")+
+    `<div style="padding:4px 0"><strong>prints</strong> <code>${ppAns.replace(/\n/g," &#9166; ")}</code></div>`;
+};
+
+/* ---------- MODE B: pick the next operator ---------- */
+let poTokens=null, poRight=0, poTries=0, poDone=0;
+function genExpr(level){
+  const n=()=>R(18)+2, s=()=>R(4)+2;
+  if(level==="1") return `${n()} ${pick(["+","-"])} ${n()} ${pick(["*","/"])} ${s()}`;
+  if(level==="2") return pick([
+    ()=>`${n()} + ${n()} % ${s()} * ${s()}`,
+    ()=>`${n()*4} / ${s()} * ${s()}`,
+    ()=>`${n()} - ${n()} / ${s()} + ${n()}`,
+    ()=>`${n()} % ${s()} + ${n()} * ${s()}`])();
+  return pick([
+    ()=>`(${n()} + ${n()}) * ${s()} - ${n()}`,
+    ()=>`${n()} / ${s()} * ${pick(["2.0","4.0","0.5"])}`,
+    ()=>`${pick(["2.0","3.0","1.5"])} * ${n()} / ${s()}`,
+    ()=>`(${n()} - ${n()}) / ${s()} + ${n()} % ${s()}`,
+    ()=>`${n()} + ${n()} * (${n()} - ${s()}) / ${s()}`])();
+}
+function poNew(){
+  for(let k=0;k<60;k++){
+    try{
+      const src=genExpr(document.getElementById("po-level").value);
+      const t=tokenize(src,{});
+      reduce(src,{});                       // make sure it evaluates cleanly
+      poTokens=t; poPaint();
+      document.getElementById("po-obs").textContent="Click the operator you think C applies next.";
+      return;
+    }catch(e){}
+  }
+}
+function poPaint(){
+  document.getElementById("po-expr").innerHTML=renderExpr(poTokens,null,null,false);
+  const row=document.getElementById("po-picks");
+  const ops=[];
+  poTokens.forEach((t,i)=>{ if(t.k==="op"&&i>0&&poTokens[i-1].k==="num") ops.push({i,v:t.v}); });
+  row.innerHTML=ops.map(o=>`<button data-i="${o.i}">${o.v}</button>`).join("");
+  row.querySelectorAll("button").forEach(b=>b.onclick=()=>poAnswer(+b.dataset.i));
+}
+function poAnswer(i){
+  const obs=document.getElementById("po-obs");
+  let n;
+  try{ n=nextOp(poTokens); }catch(e){ poNew(); return; }
+  while(n&&n.kind==="unwrap"){
+    const inner=poTokens[n.open+1];
+    poTokens=poTokens.slice(0,n.open).concat([inner],poTokens.slice(n.close+1));
+    n=nextOp(poTokens);
+  }
+  poTries++;
+  if(!n){ poNew(); return; }
+  if(i===n.idx){
+    poRight++;
+    const r=applyAt(poTokens,n.idx);
+    poTokens=r.tokens;
+    const done = poTokens.length===1;
+    if(done) poDone++;
+    obs.innerHTML=`<span style="color:var(--ok);font-weight:600">Correct.</span>
+      ${r.text} = ${fmtTok(r.result)}. ${r.why}`+
+      (done?` <strong>The expression is fully reduced.</strong> Press New expression for another.`:"");
+    poPaint();
+  }else{
+    const chosen=poTokens[i].v, right=poTokens[n.idx].v;
+    obs.innerHTML=`<span style="color:var(--no);font-weight:600">Not that one.</span> `+
+      (PREC[chosen]<PREC[right]
+        ? `<code>${right}</code> has higher precedence than <code>${chosen}</code>, so it must be applied first.`
+        : PREC[chosen]===PREC[right]
+          ? `<code>${chosen}</code> and <code>${right}</code> are at the same precedence level, so associativity decides — C works left to right, and <code>${right}</code> is further left.`
+          : `Look for parentheses: anything inside them is evaluated before the operators outside.`);
+  }
+  document.getElementById("po-right").textContent=poRight;
+  document.getElementById("po-tries").textContent=poTries;
+  document.getElementById("po-done").textContent=poDone;
+}
+document.getElementById("po-new").onclick=poNew;
+document.getElementById("po-level").onchange=poNew;
+ppNew(); poNew();
+
+/* ============================================================
+   QUIZZES
+   ============================================================ */
+const QUIZ={
+  pre:[
+    {q:"How many bytes does a char usually occupy?", o:["1","2","4","8"], a:0},
+    {q:"Which format specifier prints an integer?", o:["%c","%f","%d","%s"], a:2},
+    {q:"What is the value of 2 + 3 * 4 in C?", o:["20","14","24","9"], a:1},
+    {q:"In C, what is 7 / 2 when both operands are int?", o:["3.5","4","3","0"], a:2},
+    {q:"After int a = 5, b = 9; the statement a = b; leaves:",
+     o:["a holding 5, b holding 5","a holding 9, b holding 9","both holding 14","a and b linked"], a:1},
+    {q:"Why does swapping two variables normally need a third?",
+     o:["C forbids two assignments in a row","Because of precedence","It does not","The first assignment destroys one of the values"], a:3}
+  ],
+  post:[
+    {q:"char c = 'A'; stores which value in memory?", o:["The letter A itself","65","1","Nothing until printed"], a:1},
+    {q:"char c = 200; then printf(\"%d\", c) on a signed-char compiler prints:",
+     o:["200","-56","0","A compiler error"], a:1},
+    {q:"int n = 7.9; stores:", o:["7.9","8","7","A compile error"], a:2},
+    {q:"With int a = 100, b = 5, c = 2; what is a / b * c?", o:["10","40","1000","50"], a:1},
+    {q:"int total = 250, n = 4; float avg = total / n; leaves avg holding:",
+     o:["62.5","63.0","A compile error","62.0"], a:3},
+    {q:"What is the value of 5 / 2 * 2.0?", o:["5.0","4.0","2.5","2.0"], a:1},
+    {q:"What is the value of 2.0 * 5 / 2?", o:["5.0","4.0","2.5","10.0"], a:0},
+    {q:"int a = 5, b = 9; a = b; b = a; leaves a and b holding:",
+     o:["9 and 9","9 and 5","5 and 5","5 and 9"], a:0},
+    {q:"In the arithmetic swap a = a+b; b = a-b; a = a-b; the risk is that:",
+     o:["It needs more memory","It works only for even numbers","The sum may overflow the type","It changes the addresses"], a:2},
+    {q:"int and float are both 4 bytes, yet store 74 very differently because:",
+     o:["float secretly uses more memory","The type decides how the bits are interpreted","int is stored backwards","floats are stored as text"], a:1}
+  ]
+};
+function buildQuiz(key){
+  document.getElementById(key+"-quiz").innerHTML=QUIZ[key].map((it,i)=>`
+    <div class="q">
+      <p>${i+1}. ${it.q.replace(/</g,"&lt;")}</p>
+      ${it.o.map((o,j)=>`<label><input type="radio" name="${key}-${i}" value="${j}"> ${o.replace(/</g,"&lt;")}</label>`).join("")}
+      <div class="verdict" id="${key}-v${i}"></div>
+    </div>`).join("");
+}
+function gradeQuiz(key){
+  let score=0;
+  QUIZ[key].forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="${key}-${i}"]:checked`);
+    const v=document.getElementById(`${key}-v${i}`);
+    if(!sel){v.className="verdict no"; v.textContent="Not answered."; return;}
+    if(+sel.value===it.a){score++; v.className="verdict ok"; v.textContent="Correct.";}
+    else{v.className="verdict no"; v.textContent="Incorrect — review the Theory tab.";}
+  });
+  document.getElementById(key+"-score").textContent=`Score ${score} / ${QUIZ[key].length}`;
+}
+function resetQuiz(key){buildQuiz(key); document.getElementById(key+"-score").textContent="";}
+buildQuiz("pre"); buildQuiz("post");
+</script>
+</body>
+</html>
