@@ -439,7 +439,9 @@ int fact(int n) {
         <li>In <em>Binary search</em>, search for a key that is present and note that both counts agree.
         Then search for one that is absent and find the extra recursive call.</li>
         <li>In <em>Palindrome and power</em>, work through both versions of each.</li>
-        <li>Run <em>A recursion too deep</em> and read what happens when the stack runs out.</li>
+        <li>Run <em>Deeper than this page can draw</em>. Note that the limit it meets is this
+        page's, not a real compiler's: 200 frames costs a real machine nothing. Set <code>n</code> to
+        50 and watch the same recursion finish.</li>
         <li>Use the <strong>Explorer</strong> to set <code>n</code> and see the two costs side by side in
         one table, for each of the four problems.</li>
         <li>Work through the <strong>Practice</strong> section in both modes.</li>
@@ -910,7 +912,11 @@ function evalAst(n,ctx){
     case "-": return {v:a.v-b.v,type};
     case "*": return {v:a.v*b.v,type};
     case "/":
-      if(b.v===0) throw new Error("Division by zero");
+      if(b.v===0){
+        /* in C this is an error only for whole numbers; in floating point it is inf */
+        if(a.type==="float"||b.type==="float") throw new Error("Float division by zero");
+        throw new Error("Division by zero");
+      }
       return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
     case "%":
       if(!bothInt) throw new Error("% needs whole numbers");
@@ -1443,8 +1449,32 @@ Machine.prototype.declare=function(name,type,value,line,note){
   this.ran.add(line);
   if(note) this.snap(line,note,name);
 };
+/* NULL is 0 everywhere outside a string, so the parser never has to know the word */
+function nullTo0(src){
+  const s=String(src); let out="", i=0;
+  while(i<s.length){
+    const ch=s[i];
+    if(ch==='"'||ch==="'"){
+      const q=ch; out+=ch; i++;
+      while(i<s.length){
+        if(s[i]==="\\"&&i+1<s.length){ out+=s[i]+s[i+1]; i+=2; continue; }
+        out+=s[i]; if(s[i]===q){ i++; break; }
+        i++;
+      }
+      continue;
+    }
+    if(/[A-Za-z_]/.test(ch)){
+      let e=i; while(e<s.length&&/[A-Za-z0-9_]/.test(s[e])) e++;
+      const w=s.slice(i,e);
+      out += (w==="NULL") ? "0" : w;
+      i=e; continue;
+    }
+    out+=ch; i++;
+  }
+  return out;
+}
 Machine.prototype.evalExpr=function(src,line){
-  const resolved=this.resolveCalls(src,line);
+  const resolved=this.resolveCalls(nullTo0(src),line);
   return evalAst(xparse(xtok(resolved)),this.ctx());
 };
 Machine.prototype.resolveCalls=function(src,line){
@@ -2169,6 +2199,11 @@ function runProgram(lines){
         "each call get closer to it?"
       : /TOO_MANY_STEPS/.test(msg)
       ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Float division by zero/.test(msg)
+      ? "In floating point, C does <strong>not</strong> treat this as an error: "+
+        "<code>5.0 / 0</code> gives <code>inf</code> and <code>0.0 / 0</code> gives "+
+        "<code>nan</code>, and the program carries on. This page does not model those two "+
+        "values, so it stops here instead of showing you something it cannot draw."
       : /Division by zero/.test(msg)
       ? "A whole number cannot be divided by zero. In C this stops the program with an error."
       : /Modulus by zero/.test(msg)
@@ -2694,8 +2729,13 @@ const CONCEPTS=[
     '    printf("total %d\\n", sumTo(n));',
     '    printf("there were %d separate copies of mine, one per frame", n + 1);']))},
 
-  {t:"A recursion too deep", code:PROG(
-    ["int deep(int n) {",
+  {t:"Deeper than this page can draw", code:PROG(
+    ["/* A real compiler runs this without blinking: 200 frames is nothing, and gcc",
+     "   prints 0. What stops below is this page's own limit on how many frames it",
+     "   will draw at once. A real stack overflow needs a depth in the hundreds of",
+     "   thousands - or a base case that is never reached, which is the bug worth",
+     "   recognising. Change n to 50 to watch the same recursion finish properly. */",
+     "int deep(int n) {",
      "    if (n == 0) return 0;",
      "    return deep(n - 1);",
      "}",""],

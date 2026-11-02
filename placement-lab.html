@@ -776,7 +776,11 @@ function evalAst(n,ctx){
     case "-": return {v:a.v-b.v,type};
     case "*": return {v:a.v*b.v,type};
     case "/":
-      if(b.v===0) throw new Error("Division by zero");
+      if(b.v===0){
+        /* in C this is an error only for whole numbers; in floating point it is inf */
+        if(a.type==="float"||b.type==="float") throw new Error("Float division by zero");
+        throw new Error("Division by zero");
+      }
       return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
     case "%":
       if(!bothInt) throw new Error("% needs whole numbers");
@@ -3380,6 +3384,11 @@ function runProgram(lines,input,files){
         "each call get closer to it?"
       : /TOO_MANY_STEPS/.test(msg)
       ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Float division by zero/.test(msg)
+      ? "In floating point, C does <strong>not</strong> treat this as an error: "+
+        "<code>5.0 / 0</code> gives <code>inf</code> and <code>0.0 / 0</code> gives "+
+        "<code>nan</code>, and the program carries on. This page does not model those two "+
+        "values, so it stops here instead of showing you something it cannot draw."
       : /Division by zero/.test(msg)
       ? "A whole number cannot be divided by zero. In C this stops the program with an error."
       : /Modulus by zero/.test(msg)
@@ -4028,7 +4037,7 @@ const BANK=[
 
   {kind:"analysis",
    q:"<code>fact(5)</code> is computed recursively, and then by a <code>for</code> loop. What is the real difference in cost?",
-   o:["The recursion uses five stack frames at once; the loop uses one", "The recursion does fewer multiplications", "The loop cannot compute a factorial", "There is no difference whatsoever"],
+   o:["The recursion holds six frames at once (fact(5) down to fact(1), plus main); the loop holds one", "The recursion does fewer multiplications", "The loop cannot compute a factorial", "There is no difference whatsoever"],
    a:0,
    why:"Both do the same four multiplications. The difference is memory: the recursion holds a frame per call until the deepest one returns, so its memory grows with n, while the loop reuses one frame. For a large n that is the difference between a correct answer and a stack overflow. Recursion earns its keep where the problem itself branches, such as a tree."},
 
@@ -4323,7 +4332,7 @@ const BANK=[
 
   {kind:"concept",
    q:"Which declaration stores the word <code>&ldquo;hi&rdquo;</code> in a way the program may then change letter by letter?",
-   o:["<code>char w[10] = \"hi\";</code>", "<code>char *w = \"hi\";</code>", "<code>const char w[10] = \"hi\";</code>", "Neither of the first two"],
+   o:["<code>char w[10] = \"hi\";</code>", "<code>char *w = \"hi\";</code>", "<code>const char w[10] = \"hi\";</code>", "None of these can be changed after they are declared"],
    a:0,
    why:"The array version copies the two letters and the terminator into ten bytes that belong to your variable, so <code>w[0] = 'H'</code> is fine. <code>char *w = \"hi\";</code> points at a string literal, and writing through it is undefined behaviour &mdash; on most systems the program is killed. The <code>const</code> version refuses at compile time, which is the polite failure."},
 
@@ -6287,6 +6296,9 @@ const KINDNAME={output:"predict the output", debug:"find the mistake",
    so that no position is worth guessing and the key stays stable. */
 BANK.forEach(u=>u.questions.forEach((it,i)=>{
   if(!it.o || it.o.length!==4) return;
+  /* an option that points at the others ("neither of the first two") stops meaning
+     what it says once the options move, so such a question keeps its given order */
+  if(it.o.some(t=>/\b(the (first|last|other) (two|three|one)|both of (these|the)|all of (these|the)|none of the above|all of the above|neither of)\b/i.test(String(t)))) return;
   const want=i%4, shift=(want-it.a+4)%4;
   if(!shift) return;
   const old=it.o.slice();

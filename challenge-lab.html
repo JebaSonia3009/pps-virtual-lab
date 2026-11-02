@@ -754,7 +754,11 @@ function evalAst(n,ctx){
     case "-": return {v:a.v-b.v,type};
     case "*": return {v:a.v*b.v,type};
     case "/":
-      if(b.v===0) throw new Error("Division by zero");
+      if(b.v===0){
+        /* in C this is an error only for whole numbers; in floating point it is inf */
+        if(a.type==="float"||b.type==="float") throw new Error("Float division by zero");
+        throw new Error("Division by zero");
+      }
       return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
     case "%":
       if(!bothInt) throw new Error("% needs whole numbers");
@@ -3399,6 +3403,11 @@ function runProgram(lines,input,files){
         "each call get closer to it?"
       : /TOO_MANY_STEPS/.test(msg)
       ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Float division by zero/.test(msg)
+      ? "In floating point, C does <strong>not</strong> treat this as an error: "+
+        "<code>5.0 / 0</code> gives <code>inf</code> and <code>0.0 / 0</code> gives "+
+        "<code>nan</code>, and the program carries on. This page does not model those two "+
+        "values, so it stops here instead of showing you something it cannot draw."
       : /Division by zero/.test(msg)
       ? "A whole number cannot be divided by zero. In C this stops the program with an error."
       : /Modulus by zero/.test(msg)
@@ -3709,7 +3718,7 @@ const CONCEPTS=[
   {q:"420 units billed <em>entirely</em> at the ₹6.00 slab comes to 2520. Charged slab by slab it is 2145. The flat method therefore:",
    o:["overcharges by 375","undercharges by 375","gives the same answer","cannot be compared"], a:0,
    why:"Every unit below the top slab was charged at a rate higher than it should have been. Problem 1."},
-  {q:"Why must <code>year % 400</code> be tested before <code>year % 4</code>?",
+  {q:"Why must <code>year % 400</code> be tested before <code>year % 100</code>?",
    o:["It is faster","400 is a larger number","Otherwise 2000 is wrongly reported as not a leap year","C evaluates conditions right to left"], a:2,
    why:"2000 divides by 4, by 100 and by 400. Whichever test comes first decides, so the most specific rule has to be asked first. Problem 2."},
   {q:"Why can 2, 3 and 9 not form a triangle?",
@@ -5741,6 +5750,9 @@ fillPrograms(); loadProgram();
    the same way every time, so the answer key stays stable. */
 CONCEPTS.forEach(c=>(c.quiz||[]).forEach((it,i)=>{
   if(!it.o || it.o.length!==4) return;
+  /* an option that points at the others ("neither of the first two") stops meaning
+     what it says once the options move, so such a question keeps its given order */
+  if(it.o.some(t=>/\b(the (first|last|other) (two|three|one)|both of (these|the)|all of (these|the)|none of the above|all of the above|neither of)\b/i.test(String(t)))) return;
   const want=i%4, shift=(want-it.a+4)%4;
   if(!shift) return;
   const old=it.o.slice();

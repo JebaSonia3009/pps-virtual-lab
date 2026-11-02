@@ -480,7 +480,9 @@ b = temp;       a = a - b;      /* sum − old a gives b   */</pre>
         <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.2.5 (Types), clause 6.3.1.8
         (Usual arithmetic conversions) and clause 6.5 (Expressions).</li>
       </ol>
-      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+      <p class="note">Clause numbers refer to ISO/IEC 9899:2018, the C standard itself. The
+      textbook chapters are given so that a point can be followed up in whichever of these books
+      your library holds.</p>
     </section>
 
     <!-- CONTRIBUTORS -->
@@ -565,8 +567,13 @@ function tokenize(src,vars){
     const c=src[i];
     if(c===" "){i++; continue;}
     const prev=t[t.length-1];
-    const unary = c==="-" && /[0-9.a-zA-Z_']/.test(src[i+1]||"") &&
-      (!prev || prev.k==="op" || (prev.k==="paren"&&prev.v==="("));
+    const unaryHere = !prev || prev.k==="op" || (prev.k==="paren"&&prev.v==="(");
+    /* -(3 + 2): there is no literal to fold the sign into, so it becomes 0 - (3 + 2) */
+    if(c==="-" && unaryHere && (src[i+1]||"")==="("){
+      t.push({k:"num",type:"int",v:0,name:"0"});
+      t.push({k:"op",v:"-"}); i++; continue;
+    }
+    const unary = c==="-" && /[0-9.a-zA-Z_']/.test(src[i+1]||"") && unaryHere;
     if(!unary && "+-*/%()".includes(c)){
       t.push({k:(c==="("||c===")")?"paren":"op", v:c}); i++; continue;
     }

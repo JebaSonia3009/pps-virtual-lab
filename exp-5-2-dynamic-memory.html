@@ -1037,7 +1037,11 @@ function evalAst(n,ctx){
     case "-": return {v:a.v-b.v,type};
     case "*": return {v:a.v*b.v,type};
     case "/":
-      if(b.v===0) throw new Error("Division by zero");
+      if(b.v===0){
+        /* in C this is an error only for whole numbers; in floating point it is inf */
+        if(a.type==="float"||b.type==="float") throw new Error("Float division by zero");
+        throw new Error("Division by zero");
+      }
       return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
     case "%":
       if(!bothInt) throw new Error("% needs whole numbers");
@@ -3207,6 +3211,11 @@ function runProgram(lines,input){
         "each call get closer to it?"
       : /TOO_MANY_STEPS/.test(msg)
       ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Float division by zero/.test(msg)
+      ? "In floating point, C does <strong>not</strong> treat this as an error: "+
+        "<code>5.0 / 0</code> gives <code>inf</code> and <code>0.0 / 0</code> gives "+
+        "<code>nan</code>, and the program carries on. This page does not model those two "+
+        "values, so it stops here instead of showing you something it cannot draw."
       : /Division by zero/.test(msg)
       ? "A whole number cannot be divided by zero. In C this stops the program with an error."
       : /Modulus by zero/.test(msg)
@@ -3300,7 +3309,7 @@ const CONCEPTS=[
 
   {t:"sizeof asks the compiler, so you never guess", code:PROG(NODE,
     MAIN([
-    '    printf("int %d, float %d, char %d, struct Node %d", (int)sizeof(int), (int)sizeof(float), (int)sizeof(char), (int)sizeof(struct Node));']))},
+    '    printf("int %d, float %d, char %d", (int)sizeof(int), (int)sizeof(float), (int)sizeof(char));']))},
 
   {t:"malloc can fail, so the answer is checked", limits:{n:[1,40]}, code:PROG(
     MAIN(["    int n = 5;"].concat(

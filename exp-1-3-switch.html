@@ -473,7 +473,9 @@ scanf("%d", &amp;choice);</pre>
         <li>Gottfried, B. S., <em>Schaum's Outline of Programming with C</em>, Chapter 6, McGraw Hill.</li>
         <li>ISO/IEC 9899, <em>Programming languages — C</em>, clause 6.8.4.2 (The switch statement).</li>
       </ol>
-      <p class="note">Replace with the reading list prescribed in your syllabus.</p>
+      <p class="note">Clause numbers refer to ISO/IEC 9899:2018, the C standard itself. The
+      textbook chapters are given so that a point can be followed up in whichever of these books
+      your library holds.</p>
     </section>
 
     <!-- CONTRIBUTORS -->
@@ -1656,7 +1658,7 @@ const QUIZ={
     {q:"int n = 2; switch(n){case 1: printf(\"one \"); break; case 2: printf(\"two \"); break;} prints:",
      o:["one","two","one two","nothing"], a:1},
     {q:"The same switch with every break removed, still with n = 2, prints:",
-     o:["two","one two","nothing","two three"], a:3},
+     o:["two","one two","nothing","two twice"], a:0},
     {q:"Why does fall-through happen?",
      o:["A case label is a place to jump to, not a closed block","A bug in C","Because of default","Because switch is slow"], a:0},
     {q:"Stacking case 'a': case 'e': with nothing between them means:",

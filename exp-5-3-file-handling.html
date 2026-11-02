@@ -1047,7 +1047,11 @@ function evalAst(n,ctx){
     case "-": return {v:a.v-b.v,type};
     case "*": return {v:a.v*b.v,type};
     case "/":
-      if(b.v===0) throw new Error("Division by zero");
+      if(b.v===0){
+        /* in C this is an error only for whole numbers; in floating point it is inf */
+        if(a.type==="float"||b.type==="float") throw new Error("Float division by zero");
+        throw new Error("Division by zero");
+      }
       return {v: bothInt?Math.trunc(a.v/b.v):a.v/b.v, type};
     case "%":
       if(!bothInt) throw new Error("% needs whole numbers");
@@ -3539,6 +3543,11 @@ function runProgram(lines,input,files){
         "each call get closer to it?"
       : /TOO_MANY_STEPS/.test(msg)
       ? "This program needs too many steps to show one at a time. Try a smaller number at the top."
+      : /Float division by zero/.test(msg)
+      ? "In floating point, C does <strong>not</strong> treat this as an error: "+
+        "<code>5.0 / 0</code> gives <code>inf</code> and <code>0.0 / 0</code> gives "+
+        "<code>nan</code>, and the program carries on. This page does not model those two "+
+        "values, so it stops here instead of showing you something it cannot draw."
       : /Division by zero/.test(msg)
       ? "A whole number cannot be divided by zero. In C this stops the program with an error."
       : /Modulus by zero/.test(msg)
@@ -5256,7 +5265,8 @@ const QUIZ={
      o:["It is faster","Characters are numbers","C requires it","EOF is a negative value a char may not be able to hold"], a:3},
     {q:"Counting words, a newline must be treated as a separator because:",
      o:["Otherwise the count is too low: the first word of every line after the first is missed","It is not a character","fgets removes it","The count would be too high"], a:0},
-    {q:"In a frequency report, why check 0 <= n <= 10 before count[n] = count[n] + 1?",
+    {q:"In a frequency report, why check n >= 0 && n <= 10 before count[n] = count[n] + 1? "+
+       "(Written out as 0 <= n <= 10, C reads it as (0 <= n) <= 10, which is always true.)",
      o:["To make it faster","To skip zeros","Because one stray value would write outside the array, and C will not stop it","The compiler needs it"], a:2},
     {q:"A file holds the characters 7 8 and a space. Read with fgets it is a line; read with fscanf(\"%d\") it is two numbers. What decides?",
      o:["The name of the file","A marker at the start of the file","The function you choose to read it with","The operating system"], a:2}
